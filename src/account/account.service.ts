@@ -4,11 +4,11 @@ import { Injectable } from '@nestjs/common';
 export class AccountService {
   constructor() {}
 
+  async getAccountByidx() {}
+
   async getAccountBynickname() {}
 
   async getAccountByEmail() {}
-
-  async getAccountByidx() {}
 
   async getMyinfo() {}
 

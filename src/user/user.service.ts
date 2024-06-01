@@ -6,7 +6,7 @@ export class UserService {
 
   async getUserByidx() {}
 
-  async getUserBynickname() {}
+  async getUserByNickname() {}
 
   async getUserByEmail() {}
 
@@ -17,24 +17,4 @@ export class UserService {
   async updateMyProfileImg() {}
 
   async deleteMyProfileImg() {}
-
-  async getFollowingList() {}
-
-  async getFollwersList() {}
-
-  async followUser() {}
-
-  async unfollowUser() {}
-
-  async isfollowing() {}
-
-  async isUserBlocked() {}
-
-  async isReviewBloked() {}
-
-  async getBookmarkListByUserIdx() {}
-
-  async getCommentListByUserIdx() {}
-
-  async getReviewListByUserIdx() {}
 }

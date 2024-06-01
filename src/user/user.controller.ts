@@ -1,9 +1,13 @@
 import {
+  Body,
   Controller,
   Delete,
   Get,
+  Param,
+  ParseIntPipe,
   Post,
   Put,
+  Query,
   UnauthorizedException,
 } from '@nestjs/common';
 import {
@@ -11,37 +15,34 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiConflictResponse,
+  ApiCreatedResponse,
+  ApiExtraModels,
   ApiInternalServerErrorResponse,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiQuery,
+  ApiResponse,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { UserService } from './user.service';
+import { CheckEmailDuplicateDto } from 'src/user/dto/check-email-duplicate.dto';
+import { Exception } from 'src/decorator/exception.decorator';
+import { CheckEmailDuplicateReponseDto } from 'src/user/dto/response/check-email-duplicate-response.dto';
 
-@ApiTags('user')
 @Controller('user')
+@ApiTags('user')
 export class UserController {
   constructor(private userService: UserService) {}
 
   @Post('/check-email')
-  @ApiOperation({
-    summary: '이메일 중복확인',
-    description: '이메일중복확인api',
-  })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: { email: { type: 'string', description: 'email' } },
-    },
-  })
-  @ApiBadRequestResponse({ description: 'Invalid Request body' })
-  @ApiConflictResponse({ description: 'Duplicated Email' })
-  @ApiOkResponse()
-  @ApiInternalServerErrorResponse()
-  async checkEmailDulicate() {}
+  @ApiOperation({ summary: '이메일 중복확인' })
+  @Exception(400, 'Invalid Request body')
+  @Exception(409, '이메일 중복')
+  @Exception(500, '서버 에러')
+  @ApiResponse({ status: 200, type: CheckEmailDuplicateReponseDto })
+  async checkEmailDulicate(@Body() checkDto: CheckEmailDuplicateDto) {}
 
   @Post('check-nickname')
   @ApiOperation({ summary: '닉네임 중복검사' })

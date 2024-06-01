@@ -4,6 +4,13 @@ import { Injectable } from '@nestjs/common';
 export class ReviewService {
   constructor() {}
 
-  // 리뷰로 가야됨
-  async getReviewListByUserIdx() {}
+  async getReviewAllByUserIdx() {}
+
+  async getReviewAllBySearch() {}
+
+  async getReviewAllLiked() {}
+
+  async updateMyReview() {}
+
+  async deleteMyReview() {}
 }

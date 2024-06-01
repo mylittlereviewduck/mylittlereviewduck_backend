@@ -10,12 +10,7 @@ import { ReviewModule } from './review/review.module';
 
 @Module({
   imports: [UserModule, AuthModule, ReviewModule],
-  controllers: [
-    AppController,
-    AuthController,
-    UserController,
-    ReviewController,
-  ],
+  controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}

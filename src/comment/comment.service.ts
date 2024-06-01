@@ -4,5 +4,6 @@ import { Injectable } from '@nestjs/common';
 export class CommentService {
   constructor() {}
 
+  //유저가 댓글을 단 게시글들을 반환
   async getCommentListByUserIdx() {}
 }

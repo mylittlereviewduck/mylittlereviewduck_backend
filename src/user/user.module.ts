@@ -6,7 +6,7 @@ import { UserBlockService } from './userBlock.service';
 import { BookmarkService } from 'src/review/bookmark.service';
 
 @Module({
-  imports: [BookmarkService],
+  imports: [],
   controllers: [UserController],
   providers: [UserService, FollowService, UserBlockService],
   exports: [],

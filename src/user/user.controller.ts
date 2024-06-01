@@ -1,27 +1,13 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  ParseIntPipe,
-  Post,
-  Put,
-  Query,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Put } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
   ApiBody,
   ApiConflictResponse,
-  ApiCreatedResponse,
-  ApiExtraModels,
   ApiInternalServerErrorResponse,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
-  ApiQuery,
   ApiResponse,
   ApiTags,
   ApiUnauthorizedResponse,
@@ -108,30 +94,6 @@ export class UserController {
   @ApiBadRequestResponse()
   @ApiInternalServerErrorResponse()
   async getUserInfo() {}
-
-  @Get('/:userIdx/review/all')
-  @ApiOperation({ summary: '유저가 쓴 리뷰목록보기' })
-  @ApiParam({ name: 'userIdx', type: 'number' })
-  @ApiOkResponse()
-  @ApiBadRequestResponse({ description: 'Invalid Request Param' })
-  @ApiInternalServerErrorResponse()
-  async getReviewAllByuserIdx() {}
-
-  @Get('/:userIdx/bookmarked-review/all')
-  @ApiOperation({ summary: '유저의 북마크한 리뷰목록보기' })
-  @ApiParam({ name: 'userIdx', type: 'number' })
-  @ApiOkResponse()
-  @ApiBadRequestResponse({ description: 'Invalid Request Param' })
-  @ApiInternalServerErrorResponse()
-  async getBookmarkedReviewByuserIdx() {}
-
-  @Get('/:userIdx/comment/all')
-  @ApiOperation({ summary: '유저의 댓글목록보기' })
-  @ApiParam({ name: 'userIdx', type: 'number' })
-  @ApiOkResponse()
-  @ApiBadRequestResponse({ description: 'Invalid Request Param' })
-  @ApiInternalServerErrorResponse()
-  async getCommentAllByuserIdx() {}
 
   @Get('/:userIdx/following/all')
   @ApiOperation({ summary: '팔로잉 리스트보기' })

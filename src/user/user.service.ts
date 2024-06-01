@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
-export class AccountService {
+export class UserService {
   constructor() {}
 
-  async getAccountByidx() {}
+  async getUserByidx() {}
 
-  async getAccountBynickname() {}
+  async getUserBynickname() {}
 
-  async getAccountByEmail() {}
+  async getUserByEmail() {}
 
   async getMyinfo() {}
 

@@ -9,4 +9,6 @@ export class BookmarkService {
   async bookmarkReview() {}
 
   async deleteBookmark() {}
+
+  async isBookmarked() {}
 }

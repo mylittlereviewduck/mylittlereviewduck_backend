@@ -1,4 +1,4 @@
-export class ReviewLikeEntity {
+export class ReviewBlockEntity {
   userIdx: number;
   reviewIdx: number;
 }

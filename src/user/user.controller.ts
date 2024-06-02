@@ -44,6 +44,17 @@ export class UserController {
   @ApiResponse({ status: 200 })
   async checkNicknameDuplicate() {}
 
+  @Post('/signup')
+  @ApiOperation({ summary: '회원가입' })
+  @Exception(400, '유효하지않은 요청')
+  @Exception(409, '유효하지않은 닉네임/이메일이거나 이미가입된 회원입니다')
+  @Exception(500, '서버에러')
+  @ApiResponse({ status: 201 })
+  async signUp() //인증된이메일 확인 //닉네임 중복확인
+  // 이메일 중복확인?
+  //인증된이메일 삭제
+  {}
+
   @Get('myinfo')
   @ApiOperation({ summary: '내정보보기' })
   @ApiBearerAuth()

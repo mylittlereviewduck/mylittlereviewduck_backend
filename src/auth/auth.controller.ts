@@ -1,17 +1,11 @@
-import { Controller, HttpCode, Post } from '@nestjs/common';
-import {
-  ApiBadRequestResponse,
-  ApiInternalServerErrorResponse,
-  ApiOkResponse,
-  ApiOperation,
-  ApiResponse,
-  ApiTags,
-  ApiUnauthorizedResponse,
-} from '@nestjs/swagger';
+import { Body, Controller, HttpCode, Post } from '@nestjs/common';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Exception } from 'src/decorator/exception.decorator';
-import { SendEmailWithVerificationDto } from './dto/response/sendEmailWithVerificationDto';
-import { EmailVerifyResponseDto } from './dto/response/EmailVerifyResponseDto';
+import { SendEmailWithVerificationResponseDto } from './dto/response/SendEmailWithVerificationResponseDto';
+import { VerifyEmailResponseDto } from './dto/response/VerifyEmailResponseDto';
 import { SignInDto } from './dto/SignInDto';
+import { VerifyEmailDto } from './dto/VerifyEmailDto';
+import { SendEmailWithVerificationDto } from './dto/SendEmailWithVerificationDto';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -23,8 +17,10 @@ export class AuthController {
   @ApiOperation({ summary: '이메일 인증 전송' })
   @Exception(400, '유효하지않은 요청')
   @Exception(500, '서버 에러')
-  @ApiResponse({ status: 200, type: SendEmailWithVerificationDto })
-  async sendEmailWithVerification() {}
+  @ApiResponse({ status: 200, type: SendEmailWithVerificationResponseDto })
+  async sendEmailWithVerification(
+    @Body() sendEmailWithVerificationDto: SendEmailWithVerificationDto,
+  ) {}
 
   //이메일 인증번호확인
   //req body
@@ -33,8 +29,8 @@ export class AuthController {
   @Exception(400, '유효하지않은 요청')
   @Exception(409, '이미 인증된 이메일')
   @Exception(500, '서버 에러')
-  @ApiResponse({ status: 200, type: EmailVerifyResponseDto })
-  async authEmail() {
+  @ApiResponse({ status: 200, type: VerifyEmailResponseDto })
+  async verifyEmail(@Body() verifyEmailDto: VerifyEmailDto) {
     //true면 이메일 db저장
   }
 
@@ -47,7 +43,7 @@ export class AuthController {
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: SignInDto })
-  async authUser() {}
+  async authUser(@Body() signInDto: SignInDto) {}
 
   //소셜로그인
   @Post('/kakao')

@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class EmailVerifyResponseDto {
+export class VerifyEmailResponseDto {
   @ApiProperty()
   isVerified: boolean;
 }

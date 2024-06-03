@@ -21,6 +21,11 @@ import { Exception } from 'src/decorator/exception.decorator';
 import { CheckEmailDuplicateReponseDto } from 'src/user/dto/response/checkEmailDuplicateResponseDto.ts';
 import { CheckNicknameDuplicateResponseDto } from './dto/response/CheckNicknameDuplicateResponseDto';
 import { CheckNicknameDuplicateDto } from './dto/CheckNicknameDuplicateDto';
+import { SignUpDto } from './dto/SignUpDto';
+import { UserEntity } from './entity/UserEntity';
+import { UpdateMyInfoDto } from './dto/UpdateMyInfoDto';
+import { UpdateMyProfileImgDto } from './dto/UpdateMyProfileImgDto';
+import { GetFollowingAllDto } from './dto/GetFollowingAllDto';
 
 @Controller('user')
 @ApiTags('user')
@@ -51,30 +56,24 @@ export class UserController {
   @Exception(409, '유효하지않은 닉네임/이메일이거나 이미가입된 회원입니다')
   @Exception(500, '서버에러')
   @ApiResponse({ status: 201 })
-  async signUp() {} //인증된이메일 삭제 // 이메일 중복확인? //인증된이메일 확인 //닉네임 중복확인
+  async signUp(@Body() signUpDto: SignUpDto) {} //인증된이메일 삭제 // 이메일 중복확인? //인증된이메일 확인 //닉네임 중복확인
 
   @Get('myinfo')
   @ApiOperation({ summary: '내정보보기' })
   @ApiBearerAuth()
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
-  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 200, type: UserEntity })
   async GetMyInfo() {}
 
   @Put('myinfo')
   @ApiOperation({ summary: '내정보수정' })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: { nickname: { type: 'string' }, profile: { type: 'string' } },
-    },
-  })
   @ApiBearerAuth()
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200 })
-  async updateMyInfo() {}
+  async updateMyInfo(@Body() updateMyInfoDto: UpdateMyInfoDto) {}
 
   @Put('profile-img')
   @ApiOperation({ summary: '프로필 이미지 수정' })
@@ -83,7 +82,9 @@ export class UserController {
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200 })
-  async updateMyProfileImg() {}
+  async updateMyProfileImg(
+    @Body() updateMyProfileImgDto: UpdateMyProfileImgDto,
+  ) {}
 
   @Delete('profile-img')
   @ApiOperation({ summary: '프로필 이미지 삭제' })
@@ -101,7 +102,7 @@ export class UserController {
   })
   @Exception(400, '유효하지않은 요청')
   @Exception(500, '서버 에러')
-  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 200, type: UserEntity })
   async getUserInfo() {}
 
   @Get('/:userIdx/following/all')
@@ -109,7 +110,7 @@ export class UserController {
   @ApiParam({ name: 'userIdx', type: 'number' })
   @Exception(400, '유효하지않은 요청')
   @Exception(500, '서버 에러')
-  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 200, type: UserEntity, isArray: true })
   async getFollowingAll() {}
 
   @Get('/:userIdx/follower/all')
@@ -117,17 +118,18 @@ export class UserController {
   @ApiParam({ name: 'userIdx', type: 'number' })
   @Exception(400, '유효하지않은 요청')
   @Exception(500, '서버 에러')
-  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 200, type: UserEntity, isArray: true })
   async getFollowerAll() {}
 
   @Post('/:userIdx/follow')
+  @HttpCode(200)
   @ApiOperation({ summary: '유저 팔로우' })
   @ApiBearerAuth()
   @ApiParam({ name: 'userIdx', type: 'number' })
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
-  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 200, description: '팔로우 성공 200 반환' })
   async followUser() {}
 
   @Delete('/:userIdx/follow')
@@ -137,27 +139,28 @@ export class UserController {
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
-  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 200, description: '언팔로우 성공 200 반환' })
   async UnfollowUser() {}
 
   @Post(':userIdx/block')
+  @HttpCode(200)
   @ApiOperation({ summary: '유저 차단하기' })
   @ApiBearerAuth()
   @ApiParam({ name: 'userIdx', type: 'number' })
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
-  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 200, description: '차단 성공 200 반환' })
   async blockUser() {}
 
-  @Post(':userIdx/unblock')
+  @Delete(':userIdx/block')
   @ApiOperation({ summary: '유저 차단해제하기' })
   @ApiBearerAuth()
   @ApiParam({ name: 'userIdx', type: 'number' })
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
-  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 200, description: '차단해제 성공 200 반환' })
   async UnblockUser() {}
 
   @Get('blocked-user/all')
@@ -165,6 +168,6 @@ export class UserController {
   @ApiBearerAuth()
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
-  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 200, type: UserEntity, isArray: true })
   async getBlockedUserAll() {}
 }

@@ -7,7 +7,7 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 import { Exception } from 'src/decorator/exception.decorator';
-import { CreateReviewDto } from './dto/createReviewDto';
+import { CreateReviewDto } from './dto/CreateReviewDto';
 
 @Controller('')
 @ApiTags('review')
@@ -15,7 +15,6 @@ export class ReviewController {
   constructor() {}
 
   //리뷰자세히보기
-
   @Post('/review')
   @ApiOperation({ summary: '리뷰 작성하기' })
   @ApiBody({ type: CreateReviewDto })

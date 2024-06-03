@@ -9,7 +9,6 @@ import {
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
-  ApiBody,
   ApiOperation,
   ApiParam,
   ApiResponse,
@@ -18,14 +17,12 @@ import {
 import { UserService } from './user.service';
 import { CheckEmailDuplicateDto } from 'src/user/dto/checkEmailDuplicateDto';
 import { Exception } from 'src/decorator/exception.decorator';
-import { CheckEmailDuplicateReponseDto } from 'src/user/dto/response/checkEmailDuplicateResponseDto.ts';
-import { CheckNicknameDuplicateResponseDto } from './dto/response/CheckNicknameDuplicateResponseDto';
 import { CheckNicknameDuplicateDto } from './dto/CheckNicknameDuplicateDto';
 import { SignUpDto } from './dto/SignUpDto';
 import { UserEntity } from './entity/UserEntity';
 import { UpdateMyInfoDto } from './dto/UpdateMyInfoDto';
 import { UpdateMyProfileImgDto } from './dto/UpdateMyProfileImgDto';
-import { GetFollowingAllDto } from './dto/GetFollowingAllDto';
+import { UserWithFollowStatusDto } from './dto/response/GetFollowResponseDto';
 
 @Controller('user')
 @ApiTags('user')
@@ -102,15 +99,16 @@ export class UserController {
   })
   @Exception(400, '유효하지않은 요청')
   @Exception(500, '서버 에러')
-  @ApiResponse({ status: 200, type: UserEntity })
+  @ApiResponse({ status: 200, type: UserWithFollowStatusDto })
   async getUserInfo() {}
 
+  //?? 팔로우여부가 포함된 dto이렇게 하는게 맞을까?
   @Get('/:userIdx/following/all')
   @ApiOperation({ summary: '팔로잉 리스트보기' })
   @ApiParam({ name: 'userIdx', type: 'number' })
   @Exception(400, '유효하지않은 요청')
   @Exception(500, '서버 에러')
-  @ApiResponse({ status: 200, type: UserEntity, isArray: true })
+  @ApiResponse({ status: 200, type: UserWithFollowStatusDto, isArray: true })
   async getFollowingAll() {}
 
   @Get('/:userIdx/follower/all')
@@ -118,7 +116,7 @@ export class UserController {
   @ApiParam({ name: 'userIdx', type: 'number' })
   @Exception(400, '유효하지않은 요청')
   @Exception(500, '서버 에러')
-  @ApiResponse({ status: 200, type: UserEntity, isArray: true })
+  @ApiResponse({ status: 200, type: UserWithFollowStatusDto, isArray: true })
   async getFollowerAll() {}
 
   @Post('/:userIdx/follow')

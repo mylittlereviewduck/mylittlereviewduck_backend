@@ -22,7 +22,6 @@ import { SignUpDto } from './dto/SignUpDto';
 import { UserEntity } from './entity/UserEntity';
 import { UpdateMyInfoDto } from './dto/UpdateMyInfoDto';
 import { UpdateMyProfileImgDto } from './dto/UpdateMyProfileImgDto';
-import { UserWithFollowStatusDto } from './dto/response/GetFollowResponseDto';
 
 @Controller('user')
 @ApiTags('user')
@@ -53,7 +52,9 @@ export class UserController {
   @Exception(409, '유효하지않은 닉네임/이메일이거나 이미가입된 회원입니다')
   @Exception(500, '서버에러')
   @ApiResponse({ status: 201 })
-  async signUp(@Body() signUpDto: SignUpDto) {} //인증된이메일 삭제 // 이메일 중복확인? //인증된이메일 확인 //닉네임 중복확인
+  async signUp(@Body() signUpDto: SignUpDto) {
+    //인증된이메일 삭제 // 이메일 중복확인? //인증된이메일 확인 //닉네임 중복확인
+  }
 
   @Get('myinfo')
   @ApiOperation({ summary: '내정보보기' })
@@ -99,16 +100,16 @@ export class UserController {
   })
   @Exception(400, '유효하지않은 요청')
   @Exception(500, '서버 에러')
-  @ApiResponse({ status: 200, type: UserWithFollowStatusDto })
+  @ApiResponse({ status: 200, type: UserEntity })
   async getUserInfo() {}
 
-  //?? 팔로우여부가 포함된 dto이렇게 하는게 맞을까?
+  //?? 팔로우여부가 포함된 유저를 response할때, 어떻게dto를 만들어야할까?
   @Get('/:userIdx/following/all')
   @ApiOperation({ summary: '팔로잉 리스트보기' })
   @ApiParam({ name: 'userIdx', type: 'number' })
   @Exception(400, '유효하지않은 요청')
   @Exception(500, '서버 에러')
-  @ApiResponse({ status: 200, type: UserWithFollowStatusDto, isArray: true })
+  @ApiResponse({ status: 200, type: UserEntity, isArray: true })
   async getFollowingAll() {}
 
   @Get('/:userIdx/follower/all')
@@ -116,7 +117,7 @@ export class UserController {
   @ApiParam({ name: 'userIdx', type: 'number' })
   @Exception(400, '유효하지않은 요청')
   @Exception(500, '서버 에러')
-  @ApiResponse({ status: 200, type: UserWithFollowStatusDto, isArray: true })
+  @ApiResponse({ status: 200, type: UserEntity, isArray: true })
   async getFollowerAll() {}
 
   @Post('/:userIdx/follow')

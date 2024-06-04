@@ -50,7 +50,6 @@ export class CommentController {
   @ApiResponse({ status: 200 })
   async deleteComment() {}
 
-  //댓글 좋아요
   @Post('/review/:reviewIdx/comment/:commentIdx/like')
   @ApiBearerAuth()
   @ApiOperation({ summary: '댓글 좋아요' })
@@ -62,7 +61,6 @@ export class CommentController {
   @ApiResponse({ status: 200, description: '댓글 좋아요 성공시 200 반환' })
   async likeComment() {}
 
-  //댓글 좋아요삭제
   @Delete('/review/:reviewIdx/comment/:commentIdx/like')
   @ApiBearerAuth()
   @ApiOperation({ summary: '댓글 좋아요 해제' })

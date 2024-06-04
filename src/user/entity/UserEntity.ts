@@ -16,11 +16,15 @@ export class UserEntity {
   @ApiProperty({ description: '닉네임' })
   nickname: string;
 
+  @ApiProperty({ description: '팔로우여부', required: false, nullable: true })
+  isFollowing?: boolean | null;
+
   constructor(data) {
     this.idx = data.idx;
     this.email = data.email;
     this.profile = data.profile;
     this.profileImg = data.profileImg;
     this.nickname = data.nickname;
+    this.isFollowing = data.isFollowing;
   }
 }

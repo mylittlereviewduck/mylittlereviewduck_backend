@@ -7,16 +7,21 @@ export class UserEntity {
   @ApiProperty({ example: 'abc123@naver.com', description: '이메일형식' })
   email: string;
 
-  @ApiProperty({ description: '유저 프로필' })
+  @ApiProperty({ example: '유저 프로필 소개', description: '유저 프로필' })
   profile: string;
 
-  @ApiProperty({ description: '프로필 이미지 경로' })
+  @ApiProperty({ example: 'example.png', description: '프로필 이미지 경로' })
   profileImg: string;
 
-  @ApiProperty({ description: '닉네임' })
+  @ApiProperty({ example: '닉네임', description: '닉네임' })
   nickname: string;
 
-  @ApiProperty({ description: '팔로우여부', required: false, nullable: true })
+  @ApiProperty({
+    example: 'true',
+    description: '팔로우여부',
+    required: false,
+    nullable: true,
+  })
   isFollowing?: boolean | null;
 
   constructor(data) {

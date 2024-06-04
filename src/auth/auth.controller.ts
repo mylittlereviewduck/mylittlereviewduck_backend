@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, Post, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Exception } from 'src/decorator/exception.decorator';
 import { SendEmailWithVerificationResponseDto } from './dto/response/SendEmailWithVerificationResponseDto';
@@ -6,6 +6,7 @@ import { VerifyEmailResponseDto } from './dto/response/VerifyEmailResponseDto';
 import { SignInDto } from './dto/SignInDto';
 import { VerifyEmailDto } from './dto/VerifyEmailDto';
 import { SendEmailWithVerificationDto } from './dto/SendEmailWithVerificationDto';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -45,7 +46,12 @@ export class AuthController {
   @ApiResponse({ status: 200, type: SignInDto })
   async authUser(@Body() signInDto: SignInDto) {}
 
-  //소셜로그인
+  //소셜로그인 - 구글
+  @Post('google')
+  @UseGuards(AuthGuard('google'))
+  async authgoogle() {}
+
+  //소셜로그인 - 카카오
   @Post('/kakao')
   @ApiOperation({ summary: '카카오로그인' })
   async authKakao() {}

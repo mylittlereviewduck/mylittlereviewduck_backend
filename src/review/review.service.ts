@@ -10,6 +10,8 @@ export class ReviewService {
 
   async getReviewAllLiked() {}
 
+  async createReview() {}
+
   async updateMyReview() {}
 
   async deleteMyReview() {}

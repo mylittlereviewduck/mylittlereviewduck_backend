@@ -1,11 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsEmail, IsString, Length } from 'class-validator';
 
 export class CheckEmailDuplicateDto {
   @ApiProperty({
     example: 'abc123@naver.com',
-    description: '이메일입니다. 이메일 양식을 맞춰야합니다.',
+    description: '2-20자, 이메일 양식을 맞춰야합니다.',
   })
+  @IsEmail()
+  @Length(2, 20)
   email: string;
-
-  pw: string;
 }

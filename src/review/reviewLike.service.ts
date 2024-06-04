@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
-export class ReviewLike {
+export class ReviewLikeService {
   constructor() {}
 
   async getReviewAllOrderByLike() {}
@@ -9,4 +9,6 @@ export class ReviewLike {
   async likeReview() {}
 
   async unlikeReview() {}
+
+  async isReviewLiked() {}
 }

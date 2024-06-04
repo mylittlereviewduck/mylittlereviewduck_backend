@@ -7,9 +7,10 @@ import { AuthController } from './auth/auth.controller';
 import { UserController } from './user/user.controller';
 import { ReviewController } from './review/review.controller';
 import { ReviewModule } from './review/review.module';
+import { CommentModule } from './comment/comment.module';
 
 @Module({
-  imports: [UserModule, AuthModule, ReviewModule],
+  imports: [UserModule, AuthModule, ReviewModule, CommentModule],
   controllers: [AppController],
   providers: [AppService],
 })

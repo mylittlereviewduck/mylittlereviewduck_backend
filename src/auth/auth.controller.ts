@@ -17,11 +17,16 @@ import { SignInDto } from './dto/SignInDto';
 import { VerifyEmailDto } from './dto/VerifyEmailDto';
 import { SendEmailWithVerificationDto } from './dto/SendEmailWithVerificationDto';
 import { AuthGuard } from '@nestjs/passport';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { UserService } from 'src/user/user.service';
 
 @Controller('auth')
 @ApiTags('auth')
 export class AuthController {
-  constructor() {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly userService: UserService,
+  ) {}
 
   //이메일 인증번호전송
   @Post('/email/send')
@@ -70,9 +75,15 @@ export class AuthController {
     console.log('req.users~~~~~~~~~');
     console.log(req.user);
 
+    const { email } = req.user;
     //해당 이메일로 가입한 유저 찾기
 
+    const user = this.userService.getUserByEmail(email);
+
     //유저 없다면 회원가입
+    if (!user) {
+      this.prismaService.account_tb.create({ data: { id } });
+    }
 
     //유저 있다면 액세스토큰, 리프레시 토큰 전송
   }

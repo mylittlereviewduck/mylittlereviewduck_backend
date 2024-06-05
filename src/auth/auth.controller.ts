@@ -1,4 +1,14 @@
-import { Body, Controller, HttpCode, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Post,
+  Req,
+  Request,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Exception } from 'src/decorator/exception.decorator';
 import { SendEmailWithVerificationResponseDto } from './dto/response/SendEmailWithVerificationResponseDto';
@@ -47,9 +57,25 @@ export class AuthController {
   async authUser(@Body() signInDto: SignInDto) {}
 
   //소셜로그인 - 구글
-  @Post('google')
+  @Get('/google')
   @UseGuards(AuthGuard('google'))
   async authgoogle() {}
+
+  @Get('/google/callback')
+  @UseGuards(AuthGuard('google'))
+  async googleRedirect(@Request() req, @Res() res) {
+    console.log('req.query~~~~~~~~~~~');
+    console.log(req.query);
+
+    console.log('req.users~~~~~~~~~');
+    console.log(req.user);
+
+    //해당 이메일로 가입한 유저 찾기
+
+    //유저 없다면 회원가입
+
+    //유저 있다면 액세스토큰, 리프레시 토큰 전송
+  }
 
   //소셜로그인 - 카카오
   @Post('/kakao')

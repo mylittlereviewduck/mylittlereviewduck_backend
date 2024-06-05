@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,4 +5,151 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model account_block_tb {
+  blocker_idx                                         Int
+  blocked_idx                                         Int
+  createdAt                                           DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  account_tb_account_block_tb_blocker_idxToaccount_tb account_tb @relation("account_block_tb_blocker_idxToaccount_tb", fields: [blocker_idx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_account_block_tb")
+  account_tb_account_block_tb_blocked_idxToaccount_tb account_tb @relation("account_block_tb_blocked_idxToaccount_tb", fields: [blocked_idx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_account_block_tb1")
+
+  @@id([blocker_idx, blocked_idx])
+}
+
+model account_tb {
+  idx                                                       Int                @id @default(autoincrement())
+  email                                                     String             @unique(map: "account_tb_email_unique_key") @db.VarChar
+  pw                                                        String?            @db.VarChar
+  nickname                                                  String             @unique(map: "account_tb_nickname_unique_key") @default(dbgenerated("uuid_generate_v4()")) @db.VarChar
+  phone                                                     String?            @db.VarChar
+  profile                                                   String?
+  provider                                                  String?            @db.VarChar
+  providerKey                                               String?            @map("provider_key") @db.VarChar
+  createdAt                                                 DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt                                                 DateTime?          @map("deleted_at") @db.Timestamptz(6)
+  account_block_tb_account_block_tb_blocker_idxToaccount_tb account_block_tb[] @relation("account_block_tb_blocker_idxToaccount_tb")
+  account_block_tb_account_block_tb_blocked_idxToaccount_tb account_block_tb[] @relation("account_block_tb_blocked_idxToaccount_tb")
+  bookmark_tb                                               bookmark_tb[]
+  comment_likes_tb                                          comment_likes_tb[]
+  comment_tb                                                comment_tb[]
+  follow_tb_follow_tb_follower_idxToaccount_tb              follow_tb[]        @relation("follow_tb_follower_idxToaccount_tb")
+  follow_tb_follow_tb_followee_idxToaccount_tb              follow_tb[]        @relation("follow_tb_followee_idxToaccount_tb")
+  profile_img_tb                                            profile_img_tb[]
+  review_block_tb                                           review_block_tb[]
+  review_likes_tb                                           review_likes_tb[]
+  review_tb                                                 review_tb[]
+}
+
+model bookmark_tb {
+  accountIdx Int        @map("account_idx")
+  reviewIdx  Int        @map("review_idx")
+  createdAt  DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  account_tb account_tb @relation(fields: [accountIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_bookmark_tb")
+  review_tb  review_tb  @relation(fields: [reviewIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_review_tb_to_bookmark_tb")
+
+  @@id([accountIdx, reviewIdx])
+}
+
+model comment_likes_tb {
+  commentIdx Int        @map("comment_idx")
+  accountIdx Int        @map("account_idx")
+  createdAt  DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  account_tb account_tb @relation(fields: [accountIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_comment_likes_tb")
+  comment_tb comment_tb @relation(fields: [commentIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_comment_tb_to_comment_likes_tb")
+
+  @@id([commentIdx, accountIdx])
+}
+
+model comment_tb {
+  idx              Int                @id @default(autoincrement())
+  accountIdx       Int                @map("account_idx")
+  reviewIdx        Int                @map("review_idx")
+  commentIdx       Int?               @map("comment_idx")
+  content          String             @db.VarChar
+  createdAt        DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt        DateTime?          @map("deleted_at") @db.Timestamptz(6)
+  comment_likes_tb comment_likes_tb[]
+  account_tb       account_tb         @relation(fields: [accountIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_comment_tb")
+  review_tb        review_tb          @relation(fields: [reviewIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_review_tb_to_comment_tb")
+}
+
+model follow_tb {
+  followerIdx                                   Int        @map("follower_idx")
+  followeeIdx                                   Int        @map("followee_idx")
+  createdAt                                     DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  account_tb_follow_tb_follower_idxToaccount_tb account_tb @relation("follow_tb_follower_idxToaccount_tb", fields: [followerIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_follow_tb")
+  account_tb_follow_tb_followee_idxToaccount_tb account_tb @relation("follow_tb_followee_idxToaccount_tb", fields: [followeeIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_follow_tb1")
+
+  @@id([followerIdx, followeeIdx])
+}
+
+model profile_img_tb {
+  idx        Int        @id @default(autoincrement())
+  accountIdx Int        @map("account_idx")
+  imgPath    String     @map("img_path") @db.VarChar
+  createdAt  DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt  DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  account_tb account_tb @relation(fields: [accountIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_profile_img_tb")
+}
+
+model review_block_tb {
+  accountIdx Int        @map("account_idx")
+  reviewIdx  Int        @map("review_idx")
+  createdAt  DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  account_tb account_tb @relation(fields: [accountIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_review_block_tb")
+  review_tb  review_tb  @relation(fields: [reviewIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_review_tb_to_review_block_tb")
+
+  @@id([accountIdx, reviewIdx])
+}
+
+model review_img_tb {
+  idx       Int       @id @default(autoincrement())
+  reviewIdx Int       @map("review_idx")
+  img_path  String    @db.VarChar
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  review_tb review_tb @relation(fields: [reviewIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_review_tb_to_review_img_tb")
+}
+
+model review_likes_tb {
+  accountIdx Int        @map("account_idx")
+  reviewIdx  Int        @map("review_idx")
+  createdAt  DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  account_tb account_tb @relation(fields: [accountIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_review_likes_tb")
+  review_tb  review_tb  @relation(fields: [reviewIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_review_tb_to_review_likes_tb")
+
+  @@id([accountIdx, reviewIdx])
+}
+
+model review_tb {
+  idx             Int               @id @default(autoincrement())
+  accountIdx      Int               @map("account_idx")
+  title           String            @db.VarChar
+  content         String            @db.VarChar
+  view            Int               @default(0)
+  createdAt       DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt       DateTime?         @map("deleted_at") @db.Timestamptz(6)
+  bookmark_tb     bookmark_tb[]
+  comment_tb      comment_tb[]
+  review_block_tb review_block_tb[]
+  review_img_tb   review_img_tb[]
+  review_likes_tb review_likes_tb[]
+  account_tb      account_tb        @relation(fields: [accountIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_review_tb")
+  tag_tb          tag_tb[]
+}
+
+model tag_tb {
+  idx       Int       @id @default(autoincrement())
+  reviewIdx Int       @map("review_idx")
+  name      String    @db.VarChar
+  review_tb review_tb @relation(fields: [reviewIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_review_tb_to_tag_tb")
+}
+
+model verified_email_tb {
+  idx        Int      @id @default(autoincrement())
+  email      String   @db.VarChar
+  code       Int
+  isVerified Boolean  @default(false) @map("is_verified")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 }

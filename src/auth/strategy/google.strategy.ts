@@ -6,10 +6,6 @@ import { Profile, Strategy, VerifyCallback } from 'passport-google-oauth20';
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(private readonly configService: ConfigService) {
-    console.log(configService.get<string>('GOOGLE_CLIENT_ID'));
-    console.log(configService.get<string>('GOOGLE_CLIENT_SECRET'));
-    console.log(configService.get<string>('GOOGLE_REDIRECT_URI'));
-
     super({
       clientID: configService.get<string>('GOOGLE_CLIENT_ID'),
       clientSecret: configService.get<string>('GOOGLE_CLIENT_SECRET'),
@@ -26,24 +22,14 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   ) {
     const { name, email, sub } = profile._json;
 
-    console.log('accessToken');
-    console.log(accessToken);
-
-    console.log('refreshToken');
-    console.log(refreshToken);
-
-    console.log('profile');
-    console.log(profile);
-
     const user = {
       email,
       name,
-      id: sub,
+      providerKey: sub,
       provider: profile.provider,
       accessToken,
     };
 
-    console.log(user);
     return user;
   }
 }

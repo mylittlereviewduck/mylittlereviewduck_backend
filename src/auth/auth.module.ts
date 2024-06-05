@@ -1,14 +1,25 @@
+import { NaverStrategy } from './strategy/naver.strategy';
 import { Module } from '@nestjs/common';
-import { AuthController } from './auth.controller';
-import { GoogleStrategy } from './strategy/google.strategy';
-import { ConfigModule } from '@nestjs/config';
-import { UserService } from 'src/user/user.service';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { UserModule } from 'src/user/user.module';
+import { AuthController } from './auth.controller';
+import { AuthService } from './auth.service';
+import { GoogleStrategy } from './strategy/google.strategy';
+import { JwtModule } from '@nestjs/jwt';
+import { jwtConstants } from './constants';
 
 @Module({
-  imports: [PrismaModule, UserModule],
+  imports: [
+    PrismaModule,
+    UserModule,
+    JwtModule.register({
+      global: true,
+      secret: jwtConstants.secret,
+      signOptions: { expiresIn: 12 * 3600 },
+    }),
+  ],
   controllers: [AuthController],
-  providers: [AuthModule, GoogleStrategy],
+  providers: [AuthService, GoogleStrategy, NaverStrategy],
+  exports: [AuthService],
 })
 export class AuthModule {}

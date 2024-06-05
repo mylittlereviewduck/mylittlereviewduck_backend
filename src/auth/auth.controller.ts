@@ -1,3 +1,4 @@
+import { NaverAuthGuard } from './naver-auth.guard';
 import {
   Body,
   Controller,
@@ -19,14 +20,14 @@ import { SendEmailWithVerificationDto } from './dto/SendEmailWithVerificationDto
 import { AuthGuard } from '@nestjs/passport';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserService } from 'src/user/user.service';
+import { SignUpOAuthDto } from 'src/user/dto/SignUpOAuthDto';
+import { AuthService } from './auth.service';
+import { response } from 'express';
 
 @Controller('auth')
 @ApiTags('auth')
 export class AuthController {
-  constructor(
-    private readonly prismaService: PrismaService,
-    private readonly userService: UserService,
-  ) {}
+  constructor(private readonly authService: AuthService) {}
 
   //이메일 인증번호전송
   @Post('/email/send')
@@ -52,7 +53,7 @@ export class AuthController {
 
   //기본로그인
   //req body
-  @Post('signin')
+  @Post('/signin')
   @ApiOperation({ summary: '로그인' })
   @HttpCode(200)
   @Exception(400, '유효하지않은 요청')
@@ -64,32 +65,41 @@ export class AuthController {
   //소셜로그인 - 구글
   @Get('/google')
   @UseGuards(AuthGuard('google'))
-  async authgoogle() {}
+  @ApiOperation({ summary: '구글 로그인' })
+  async authWithGoogle() {}
 
   @Get('/google/callback')
   @UseGuards(AuthGuard('google'))
   async googleRedirect(@Request() req, @Res() res) {
-    console.log('req.query~~~~~~~~~~~');
-    console.log(req.query);
+    const access_token = await this.authService.SignInOAuth(req, res);
+    console.log(access_token);
+    return access_token;
+  }
 
-    console.log('req.users~~~~~~~~~');
-    console.log(req.user);
+  //소셜로그인 - 네이버
+  @Get('/naver')
+  @UseGuards(NaverAuthGuard)
+  @ApiOperation({ summary: '네이버 로그인' })
+  async authWithNaver() {
+    // console.log('실행~~~');
+    // return response.redirect('https://nid.naver.com/oauth2.0/authorize');
+  }
 
-    const { email } = req.user;
-    //해당 이메일로 가입한 유저 찾기
+  @Get('/naver/callback')
+  @UseGuards(NaverAuthGuard)
+  async naverRedirect(@Req() req, @Res() res) {
+    console.log(req);
 
-    const user = this.userService.getUserByEmail(email);
-
-    //유저 없다면 회원가입
-    if (!user) {
-      this.prismaService.account_tb.create({ data: { id } });
-    }
-
-    //유저 있다면 액세스토큰, 리프레시 토큰 전송
+    const access_token = await this.authService.SignInOAuth(req, res);
+    console.log(access_token);
+    return access_token;
   }
 
   //소셜로그인 - 카카오
-  @Post('/kakao')
+  @Get('/kakao')
   @ApiOperation({ summary: '카카오로그인' })
-  async authKakao() {}
+  async authWithKakao() {}
+
+  @Get('/kakao/callback')
+  async kakaoRedirect() {}
 }

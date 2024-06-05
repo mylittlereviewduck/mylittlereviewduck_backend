@@ -13,12 +13,17 @@ export class UserService {
   async getUserByNickname() {}
 
   async getUserByEmail(email: string): Promise<UserEntity> {
-    const user = await this.prismaService.account_tb.findMany({
+    console.log(email);
+    const user = await this.prismaService.account_tb.findUnique({
       where: { email: email },
     });
 
     console.log('thisis user');
     console.log(user);
+
+    if (!user) {
+      return;
+    }
 
     return new UserEntity(user);
   }
@@ -34,7 +39,7 @@ export class UserService {
       data: {
         email: signUpOAuthDto.email,
         provider: signUpOAuthDto.provider,
-        provider_key: signUpOAuthDto.providerKey,
+        providerKey: signUpOAuthDto.providerKey,
       },
     });
   }

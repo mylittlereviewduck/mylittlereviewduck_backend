@@ -1,4 +1,4 @@
-import { NaverAuthGuard } from './naver-auth.guard';
+import { NaverAuthGuard } from './authNaver.guard';
 import {
   Body,
   Controller,
@@ -6,7 +6,6 @@ import {
   HttpCode,
   Post,
   Req,
-  Request,
   Res,
   UseGuards,
 } from '@nestjs/common';
@@ -18,11 +17,9 @@ import { SignInDto } from './dto/SignInDto';
 import { VerifyEmailDto } from './dto/VerifyEmailDto';
 import { SendEmailWithVerificationDto } from './dto/SendEmailWithVerificationDto';
 import { AuthGuard } from '@nestjs/passport';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { UserService } from 'src/user/user.service';
-import { SignUpOAuthDto } from 'src/user/dto/SignUpOAuthDto';
 import { AuthService } from './auth.service';
-import { response } from 'express';
+import { Request, Response, response } from 'express';
+import { KakaoAuthGuard } from './authKakao.guard';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -70,36 +67,35 @@ export class AuthController {
 
   @Get('/google/callback')
   @UseGuards(AuthGuard('google'))
-  async googleRedirect(@Request() req, @Res() res) {
+  async googleRedirect(@Req() req: Request, @Res() res: Response) {
     const access_token = await this.authService.SignInOAuth(req, res);
-    console.log(access_token);
     return access_token;
   }
 
   //소셜로그인 - 네이버
+  //오늘도리뷰 - 네이버 로그인 검수요청하기
   @Get('/naver')
   @UseGuards(NaverAuthGuard)
   @ApiOperation({ summary: '네이버 로그인' })
-  async authWithNaver() {
-    // console.log('실행~~~');
-    // return response.redirect('https://nid.naver.com/oauth2.0/authorize');
-  }
+  async authWithNaver() {}
 
   @Get('/naver/callback')
   @UseGuards(NaverAuthGuard)
-  async naverRedirect(@Req() req, @Res() res) {
-    console.log(req);
-
+  async naverRedirect(@Req() req: Request, @Res() res: Response) {
     const access_token = await this.authService.SignInOAuth(req, res);
-    console.log(access_token);
     return access_token;
   }
 
   //소셜로그인 - 카카오
   @Get('/kakao')
+  @UseGuards(KakaoAuthGuard)
   @ApiOperation({ summary: '카카오로그인' })
   async authWithKakao() {}
 
   @Get('/kakao/callback')
-  async kakaoRedirect() {}
+  @UseGuards(KakaoAuthGuard)
+  async kakaoRedirect(@Req() req: Request, @Res() res: Response) {
+    const access_token = await this.authService.SignInOAuth(req, res);
+    return access_token;
+  }
 }

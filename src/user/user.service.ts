@@ -13,13 +13,10 @@ export class UserService {
   async getUserByNickname() {}
 
   async getUserByEmail(email: string): Promise<UserEntity> {
-    console.log(email);
     const user = await this.prismaService.account_tb.findUnique({
       where: { email: email },
+      include: { profile_img_tb: true },
     });
-
-    console.log('thisis user');
-    console.log(user);
 
     if (!user) {
       return;
@@ -34,14 +31,30 @@ export class UserService {
     // });
   }
 
-  async signUpOAuth(signUpOAuthDto: SignUpOAuthDto) {
-    await this.prismaService.account_tb.create({
+  async signUpOAuth(signUpOAuthDto: SignUpOAuthDto): Promise<UserEntity> {
+    const userData = await this.prismaService.account_tb.create({
       data: {
         email: signUpOAuthDto.email,
         provider: signUpOAuthDto.provider,
         providerKey: signUpOAuthDto.providerKey,
       },
     });
+
+    const profileImgData = await this.prismaService.profile_img_tb.create({
+      data: {
+        accountIdx: userData.idx,
+      },
+    });
+
+    const userEntityData = {
+      idx: userData.idx,
+      email: userData.email,
+      profile: userData.profile,
+      profileImg: profileImgData.imgPath,
+      nickname: userData.nickname,
+    };
+
+    return new UserEntity(userEntityData);
   }
 
   async getMyinfo() {}

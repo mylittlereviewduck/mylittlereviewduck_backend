@@ -8,13 +8,13 @@ datasource db {
 }
 
 model account_block_tb {
-  blocker_idx                                         Int
-  blocked_idx                                         Int
+  blockerIdx                                          Int        @map("blocker_idx")
+  blockedIdx                                          Int        @map("blocked_idx")
   createdAt                                           DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
-  account_tb_account_block_tb_blocker_idxToaccount_tb account_tb @relation("account_block_tb_blocker_idxToaccount_tb", fields: [blocker_idx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_account_block_tb")
-  account_tb_account_block_tb_blocked_idxToaccount_tb account_tb @relation("account_block_tb_blocked_idxToaccount_tb", fields: [blocked_idx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_account_block_tb1")
+  account_tb_account_block_tb_blocker_idxToaccount_tb account_tb @relation("account_block_tb_blocker_idxToaccount_tb", fields: [blockerIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_account_block_tb")
+  account_tb_account_block_tb_blocked_idxToaccount_tb account_tb @relation("account_block_tb_blocked_idxToaccount_tb", fields: [blockedIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_account_block_tb1")
 
-  @@id([blocker_idx, blocked_idx])
+  @@id([blockerIdx, blockedIdx])
 }
 
 model account_tb {
@@ -87,7 +87,7 @@ model follow_tb {
 model profile_img_tb {
   idx        Int        @id @default(autoincrement())
   accountIdx Int        @map("account_idx")
-  imgPath    String     @map("img_path") @db.VarChar
+  imgPath    String     @default("example.com") @map("img_path") @db.VarChar
   createdAt  DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
   deletedAt  DateTime?  @map("deleted_at") @db.Timestamptz(6)
   account_tb account_tb @relation(fields: [accountIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_profile_img_tb")

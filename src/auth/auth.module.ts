@@ -7,6 +7,7 @@ import { AuthService } from './auth.service';
 import { GoogleStrategy } from './strategy/google.strategy';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from './constants';
+import { KakaoStrategy } from './strategy/kakao.strategy';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { jwtConstants } from './constants';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, GoogleStrategy, NaverStrategy],
+  providers: [AuthService, GoogleStrategy, NaverStrategy, KakaoStrategy],
   exports: [AuthService],
 })
 export class AuthModule {}

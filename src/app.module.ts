@@ -7,6 +7,7 @@ import { ReviewModule } from './review/review.module';
 import { CommentModule } from './comment/comment.module';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
+import { MailModule } from './common/mail/mail.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { PrismaModule } from './prisma/prisma.module';
     CommentModule,
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

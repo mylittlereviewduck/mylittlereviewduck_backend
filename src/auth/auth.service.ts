@@ -4,6 +4,7 @@ import { UserService } from 'src/user/user.service';
 import { JwtService } from '@nestjs/jwt';
 import { UserEntity } from 'src/user/entity/UserEntity';
 import { profile } from 'console';
+import { SignInDto } from './dto/SignInDto';
 
 @Injectable()
 export class AuthService {
@@ -13,8 +14,17 @@ export class AuthService {
     private readonly prismaService: PrismaService,
   ) {}
 
-  async SignInOAuth(req, res) {
-    console.log(req.user);
+  async signIn(signInDto: SignInDto): Promise<{ accessToken: string }> {
+    const userData = await this.prismaService.accountTb.findUnique({
+      where: { email: signInDto.email, pw: signInDto.pw },
+    });
+
+    const accessToken = await this.jwtService.signAsync({});
+
+    return;
+  }
+
+  async signInOAuth(req, res): Promise<string> {
     const { email } = req.user;
 
     let user = await this.userService.getUserByEmail(email);
@@ -28,9 +38,6 @@ export class AuthService {
     }
 
     const payload = { idx: user.idx };
-    const accessToken = await this.jwtService.signAsync(payload);
-    return {
-      accessToken: accessToken,
-    };
+    return await this.jwtService.signAsync(payload);
   }
 }

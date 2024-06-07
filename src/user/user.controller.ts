@@ -53,7 +53,7 @@ export class UserController {
   @Exception(500, '서버에러')
   @ApiResponse({ status: 201 })
   async signUp(@Body() signUpDto: SignUpDto) {
-    //인증된이메일 삭제 // 이메일 중복확인? //인증된이메일 확인 //닉네임 중복확인
+    return await this.userService.signUp(signUpDto);
   }
 
   @Get('myinfo')

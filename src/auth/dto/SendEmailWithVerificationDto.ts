@@ -1,8 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsInt } from 'class-validator';
+import { IsEmail, IsInt } from 'class-validator';
 
 export class SendEmailWithVerificationDto {
-  @ApiProperty()
-  @IsInt()
-  code: number;
+  @ApiProperty({
+    example: 'example@naver.com',
+    description: '인증할 사용자 이메일',
+  })
+  @IsEmail()
+  email: string;
 }

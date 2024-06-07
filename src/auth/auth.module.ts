@@ -8,6 +8,7 @@ import { GoogleStrategy } from './strategy/google.strategy';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from './constants';
 import { KakaoStrategy } from './strategy/kakao.strategy';
+import { MailModule } from 'src/common/mail/mail.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { KakaoStrategy } from './strategy/kakao.strategy';
       secret: jwtConstants.secret,
       signOptions: { expiresIn: 12 * 3600 },
     }),
+    MailModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, GoogleStrategy, NaverStrategy, KakaoStrategy],

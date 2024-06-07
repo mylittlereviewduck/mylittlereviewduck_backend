@@ -7,7 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-//컨벤션바꾸기
 model AccountBlockTb {
   blockerIdx                                   Int       @map("blocker_idx")
   blockedIdx                                   Int       @map("blocked_idx")
@@ -167,7 +166,7 @@ model TagTb {
 
 model VerifiedEmailTb {
   idx        Int      @id @default(autoincrement())
-  email      String   @db.VarChar
+  email      String   @unique(map: "verified_email_email_unique") @db.VarChar
   code       Int
   isVerified Boolean  @default(false) @map("is_verified")
   createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)

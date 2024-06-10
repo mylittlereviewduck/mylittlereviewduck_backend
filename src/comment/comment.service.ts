@@ -1,17 +1,20 @@
 import { Injectable } from '@nestjs/common';
+import { ReviewEntity } from 'src/review/entity/Review.entity';
+import { CommentEntity } from './entity/Comment.entity';
+import { CreateCommentDto } from './dto/CreateComment.dto';
+import { UpdateCommentDto } from './dto/UpdateComment.dto';
 
 @Injectable()
 export class CommentService {
   constructor() {}
 
-  //유저가 댓글을 단 게시글들을 반환
-  async getCommentListByUserIdx() {}
+  getCommentListByUserIdx: (userIdx: number) => Promise<ReviewEntity[]>;
 
-  async getCommentAllByReviewIdx() {}
+  getCommentAllByReviewIdx: (reviewIdx: number) => Promise<CommentEntity[]>;
 
-  async createComment() {}
+  createComment: (createCommentDto: CreateCommentDto) => Promise<void>;
 
-  async updateComment() {}
+  updateComment: (updateCommentDto: UpdateCommentDto) => Promise<void>;
 
-  async deleteComment() {}
+  deleteComment: (userIdx: number, commentIdx: number) => Promise<void>;
 }

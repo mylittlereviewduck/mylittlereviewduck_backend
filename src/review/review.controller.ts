@@ -15,15 +15,16 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 import { Exception } from 'src/decorator/exception.decorator';
-import { CreateReviewDto } from './dto/CreateReviewDto';
-import { ReviewEntity } from './entity/ReviewEntity';
-import { UploadReviewImageResponseDto } from './dto/response/UploadReviewImageResponseDto';
-import { UpdateReviewDto } from './dto/UpdateReviewDto';
+import { CreateReviewDto } from './dto/CreateReview.dto';
+import { ReviewEntity } from './entity/Review.entity';
+import { UploadReviewImageResponseDto } from './dto/response/UploadReviewImageResponse.dto';
+import { UpdateReviewDto } from './dto/UpdateReview.dto';
+import { ReviewService } from './review.service';
 
 @Controller('')
 @ApiTags('review')
 export class ReviewController {
-  constructor() {}
+  constructor(private readonly reviewService: ReviewService) {}
 
   @Post('/review')
   @ApiOperation({ summary: '리뷰 작성하기' })
@@ -31,7 +32,11 @@ export class ReviewController {
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 201, description: '리뷰작성 성공시 201 반환' })
-  async createReview(@Body() createReviewDto: CreateReviewDto) {}
+  async createReview(
+    @Body() createReviewDto: CreateReviewDto,
+  ): Promise<ReviewEntity> {
+    return await this.reviewService.createReview({}, createReviewDto);
+  }
 
   @Post('/review')
   @HttpCode(200)

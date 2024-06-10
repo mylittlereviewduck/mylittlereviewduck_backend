@@ -7,7 +7,7 @@ import { ReviewModule } from './review/review.module';
 import { CommentModule } from './comment/comment.module';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
-import { MailModule } from './common/mail/mail.module';
+import { MailModule } from './common/Email/Email.module';
 
 @Module({
   imports: [

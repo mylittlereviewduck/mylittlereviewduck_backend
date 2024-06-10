@@ -7,9 +7,9 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { Exception } from 'src/decorator/exception.decorator';
-import { CommentEntity } from './entity/CommentEntity';
-import { CreateCommentDto } from './dto/CreateCommentDto';
-import { UpdateCommentDto } from './dto/UpdateCommentDto';
+import { CommentEntity } from './entity/Comment.entity';
+import { CreateCommentDto } from './dto/CreateComment.dto';
+import { UpdateCommentDto } from './dto/UpdateComment.dto';
 
 @ApiTags('comment')
 @Controller()

@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserService } from 'src/user/user.service';
 import { JwtService } from '@nestjs/jwt';
-import { UserEntity } from 'src/user/entity/UserEntity';
+import { UserEntity } from 'src/user/entity/User.entity';
 import { profile } from 'console';
-import { SignInDto } from './dto/SignInDto';
+import { SignInDto } from './dto/SignIn.dto';
 
 @Injectable()
 export class AuthService {
@@ -14,17 +14,20 @@ export class AuthService {
     private readonly prismaService: PrismaService,
   ) {}
 
-  async signIn(signInDto: SignInDto): Promise<{ accessToken: string }> {
+  signIn: (signInDto: SignInDto) => Promise<{ accessToken: string }> = async (
+    signInDto,
+  ) => {
     const userData = await this.prismaService.accountTb.findUnique({
       where: { email: signInDto.email, pw: signInDto.pw },
     });
 
     const accessToken = await this.jwtService.signAsync({});
 
-    return;
-  }
+    return { accessToken };
+  };
 
-  async signInOAuth(req, res): Promise<string> {
+  //req, res??
+  signInOAuth: (req, res) => Promise<string> = async (req, res) => {
     const { email } = req.user;
 
     let user = await this.userService.getUserByEmail(email);
@@ -39,5 +42,5 @@ export class AuthService {
 
     const payload = { idx: user.idx };
     return await this.jwtService.signAsync(payload);
-  }
+  };
 }

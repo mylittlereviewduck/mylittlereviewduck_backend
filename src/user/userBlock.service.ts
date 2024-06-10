@@ -3,11 +3,16 @@ import { Injectable } from '@nestjs/common';
 @Injectable()
 export class UserBlockService {
   constructor() {}
-  async isUserBlocked(useIdx: number, 대상userIdx: number): Promise<any> {}
 
-  async blockUser() {}
+  blockUser: (useIdx: number, 대상userIdx: number) => Promise<void>;
 
-  async unBlockUser() {}
+  unBlockUser: (useIdx: number, 대상userIdx: number) => Promise<void>;
 
-  async getBlockedUserAll() {}
+  isUserBlocked: (useIdx: number, 대상userIdx: number) => Promise<boolean>;
+
+  getBlockedUserAll: (useIdx: number, 대상userIdx: number) => Promise<void>;
 }
+
+// 팔로우 기능
+// 사용자 기능
+// 사용자 차단 기능

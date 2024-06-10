@@ -1,14 +1,19 @@
+import { SignInDto } from '../auth/dto/SignIn.dto';
 import { ConflictException, Injectable } from '@nestjs/common';
-import { UserEntity } from './entity/UserEntity';
+import { UserEntity } from './entity/User.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { SignUpOAuthDto } from './dto/SignUpOAuthDto';
-import { SignUpDto } from './dto/SignUpDto';
+import { SignUpOAuthDto } from './dto/SignUpOAuth.dto';
+import { SignUpDto } from './dto/SignUp.dto';
+import { UpdateMyInfoDto } from './dto/UpdateMyInfo.dto';
+import { UpdateMyProfileImgDto } from './dto/UpdateMyProfileImg.dto';
 
 @Injectable()
 export class UserService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async getUserByidx(userIdx: number): Promise<UserEntity | null> {
+  getUserByidx: (userIdx: number) => Promise<UserEntity | null> = async (
+    userIdx,
+  ) => {
     const user = await this.prismaService.accountTb.findUnique({
       where: { idx: userIdx },
       include: { profileImgTb: true },
@@ -19,9 +24,11 @@ export class UserService {
     }
 
     return new UserEntity(user);
-  }
+  };
 
-  async getUserByNickname(nickname: string): Promise<UserEntity | null> {
+  getUserByNickname: (nickname: string) => Promise<UserEntity | null> = async (
+    nickname,
+  ) => {
     const user = await this.prismaService.accountTb.findUnique({
       where: { nickname: nickname },
       include: { profileImgTb: true },
@@ -32,9 +39,11 @@ export class UserService {
     }
 
     return new UserEntity(user);
-  }
+  };
 
-  async getUserByEmail(email: string): Promise<UserEntity | null> {
+  getUserByEmail: (email: string) => Promise<UserEntity | null> = async (
+    email,
+  ) => {
     const user = await this.prismaService.accountTb.findUnique({
       where: { email: email },
       include: { profileImgTb: true },
@@ -45,9 +54,9 @@ export class UserService {
     }
 
     return new UserEntity(user);
-  }
+  };
 
-  async signUp(signUpDto: SignUpDto): Promise<void> {
+  signUp: (signUpDto: SignUpDto) => Promise<void> = async (signUpDto) => {
     //트랜잭션 적용추가
     const emailDuplicatedUser = await this.getUserByEmail(signUpDto.email);
 
@@ -70,9 +79,11 @@ export class UserService {
     await this.prismaService.accountTb.create({
       data: { email: signUpDto.email, pw: signUpDto.pw },
     });
-  }
+  };
 
-  async signUpOAuth(signUpOAuthDto: SignUpOAuthDto): Promise<UserEntity> {
+  signUpOAuth: (signUpOAuthDto: SignUpOAuthDto) => Promise<UserEntity> = async (
+    signUpOAuthDto,
+  ) => {
     const userData = await this.prismaService.accountTb.create({
       data: {
         email: signUpOAuthDto.email,
@@ -96,13 +107,19 @@ export class UserService {
     };
 
     return new UserEntity(userEntityData);
-  }
+  };
 
-  async getMyinfo() {}
+  // getMyinfo: () {}
 
-  async updateMyinfo() {}
+  updateMyinfo: (updateMyInfoDto: UpdateMyInfoDto) => Promise<void> = async (
+    updateMyInfoDto,
+  ) => {};
 
-  async updateMyProfileImg() {}
+  updateMyProfileImg: (
+    updateMyProfileImgDto: UpdateMyProfileImgDto,
+  ) => Promise<void> = async (updateMyProfileImgDto) => {};
 
-  async deleteMyProfileImg() {}
+  deleteMyProfileImg: (userIdx: number) => Promise<void> = async (
+    userIdx,
+  ) => {};
 }

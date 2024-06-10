@@ -1,14 +1,15 @@
 import { Injectable } from '@nestjs/common';
+import { ReviewEntity } from './entity/Review.entity';
 
 @Injectable()
 export class BookmarkService {
   constructor() {}
 
-  async getReviewAllBookmarked() {}
+  getReviewAllBookmarked: (userIdx: number) => Promise<ReviewEntity>;
 
-  async bookmarkReview() {}
+  bookmarkReview: (userIdx: number, reviewIdx: number) => Promise<void>;
 
-  async deleteBookmark() {}
+  deleteBookmark: (userIdx: number, reviewIdx: number) => Promise<void>;
 
-  async isBookmarked() {}
+  isBookmarked: (userIdx: number, reviewIdx: number) => Promise<boolean>;
 }

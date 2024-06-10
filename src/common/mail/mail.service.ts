@@ -1,4 +1,4 @@
-import { SendEmailWithVerificationDto } from './../../auth/dto/SendEmailWithVerificationDto';
+import { SendEmailWithVerificationDto } from '../../auth/dto/SendEmailWithVerification.dto';
 import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';

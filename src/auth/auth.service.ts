@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserService } from 'src/user/user.service';
 import { JwtService } from '@nestjs/jwt';
-import { UserEntity } from 'src/user/entity/UserEntity';
+import { UserEntity } from 'src/user/entity/User.entity';
 import { profile } from 'console';
-import { SignInDto } from './dto/SignInDto';
+import { SignInDto } from './dto/SignIn.dto';
 
 @Injectable()
 export class AuthService {

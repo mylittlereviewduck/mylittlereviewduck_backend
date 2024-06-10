@@ -1,16 +1,17 @@
 import { Injectable } from '@nestjs/common';
+import { UserEntity } from './entity/User.entity';
 
 @Injectable()
 export class FollowService {
   constructor() {}
 
-  async isfollowing() {}
+  isfollowing: (userIdx: number, toUserIdx: number) => Promise<boolean>;
 
-  async followUser() {}
+  followUser: (userIdx: number, toUserIdx: number) => Promise<UserEntity[]>;
 
-  async unfollowUser() {}
+  unfollowUser: (userIdx: number, toUserIdx: number) => Promise<UserEntity[]>;
 
-  async getFollowingList() {}
+  getFollowingList: (userIdx: number) => Promise<UserEntity[]>;
 
-  async getFollwersList() {}
+  getFollwersList: (userIdx: number) => Promise<UserEntity[]>;
 }

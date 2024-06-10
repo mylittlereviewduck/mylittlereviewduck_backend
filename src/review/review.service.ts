@@ -1,18 +1,22 @@
 import { Injectable } from '@nestjs/common';
+import { CreateReviewDto } from './dto/CreateReview.dto';
+import { ReviewEntity } from './entity/Review.entity';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class ReviewService {
-  constructor() {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async getReviewAllByUserIdx() {}
+  getReviewAllByUserIdx: (userIdx: number) => Promise<ReviewEntity[]>;
 
-  async getReviewAllBySearch() {}
+  getReviewAllBySearch: (search: number) => Promise<ReviewEntity[]>;
 
-  async getReviewAllLiked() {}
+  createReview: (
+    loginUser: any,
+    createDto: CreateReviewDto,
+  ) => Promise<ReviewEntity>;
 
-  async createReview() {}
+  updateMyReview: (reviewIdx: number, userIdx: number) => Promise<void>;
 
-  async updateMyReview() {}
-
-  async deleteMyReview() {}
+  deleteMyReview: (reviewIdx: number, userIdx: number) => Promise<void>;
 }

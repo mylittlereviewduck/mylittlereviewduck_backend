@@ -17,11 +17,11 @@ import {
 import { UserService } from './user.service';
 import { CheckEmailDuplicateDto } from 'src/user/dto/checkEmailDuplicateDto';
 import { Exception } from 'src/decorator/exception.decorator';
-import { CheckNicknameDuplicateDto } from './dto/CheckNicknameDuplicateDto';
-import { SignUpDto } from './dto/SignUpDto';
-import { UserEntity } from './entity/UserEntity';
-import { UpdateMyInfoDto } from './dto/UpdateMyInfoDto';
-import { UpdateMyProfileImgDto } from './dto/UpdateMyProfileImgDto';
+import { CheckNicknameDuplicateDto } from './dto/CheckNicknameDuplicate.dto';
+import { SignUpDto } from './dto/SignUp.dto';
+import { UserEntity } from './entity/User.entity';
+import { UpdateMyInfoDto } from './dto/UpdateMyInfo.dto';
+import { UpdateMyProfileImgDto } from './dto/UpdateMyProfileImg.dto';
 
 @Controller('user')
 @ApiTags('user')

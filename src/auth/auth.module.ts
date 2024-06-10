@@ -8,7 +8,7 @@ import { GoogleStrategy } from './strategy/google.strategy';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from './constants';
 import { KakaoStrategy } from './strategy/kakao.strategy';
-import { MailModule } from 'src/common/mail/mail.module';
+import { MailModule } from 'src/common/Email/Email.module';
 
 @Module({
   imports: [

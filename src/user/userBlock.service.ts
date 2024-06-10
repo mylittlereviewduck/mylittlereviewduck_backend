@@ -4,11 +4,11 @@ import { Injectable } from '@nestjs/common';
 export class UserBlockService {
   constructor() {}
 
-  isUserBlocked: (useIdx: number, 대상userIdx: number) => Promise<boolean>;
-
   blockUser: (useIdx: number, 대상userIdx: number) => Promise<void>;
 
   unBlockUser: (useIdx: number, 대상userIdx: number) => Promise<void>;
+
+  isUserBlocked: (useIdx: number, 대상userIdx: number) => Promise<boolean>;
 
   getBlockedUserAll: (useIdx: number, 대상userIdx: number) => Promise<void>;
 }

@@ -4,9 +4,9 @@ import { Injectable } from '@nestjs/common';
 export class CommentLike {
   constructor() {}
 
-  async likeComment() {}
+  likeComment: (userIdx: number, commentIdx: number) => Promise<void>;
 
-  async unlikeComment() {}
+  unlikeComment: (userIdx: number, commentIdx: number) => Promise<void>;
 
-  async isCommentLiked() {}
+  isCommentLiked: (userIdx: number, commentIdx: number) => Promise<boolean>;
 }

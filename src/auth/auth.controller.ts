@@ -1,5 +1,5 @@
 import { PrismaService } from './../prisma/prisma.service';
-import { MailService } from './../common/mail/mail.service';
+import { MailService } from '../common/Email/Email.service';
 import { NaverAuthGuard } from './authNaver.guard';
 import {
   Body,
@@ -14,10 +14,10 @@ import {
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Exception } from 'src/decorator/exception.decorator';
-import { SendEmailWithVerificationResponseDto } from './dto/response/SendEmailWithVerificationResponseDto';
-import { VerifyEmailResponseDto } from './dto/response/VerifyEmailResponseDto';
+import { SendEmailWithVerificationResponseDto } from './dto/response/SendEmailWithVerificationResponse.dto';
+import { VerifyEmailResponseDto } from './dto/response/VerifyEmailResponse.dto';
 import { SignInDto } from './dto/SignIn.dto';
-import { VerifyEmailDto } from './dto/VerifyEmailDto';
+import { VerifyEmailDto } from './dto/VerifyEmail.dto';
 import { SendEmailWithVerificationDto } from './dto/SendEmailWithVerification.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
@@ -44,8 +44,11 @@ export class AuthController {
   async sendEmailWithVerification(
     @Body() sendEmailWithVerificationDto: SendEmailWithVerificationDto,
   ): Promise<void> {
+    const verificationCode = Math.floor(Math.random() * 900000 + 100000);
+
     await this.mailService.sendMailWithVerificationCode(
       sendEmailWithVerificationDto,
+      verificationCode,
     );
   }
 

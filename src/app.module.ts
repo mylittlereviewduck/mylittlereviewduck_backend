@@ -8,6 +8,10 @@ import { CommentModule } from './comment/comment.module';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
 import { MailModule } from './common/Email/Email.module';
+import { CacheModule } from '@nestjs/cache-manager';
+import { RedisClientOptions } from 'redis';
+import { redisStore } from 'cache-manager-redis-store';
+import { RedisModule } from './common/redis/redis.module';
 
 @Module({
   imports: [
@@ -18,6 +22,7 @@ import { MailModule } from './common/Email/Email.module';
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
     MailModule,
+    CacheModule.register(),
   ],
   controllers: [AppController],
   providers: [AppService],

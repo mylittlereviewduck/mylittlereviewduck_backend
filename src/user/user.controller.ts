@@ -6,6 +6,7 @@ import {
   HttpCode,
   Post,
   Put,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -15,13 +16,16 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { UserService } from './user.service';
-import { CheckEmailDuplicateDto } from 'src/user/dto/checkEmailDuplicateDto';
 import { Exception } from 'src/decorator/exception.decorator';
 import { CheckNicknameDuplicateDto } from './dto/CheckNicknameDuplicate.dto';
 import { SignUpDto } from './dto/SignUp.dto';
 import { UserEntity } from './entity/User.entity';
 import { UpdateMyInfoDto } from './dto/UpdateMyInfo.dto';
 import { UpdateMyProfileImgDto } from './dto/UpdateMyProfileImg.dto';
+import { CheckEmailDuplicateDto } from './dto/CheckEmailDuplicate.dto';
+import { AuthGuard } from 'src/auth/auth.guard';
+import { GetUser } from 'src/auth/get-user.decorator';
+import { LoginUser } from 'src/auth/model/login-user.model';
 
 @Controller('user')
 @ApiTags('user')
@@ -57,23 +61,29 @@ export class UserController {
   }
 
   @Get('myinfo')
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: '내정보보기' })
   @ApiBearerAuth()
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: UserEntity })
-  async GetMyInfo() {}
+  async GetMyInfo(@GetUser() loginUser: LoginUser) {}
 
   @Put('myinfo')
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: '내정보수정' })
   @ApiBearerAuth()
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200 })
-  async updateMyInfo(@Body() updateMyInfoDto: UpdateMyInfoDto) {}
+  async updateMyInfo(
+    @GetUser() loginUser: LoginUser,
+    @Body() updateMyInfoDto: UpdateMyInfoDto,
+  ) {}
 
   @Put('profile-img')
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: '프로필 이미지 수정' })
   @ApiBearerAuth()
   @Exception(400, '유효하지않은 요청')
@@ -81,16 +91,18 @@ export class UserController {
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200 })
   async updateMyProfileImg(
+    @GetUser() loginUser: LoginUser,
     @Body() updateMyProfileImgDto: UpdateMyProfileImgDto,
   ) {}
 
   @Delete('profile-img')
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: '프로필 이미지 삭제' })
   @ApiBearerAuth()
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200 })
-  async deleteMyProfileImg() {}
+  async deleteMyProfileImg(@GetUser() loginUser: LoginUser) {}
 
   @Get('/info/:userIdx')
   @ApiOperation({ summary: '유저 정보 보기' })
@@ -121,6 +133,7 @@ export class UserController {
   async getFollowerAll() {}
 
   @Post('/:userIdx/follow')
+  @UseGuards(AuthGuard)
   @HttpCode(200)
   @ApiOperation({ summary: '유저 팔로우' })
   @ApiBearerAuth()
@@ -129,9 +142,10 @@ export class UserController {
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, description: '팔로우 성공 200 반환' })
-  async followUser() {}
+  async followUser(@GetUser() loginUser: LoginUser) {}
 
   @Delete('/:userIdx/follow')
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: '유저 언팔로우' })
   @ApiBearerAuth()
   @ApiParam({ name: 'userIdx', type: 'number' })
@@ -139,9 +153,10 @@ export class UserController {
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, description: '언팔로우 성공 200 반환' })
-  async UnfollowUser() {}
+  async UnfollowUser(@GetUser() loginUser: LoginUser) {}
 
   @Post(':userIdx/block')
+  @UseGuards(AuthGuard)
   @HttpCode(200)
   @ApiOperation({ summary: '유저 차단하기' })
   @ApiBearerAuth()
@@ -150,9 +165,10 @@ export class UserController {
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, description: '차단 성공 200 반환' })
-  async blockUser() {}
+  async blockUser(@GetUser() loginUser: LoginUser) {}
 
   @Delete(':userIdx/block')
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: '유저 차단해제하기' })
   @ApiBearerAuth()
   @ApiParam({ name: 'userIdx', type: 'number' })
@@ -160,13 +176,14 @@ export class UserController {
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, description: '차단해제 성공 200 반환' })
-  async UnblockUser() {}
+  async UnblockUser(@GetUser() loginUser: LoginUser) {}
 
   @Get('blocked-user/all')
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: '차단한 유저목록보기' })
   @ApiBearerAuth()
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: UserEntity, isArray: true })
-  async getBlockedUserAll() {}
+  async getBlockedUserAll(@GetUser() loginUser: LoginUser) {}
 }

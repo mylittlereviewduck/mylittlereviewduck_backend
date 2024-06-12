@@ -8,5 +8,6 @@ export class CommentLike {
 
   unlikeComment: (userIdx: number, commentIdx: number) => Promise<void>;
 
+  //함수 분리
   isCommentLiked: (userIdx: number, commentIdx: number) => Promise<boolean>;
 }

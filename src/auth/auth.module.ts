@@ -1,3 +1,4 @@
+import { AuthGuard } from './auth.guard';
 import { NaverStrategy } from './strategy/naver.strategy';
 import { Module } from '@nestjs/common';
 import { PrismaModule } from 'src/prisma/prisma.module';
@@ -6,7 +7,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { GoogleStrategy } from './strategy/google.strategy';
 import { JwtModule } from '@nestjs/jwt';
-import { jwtConstants } from './constants';
+import { jwtConstants } from './jwtConstants';
 import { KakaoStrategy } from './strategy/kakao.strategy';
 import { MailModule } from 'src/common/Email/Email.module';
 
@@ -22,7 +23,13 @@ import { MailModule } from 'src/common/Email/Email.module';
     MailModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, GoogleStrategy, NaverStrategy, KakaoStrategy],
-  exports: [AuthService],
+  providers: [
+    AuthService,
+    AuthGuard,
+    GoogleStrategy,
+    NaverStrategy,
+    KakaoStrategy,
+  ],
+  exports: [AuthService, AuthGuard],
 })
 export class AuthModule {}

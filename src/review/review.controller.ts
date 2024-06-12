@@ -20,11 +20,15 @@ import { ReviewEntity } from './entity/Review.entity';
 import { UploadReviewImageResponseDto } from './dto/response/UploadReviewImageResponse.dto';
 import { UpdateReviewDto } from './dto/UpdateReview.dto';
 import { ReviewService } from './review.service';
+import { RedisService } from 'src/common/redis/redis.service';
 
 @Controller('')
 @ApiTags('review')
 export class ReviewController {
-  constructor(private readonly reviewService: ReviewService) {}
+  constructor(
+    private readonly reviewService: ReviewService,
+    private readonly redisService: RedisService,
+  ) {}
 
   @Post('/review')
   @ApiOperation({ summary: '리뷰 작성하기' })
@@ -95,7 +99,18 @@ export class ReviewController {
   @Get('review/search')
   @ApiOperation({ summary: '리뷰검색하기 닉네임, 태그, 제목,내용' })
   @ApiResponse({ status: 200, type: ReviewEntity, isArray: true })
-  async getReviewWithSearch() {}
+  async getReviewWithSearch(): Promise<ReviewEntity[]> {
+    const hotReviewString: string = await this.redisService.get('hot-review');
+
+    if (hotReviewString) {
+      return JSON.parse(hotReviewString);
+    }
+
+    const reviews = await this.reviewService.getReviewAllWithOrderBy();
+    await this.redisService.set('hot-review', JSON.stringify(reviews));
+
+    return reviews;
+  }
 
   @Post('/review/:reviewIdx/bookmark')
   @HttpCode(200)

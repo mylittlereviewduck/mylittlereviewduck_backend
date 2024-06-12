@@ -3,11 +3,11 @@ import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import { FollowService } from './follow.service';
 import { UserBlockService } from './userBlock.service';
-import { BookmarkService } from 'src/review/bookmark.service';
 import { PrismaModule } from 'src/prisma/prisma.module';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, AuthGuard],
   controllers: [UserController],
   providers: [UserService, FollowService, UserBlockService],
   exports: [UserService, UserBlockService],

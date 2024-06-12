@@ -74,6 +74,7 @@ model CommentTb {
   content        String           @db.VarChar
   createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
   deletedAt      DateTime?        @map("deleted_at") @db.Timestamptz(6)
+  updatedAt      DateTime?        @map("updated_at") @db.Timestamptz(6)
   commentLikesTb CommentLikesTb[]
   accountTb      AccountTb        @relation(fields: [accountIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_comment_tb")
   reviewTb       ReviewTb         @relation(fields: [reviewIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_review_tb_to_comment_tb")
@@ -144,6 +145,7 @@ model ReviewTb {
   view          Int             @default(0)
   createdAt     DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
   deletedAt     DateTime?       @map("deleted_at") @db.Timestamptz(6)
+  updatedAt     DateTime?       @map("updated_at") @db.Timestamptz(6)
   bookmarkTb    BookmarkTb[]
   commentTb     CommentTb[]
   reviewBlockTb ReviewBlockTb[]
@@ -165,7 +167,7 @@ model TagTb {
 }
 
 model VerifiedEmailTb {
-  idx        Int      @id @default(autoincrement())
+  idx        Int      @default(autoincrement())
   email      String   @unique(map: "verified_email_email_unique") @db.VarChar
   code       Int
   isVerified Boolean  @default(false) @map("is_verified")

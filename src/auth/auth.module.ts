@@ -8,19 +8,19 @@ import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from './jwtConstants';
 import { MailModule } from 'src/common/Email/Email.module';
 import { GoogleStrategy } from './strategy/google.strategy';
-import { ReviewModule } from 'src/review/review.module';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
     PrismaModule,
     forwardRef(() => UserModule),
-    ReviewModule,
     JwtModule.register({
       global: true,
       secret: jwtConstants.secret,
       signOptions: { expiresIn: 12 * 3600 },
     }),
     MailModule,
+    HttpModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, AuthGuard, GoogleStrategy],

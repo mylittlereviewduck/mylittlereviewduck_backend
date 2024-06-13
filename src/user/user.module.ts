@@ -5,14 +5,9 @@ import { FollowService } from './follow.service';
 import { UserBlockService } from './userBlock.service';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { AuthModule } from 'src/auth/auth.module';
-import { ReviewModule } from 'src/review/review.module';
 
 @Module({
-  imports: [
-    PrismaModule,
-    forwardRef(() => AuthModule),
-    forwardRef(() => ReviewModule),
-  ],
+  imports: [PrismaModule, forwardRef(() => AuthModule)],
   controllers: [UserController],
   providers: [UserService, FollowService, UserBlockService],
   exports: [UserService, UserBlockService],

@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   HttpCode,
+  Inject,
   Post,
   Put,
 } from '@nestjs/common';
@@ -20,14 +21,14 @@ import { ReviewEntity } from './entity/Review.entity';
 import { UploadReviewImageResponseDto } from './dto/response/UploadReviewImageResponse.dto';
 import { UpdateReviewDto } from './dto/UpdateReview.dto';
 import { ReviewService } from './review.service';
-import { RedisService } from 'src/common/redis/redis.service';
+import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 
 @Controller('')
 @ApiTags('review')
 export class ReviewController {
   constructor(
     private readonly reviewService: ReviewService,
-    private readonly redisService: RedisService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   @Post('/review')
@@ -100,14 +101,14 @@ export class ReviewController {
   @ApiOperation({ summary: '리뷰검색하기 닉네임, 태그, 제목,내용' })
   @ApiResponse({ status: 200, type: ReviewEntity, isArray: true })
   async getReviewWithSearch(): Promise<ReviewEntity[]> {
-    const hotReviewString: string = await this.redisService.get('hot-review');
+    // const hotReviewString: string = await this.cacheManager.get('hot-review');
 
-    if (hotReviewString) {
-      return JSON.parse(hotReviewString);
-    }
+    // if (hotReviewString) {
+    //   return JSON.parse(hotReviewString);
+    // }
 
     const reviews = await this.reviewService.getHotReviewAll();
-    await this.redisService.set('hot-review', JSON.stringify(reviews));
+    // await this.redisService.set('hot-review', JSON.stringify(reviews));
 
     return reviews;
   }

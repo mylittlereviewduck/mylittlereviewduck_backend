@@ -1,3 +1,7 @@
-export class GetUserByEmailDto {
-  email: string;
+export class GetUserDto {
+  idx?: number;
+
+  email?: string;
+
+  nickname?: string;
 }

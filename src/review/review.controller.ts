@@ -106,7 +106,7 @@ export class ReviewController {
       return JSON.parse(hotReviewString);
     }
 
-    const reviews = await this.reviewService.getReviewAllWithOrderBy();
+    const reviews = await this.reviewService.getHotReviewAll();
     await this.redisService.set('hot-review', JSON.stringify(reviews));
 
     return reviews;

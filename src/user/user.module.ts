@@ -1,13 +1,18 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import { FollowService } from './follow.service';
 import { UserBlockService } from './userBlock.service';
 import { PrismaModule } from 'src/prisma/prisma.module';
-import { AuthGuard } from 'src/auth/auth.guard';
+import { AuthModule } from 'src/auth/auth.module';
+import { ReviewModule } from 'src/review/review.module';
 
 @Module({
-  imports: [PrismaModule, AuthGuard],
+  imports: [
+    PrismaModule,
+    forwardRef(() => AuthModule),
+    forwardRef(() => ReviewModule),
+  ],
   controllers: [UserController],
   providers: [UserService, FollowService, UserBlockService],
   exports: [UserService, UserBlockService],

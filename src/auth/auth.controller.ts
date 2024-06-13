@@ -6,6 +6,7 @@ import {
   Controller,
   Get,
   HttpCode,
+  Param,
   Post,
   Req,
   Res,
@@ -16,14 +17,17 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Exception } from 'src/decorator/exception.decorator';
 import { SendEmailWithVerificationResponseDto } from './dto/response/SendEmailWithVerificationResponse.dto';
 import { VerifyEmailResponseDto } from './dto/response/VerifyEmailResponse.dto';
-import { SignInDto } from './dto/SignIn.dto';
-import { VerifyEmailDto } from './dto/VerifyEmail.dto';
-import { SendEmailWithVerificationDto } from './dto/SendEmailWithVerification.dto';
+import { SignInDto } from './dto/signIn.dto';
+import { VerifyEmailDto } from './dto/verify-email.dto';
+import { SendEmailWithVerificationDto } from './dto/send-email-with-verification.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { Request, Response, response } from 'express';
 import { KakaoAuthGuard } from './authKakao.guard';
 import { ConfigService } from '@nestjs/config';
+import { SocialAuthDto } from './dto/social-auth.dto';
+import { GetUser } from './get-user.decorator';
+import { LoginUser } from './model/login-user.model';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -88,65 +92,74 @@ export class AuthController {
 
   //기본로그인
   //req body
-  @Post('/signin')
-  @ApiOperation({ summary: '로그인' })
-  @HttpCode(200)
-  @Exception(400, '유효하지않은 요청')
-  @Exception(401, '권한 없음')
-  @Exception(500, '서버 에러')
-  @ApiResponse({ status: 200, type: SignInDto })
-  async authUser(
-    @Body() signInDto: SignInDto,
-  ): Promise<{ accessToken: string }> {
-    return await this.authService.signIn(signInDto);
-  }
+  // @Post('/signin')
+  // @ApiOperation({ summary: '로그인' })
+  // @HttpCode(200)
+  // @Exception(400, '유효하지않은 요청')
+  // @Exception(401, '권한 없음')
+  // @Exception(500, '서버 에러')
+  // @ApiResponse({ status: 200, type: SignInDto })
+  // async authUser(
+  //   @Body() signInDto: SignInDto,
+  // ): Promise<{ accessToken: string }> {
+  //   return await this.authService.signIn(signInDto);
+  // }
 
-  //소셜로그인 - 구글
-  @Get('/google')
-  @UseGuards(AuthGuard('google'))
-  @ApiOperation({ summary: '구글 로그인' })
-  async authWithGoogle(): Promise<void> {}
+  // //소셜로그인 - 구글
+  // @Get('/google')
+  // @UseGuards(AuthGuard('google'))
+  // @ApiOperation({ summary: '구글 로그인' })
+  // async authWithGoogle(): Promise<void> {}
 
-  @Get('/google/callback')
-  @UseGuards(AuthGuard('google'))
-  async googleRedirect(
+  // @Get('/google/callback')
+  // @UseGuards(AuthGuard('google'))
+  // async googleRedirect(
+  //   @Req() req: Request,
+  //   @Res() res: Response,
+  // ): Promise<{ accessToken: string }> {
+  //   const accessToken = await this.authService.signInOAuth(req, res);
+  //   return { accessToken };
+  // }
+
+  // //소셜로그인 - 네이버
+  // //오늘도리뷰 - 네이버 로그인 검수요청하기
+  // @Get('/naver')
+  // @UseGuards(NaverAuthGuard)
+  // @ApiOperation({ summary: '네이버 로그인' })
+  // async authWithNaver(): Promise<void> {}
+
+  // @Get('/naver/callback')
+  // @UseGuards(NaverAuthGuard)
+  // async naverRedirect(
+  //   @Req() req: Request,
+  //   @Res() res: Response,
+  // ): Promise<{ accessToken: string }> {
+  //   const accessToken = await this.authService.signInOAuth(req, res);
+  //   return { accessToken };
+  // }
+
+  // //소셜로그인 - 카카오
+  // @Get('/kakao')
+  // @UseGuards(KakaoAuthGuard)
+  // @ApiOperation({ summary: '카카오로그인' })
+  // async authWithKakao(): Promise<void> {}
+
+  // @Get('/kakao/callback')
+  // @UseGuards(KakaoAuthGuard)
+  // async kakaoRedirect(
+  //   @Req() req: Request,
+  //   @Res() res: Response,
+  // ): Promise<{ accessToken: string }> {
+  //   const accessToken = await this.authService.signInOAuth(req, res);
+  //   return { accessToken };
+  // }
+
+  @Post('/:social')
+  socialAuth(
     @Req() req: Request,
-    @Res() res: Response,
-  ): Promise<{ accessToken: string }> {
-    const accessToken = await this.authService.signInOAuth(req, res);
-    return { accessToken };
-  }
-
-  //소셜로그인 - 네이버
-  //오늘도리뷰 - 네이버 로그인 검수요청하기
-  @Get('/naver')
-  @UseGuards(NaverAuthGuard)
-  @ApiOperation({ summary: '네이버 로그인' })
-  async authWithNaver(): Promise<void> {}
-
-  @Get('/naver/callback')
-  @UseGuards(NaverAuthGuard)
-  async naverRedirect(
-    @Req() req: Request,
-    @Res() res: Response,
-  ): Promise<{ accessToken: string }> {
-    const accessToken = await this.authService.signInOAuth(req, res);
-    return { accessToken };
-  }
-
-  //소셜로그인 - 카카오
-  @Get('/kakao')
-  @UseGuards(KakaoAuthGuard)
-  @ApiOperation({ summary: '카카오로그인' })
-  async authWithKakao(): Promise<void> {}
-
-  @Get('/kakao/callback')
-  @UseGuards(KakaoAuthGuard)
-  async kakaoRedirect(
-    @Req() req: Request,
-    @Res() res: Response,
-  ): Promise<{ accessToken: string }> {
-    const accessToken = await this.authService.signInOAuth(req, res);
-    return { accessToken };
+    @Param('social') social: string,
+    @Body() socialAuthDto: SocialAuthDto,
+  ) {
+    return this.authService.socialAuth(req, social, socialAuthDto);
   }
 }

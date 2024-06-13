@@ -3,7 +3,7 @@ import { ReviewEntity } from './entity/Review.entity';
 
 @Injectable()
 export class ReviewBookmarkService {
-  constructor(private readonly) {}
+  constructor() {}
 
   bookmarkReview: (userIdx: number, reviewIdx: number) => Promise<void>;
 

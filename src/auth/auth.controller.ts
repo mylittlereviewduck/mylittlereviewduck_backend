@@ -1,13 +1,14 @@
 import { PrismaService } from './../prisma/prisma.service';
 import { MailService } from '../common/Email/Email.service';
-import { NaverAuthGuard } from './authNaver.guard';
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   Param,
   Post,
+  Query,
   Req,
   Res,
   UnauthorizedException,
@@ -20,12 +21,12 @@ import { VerifyEmailResponseDto } from './dto/response/VerifyEmailResponse.dto';
 import { SignInDto } from './dto/signIn.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { SendEmailWithVerificationDto } from './dto/send-email-with-verification.dto';
-import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
-import { Request, Response, response } from 'express';
-import { KakaoAuthGuard } from './authKakao.guard';
+import { Request, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { SocialAuthDto } from './dto/social-auth.dto';
+import { SocialLoginProvider } from './model/social-login-provider.model';
+import { GoogleCallbackDto } from './dto/google-callback.dto';
 import { GetUser } from './get-user.decorator';
 import { LoginUser } from './model/login-user.model';
 
@@ -90,76 +91,53 @@ export class AuthController {
     return true;
   }
 
-  //기본로그인
-  //req body
-  // @Post('/signin')
-  // @ApiOperation({ summary: '로그인' })
-  // @HttpCode(200)
-  // @Exception(400, '유효하지않은 요청')
-  // @Exception(401, '권한 없음')
-  // @Exception(500, '서버 에러')
-  // @ApiResponse({ status: 200, type: SignInDto })
-  // async authUser(
-  //   @Body() signInDto: SignInDto,
-  // ): Promise<{ accessToken: string }> {
-  //   return await this.authService.signIn(signInDto);
-  // }
+  @Post('/signin')
+  @ApiOperation({ summary: '로그인' })
+  @HttpCode(200)
+  @Exception(400, '유효하지않은 요청')
+  @Exception(401, '권한 없음')
+  @Exception(500, '서버 에러')
+  @ApiResponse({ status: 200, type: SignInDto })
+  async authUser(
+    @Body() signInDto: SignInDto,
+  ): Promise<{ accessToken: string }> {
+    return await this.authService.signIn(signInDto);
+  }
 
-  // //소셜로그인 - 구글
-  // @Get('/google')
-  // @UseGuards(AuthGuard('google'))
-  // @ApiOperation({ summary: '구글 로그인' })
-  // async authWithGoogle(): Promise<void> {}
-
-  // @Get('/google/callback')
-  // @UseGuards(AuthGuard('google'))
-  // async googleRedirect(
-  //   @Req() req: Request,
-  //   @Res() res: Response,
-  // ): Promise<{ accessToken: string }> {
-  //   const accessToken = await this.authService.signInOAuth(req, res);
-  //   return { accessToken };
-  // }
-
-  // //소셜로그인 - 네이버
-  // //오늘도리뷰 - 네이버 로그인 검수요청하기
-  // @Get('/naver')
-  // @UseGuards(NaverAuthGuard)
-  // @ApiOperation({ summary: '네이버 로그인' })
-  // async authWithNaver(): Promise<void> {}
-
-  // @Get('/naver/callback')
-  // @UseGuards(NaverAuthGuard)
-  // async naverRedirect(
-  //   @Req() req: Request,
-  //   @Res() res: Response,
-  // ): Promise<{ accessToken: string }> {
-  //   const accessToken = await this.authService.signInOAuth(req, res);
-  //   return { accessToken };
-  // }
-
-  // //소셜로그인 - 카카오
-  // @Get('/kakao')
-  // @UseGuards(KakaoAuthGuard)
-  // @ApiOperation({ summary: '카카오로그인' })
-  // async authWithKakao(): Promise<void> {}
-
-  // @Get('/kakao/callback')
-  // @UseGuards(KakaoAuthGuard)
-  // async kakaoRedirect(
-  //   @Req() req: Request,
-  //   @Res() res: Response,
-  // ): Promise<{ accessToken: string }> {
-  //   const accessToken = await this.authService.signInOAuth(req, res);
-  //   return { accessToken };
-  // }
-
-  @Post('/:social')
-  socialAuth(
+  @Get('/:provider')
+  async socialAuth(
     @Req() req: Request,
-    @Param('social') social: string,
-    @Body() socialAuthDto: SocialAuthDto,
+    @Res() res: Response,
+    @Param('provider') provider: SocialLoginProvider, // google, kakao, naver, apple
   ) {
-    return this.authService.socialAuth(req, social, socialAuthDto);
+    return this.authService.socialAuth(req, res, provider);
+  }
+
+  @Get('/google/callback')
+  async socialAuthCallback(
+    @Query() query: GoogleCallbackDto,
+  ): Promise<{ accessToken: string }> {
+    return await this.authService.socialAuthCallbck('google', query);
+  }
+
+  @Get('/kakao/callback')
+  async googleCallback(
+    @Query() query: GoogleCallbackDto,
+  ): Promise<{ accessToken: string }> {
+    return await this.authService.socialAuthCallbck('kakao', query);
+  }
+
+  @Get('/naver/callback')
+  async naverCallback(
+    @Query() query: GoogleCallbackDto,
+  ): Promise<{ accessToken: string }> {
+    return await this.authService.socialAuthCallbck('naver', query);
+  }
+
+  @Delete('google')
+  async googleWithdraw(@GetUser() loginUser: LoginUser): Promise<void> {
+    return await this.authService.socialWithdraw(loginUser, {
+      provider: 'google',
+    });
   }
 }

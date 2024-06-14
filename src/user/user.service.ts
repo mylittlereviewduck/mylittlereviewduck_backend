@@ -11,6 +11,7 @@ import { SignUpDto } from './dto/SignUp.dto';
 import { UpdateMyInfoDto } from './dto/UpdateMyInfo.dto';
 import { UpdateMyProfileImgDto } from './dto/UpdateMyProfileImg.dto';
 import { GetUserDto } from './dto/GetUserByEmail.dto';
+import { UserWithProvider } from './model/user-with-provider.model';
 
 @Injectable()
 export class UserService {
@@ -101,4 +102,29 @@ export class UserService {
   deleteMyProfileImg: (userIdx: number) => Promise<void> = async (
     userIdx,
   ) => {};
+
+  async getUserWithProvider(
+    userIdx: number,
+    provider: string,
+  ): Promise<UserWithProvider> {
+    const userData = await this.prismaService.accountTb.findUnique({
+      where: {
+        idx: userIdx,
+        provider: provider,
+      },
+    });
+
+    if (!userData) {
+      throw new NotFoundException('Not Found User');
+    }
+
+    return new UserWithProvider(userData);
+  }
+
+  async deleteUser(userIdx: number): Promise<void> {
+    await this.prismaService.accountTb.update({
+      where: { idx: userIdx },
+      data: { deletedAt: new Date() },
+    });
+  }
 }

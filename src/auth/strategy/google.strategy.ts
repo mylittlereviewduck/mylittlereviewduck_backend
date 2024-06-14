@@ -1,57 +1,91 @@
 import { JwtService } from '@nestjs/jwt';
-import { Request } from 'express';
-import { ParamsDictionary } from 'express-serve-static-core';
-import { ParsedQs } from 'qs';
-import { SocialAuthDto } from '../dto/social-auth.dto';
+import { Request, Response } from 'express';
 import { SocialWithdrawDto } from '../dto/social-withdraw.dto';
 import { ISocialAuthStrategy } from '../interface/social-auth-strategy.interface';
 import { Injectable } from '@nestjs/common';
 import { UserService } from 'src/user/user.service';
 import { HttpService } from '@nestjs/axios';
+import { ConfigService } from '@nestjs/config';
+import { GoogleCallbackDto } from '../dto/google-callback.dto';
+import { LoginUser } from '../model/login-user.model';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class GoogleStrategy implements ISocialAuthStrategy {
   constructor(
+    private readonly prismaService: PrismaService,
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly httpService: HttpService,
+    private readonly configServce: ConfigService,
   ) {}
 
-  async socialAuth(
-    req: Request,
-    social: string,
-    socialAuthDto: SocialAuthDto,
-  ): Promise<{ accessToken: string }> {
-    let url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${process.env.GOOGLE_CLIENT_ID}`;
-    url += `&redirect_uri=${process.env.GOOGLE_REDIRECT_URI}`;
+  async socialAuth(req: Request, res: Response): Promise<void> {
+    let url = `https://accounts.google.com/o/oauth2/v2/auth`;
+    url += `?client_id=${this.configServce.get<string>('GOOGLE_CLIENT_ID')}`;
+    url += `&redirect_uri=${this.configServce.get<string>('GOOGLE_REDIRECT_URI')}`;
     url += `&response_type=code`;
     url += `&scope=email profile`;
 
-    const response = await this.httpService.axiosRef(url);
-    console.log('response: ', response);
+    res.redirect(url);
+  }
 
-    const { providerKey, email } = socialAuthDto;
+  async socialAuthCallback(
+    query: GoogleCallbackDto,
+  ): Promise<{ accessToken: string }> {
+    const { code, scope, authuser, prompt } = query;
 
-    let user = await this.userService.getUser({ email: email });
+    const tokenRequestBody = {
+      client_id: this.configServce.get<string>('GOOGLE_CLIENT_ID'),
+      client_secret: this.configServce.get<string>('GOOGLE_CLIENT_SECRET'),
+      code: code,
+      redirect_uri: this.configServce.get<string>('GOOGLE_REDIRECT_URI'),
+      grant_type: 'authorization_code',
+    };
+
+    let tokenUrl = `https://oauth2.googleapis.com/token`;
+
+    const { data: tokenData } = await this.httpService.axiosRef.post(
+      tokenUrl,
+      tokenRequestBody,
+    );
+
+    const userInfoUrl = `https://www.googleapis.com/oauth2/v2/userinfo`;
+
+    const { data: userInfo } = await this.httpService.axiosRef.get(
+      userInfoUrl,
+      {
+        headers: {
+          Authorization: `${tokenData.token_type} ${tokenData.access_token}`,
+        },
+      },
+    );
+
+    let user = await this.userService.getUser({ email: userInfo.email });
 
     if (!user) {
       user = await this.userService.signUpOAuth({
-        email: email,
-        provider: social,
-        providerKey: providerKey,
+        email: userInfo.email,
+        provider: 'google',
+        providerKey: userInfo.id,
       });
     }
 
     const payload = { idx: user.idx };
     const accessToken = await this.jwtService.signAsync(payload);
 
-    return { accessToken: accessToken };
+    return { accessToken };
   }
 
   async socialWithdraw(
-    accessToken: string,
+    loginUser: LoginUser,
     socialWithdrawDto: SocialWithdrawDto,
   ): Promise<void> {
-    throw new Error('Method not implemented.');
+    const user = await this.userService.getUserWithProvider(
+      loginUser.idx,
+      socialWithdrawDto.provider,
+    );
+
+    await this.userService.deleteUser(user.idx);
   }
 }

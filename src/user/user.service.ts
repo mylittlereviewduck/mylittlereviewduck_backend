@@ -1,22 +1,32 @@
-import { SignInDto } from '../auth/dto/SignIn.dto';
-import { ConflictException, Injectable } from '@nestjs/common';
+import { SignInDto } from '../auth/dto/signIn.dto';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { UserEntity } from './entity/User.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SignUpOAuthDto } from './dto/SignUpOAuth.dto';
 import { SignUpDto } from './dto/SignUp.dto';
 import { UpdateMyInfoDto } from './dto/UpdateMyInfo.dto';
 import { UpdateMyProfileImgDto } from './dto/UpdateMyProfileImg.dto';
+import { GetUserDto } from './dto/GetUserByEmail.dto';
+import { UserWithProvider } from './model/user-with-provider.model';
 
 @Injectable()
 export class UserService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  getUserByidx: (userIdx: number) => Promise<UserEntity | null> = async (
-    userIdx,
-  ) => {
+  async getUser(getUserDto: GetUserDto): Promise<UserEntity | null> {
     const user = await this.prismaService.accountTb.findUnique({
-      where: { idx: userIdx },
-      include: { profileImgTb: true },
+      where: {
+        idx: getUserDto.idx,
+        email: getUserDto.email,
+        nickname: getUserDto.nickname,
+      },
+      include: {
+        profileImgTb: true,
+      },
     });
 
     if (!user) {
@@ -24,41 +34,11 @@ export class UserService {
     }
 
     return new UserEntity(user);
-  };
-
-  getUserByNickname: (nickname: string) => Promise<UserEntity | null> = async (
-    nickname,
-  ) => {
-    const user = await this.prismaService.accountTb.findUnique({
-      where: { nickname: nickname },
-      include: { profileImgTb: true },
-    });
-
-    if (!user) {
-      return;
-    }
-
-    return new UserEntity(user);
-  };
-
-  getUserByEmail: (email: string) => Promise<UserEntity | null> = async (
-    email,
-  ) => {
-    const user = await this.prismaService.accountTb.findUnique({
-      where: { email: email },
-      include: { profileImgTb: true },
-    });
-
-    if (!user) {
-      return;
-    }
-
-    return new UserEntity(user);
-  };
+  }
 
   signUp: (signUpDto: SignUpDto) => Promise<void> = async (signUpDto) => {
     //트랜잭션 적용추가
-    const emailDuplicatedUser = await this.getUserByEmail(signUpDto.email);
+    const emailDuplicatedUser = await this.getUser({ email: signUpDto.email });
 
     if (emailDuplicatedUser) {
       throw new ConflictException('Email Duplicated');
@@ -122,4 +102,29 @@ export class UserService {
   deleteMyProfileImg: (userIdx: number) => Promise<void> = async (
     userIdx,
   ) => {};
+
+  async getUserWithProvider(
+    userIdx: number,
+    provider: string,
+  ): Promise<UserWithProvider> {
+    const userData = await this.prismaService.accountTb.findUnique({
+      where: {
+        idx: userIdx,
+        provider: provider,
+      },
+    });
+
+    if (!userData) {
+      throw new NotFoundException('Not Found User');
+    }
+
+    return new UserWithProvider(userData);
+  }
+
+  async deleteUser(userIdx: number): Promise<void> {
+    await this.prismaService.accountTb.update({
+      where: { idx: userIdx },
+      data: { deletedAt: new Date() },
+    });
+  }
 }

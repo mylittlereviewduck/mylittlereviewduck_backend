@@ -167,7 +167,7 @@ model TagTb {
 }
 
 model VerifiedEmailTb {
-  idx        Int      @default(autoincrement())
+  idx        Int      @id @default(autoincrement())
   email      String   @unique(map: "verified_email_email_unique") @db.VarChar
   code       Int
   isVerified Boolean  @default(false) @map("is_verified")

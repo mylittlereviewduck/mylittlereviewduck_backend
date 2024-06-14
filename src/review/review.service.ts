@@ -3,12 +3,12 @@ import { CreateReviewDto } from './dto/CreateReview.dto';
 import { ReviewEntity } from './entity/Review.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ReviewPagerbleDto } from './dto/ReviewPagerble.dto';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 
 @Injectable()
 export class ReviewService {
   constructor(
-    @Inject(CACHE_MANAGER) private chcheManager: Cache,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly prismaService: PrismaService,
   ) {}
 
@@ -16,13 +16,10 @@ export class ReviewService {
     loginUser: any,
     createDto: CreateReviewDto,
   ): Promise<ReviewEntity> {
-
     //로그인한 유저도 엔티티로만들어야할까?
     //로그인한 유저는 user모듈에속할텐데 다른 모듈에서 로그인유저엔티티를 쓸 수 있을까?
-    
-    const 
-    
-    return
+
+    return;
   }
 
   updateMyReview: (reviewIdx: number, userIdx: number) => Promise<void>;

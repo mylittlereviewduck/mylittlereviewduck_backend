@@ -7,6 +7,7 @@ import { CommentEntity } from './entity/Comment.entity';
 import { CreateCommentDto } from './dto/CreateComment.dto';
 import { UpdateCommentDto } from './dto/UpdateComment.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { LoginUser } from 'src/auth/model/login-user.model';
 
 @Injectable()
 export class CommentService {
@@ -14,7 +15,7 @@ export class CommentService {
 
   async createComment(
     createCommentDto: CreateCommentDto,
-    userIdx: number,
+    loginUser: LoginUser,
   ): Promise<CommentEntity> {
     const review = await this.prismaService.reviewTb.findUnique({
       where: { idx: createCommentDto.reviewIdx },
@@ -27,7 +28,7 @@ export class CommentService {
     const commentData = await this.prismaService.commentTb.create({
       data: {
         reviewIdx: createCommentDto.reviewIdx,
-        accountIdx: userIdx,
+        accountIdx: loginUser.idx,
         content: createCommentDto.content,
         commentIdx: createCommentDto.commentIdx,
       },
@@ -38,7 +39,7 @@ export class CommentService {
 
   async updateComment(
     updateCommentDto: UpdateCommentDto,
-    userIdx: number,
+    loginUser: LoginUser,
   ): Promise<CommentEntity> {
     const comment = await this.prismaService.commentTb.findUnique({
       where: {
@@ -50,7 +51,7 @@ export class CommentService {
       throw new NotFoundException('Not Found Comment');
     }
 
-    if (comment.accountIdx !== userIdx) {
+    if (comment.accountIdx !== loginUser.idx) {
       throw new UnauthorizedException('Unauthorized');
     }
 
@@ -68,8 +69,8 @@ export class CommentService {
   }
 
   async deleteComment(
-    userIdx: number,
     commentIdx: number,
+    loginUser: LoginUser,
   ): Promise<CommentEntity> {
     const comment = await this.prismaService.commentTb.findUnique({
       where: {
@@ -81,7 +82,7 @@ export class CommentService {
       throw new NotFoundException('Not Found Comment');
     }
 
-    if (comment.accountIdx !== userIdx) {
+    if (comment.accountIdx !== loginUser.idx) {
       throw new UnauthorizedException('Unauthorized');
     }
 
@@ -91,7 +92,7 @@ export class CommentService {
       },
       where: {
         idx: commentIdx,
-        accountIdx: userIdx,
+        accountIdx: loginUser.idx,
       },
     });
     return new CommentEntity(deletedCommentData);
@@ -101,6 +102,9 @@ export class CommentService {
     const commentData = await this.prismaService.commentTb.findMany({
       where: {
         reviewIdx: reviewIdx,
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
     });
 

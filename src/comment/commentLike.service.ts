@@ -1,13 +1,26 @@
 import { Injectable } from '@nestjs/common';
+import { LoginUser } from 'src/auth/model/login-user.model';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
-export class CommentLike {
-  constructor() {}
+export class CommentLikeService {
+  constructor(private readonly prismaService: PrismaService) {}
 
-  likeComment: (userIdx: number, commentIdx: number) => Promise<void>;
+  async likeComment(loginUser: LoginUser, commentIdx: number): Promise<void> {
+    await this.prismaService.commentLikesTb.create({
+      data: {
+        accountIdx: loginUser.idx,
+        commentIdx: commentIdx,
+      },
+    });
+  }
 
-  unlikeComment: (userIdx: number, commentIdx: number) => Promise<void>;
-
-  //함수 분리
-  isCommentLiked: (userIdx: number, commentIdx: number) => Promise<boolean>;
+  async unlikeComment(loginUser: LoginUser, commentIdx: number): Promise<void> {
+    await this.prismaService.commentLikesTb.deleteMany({
+      where: {
+        accountIdx: loginUser.idx,
+        commentIdx: commentIdx,
+      },
+    });
+  }
 }

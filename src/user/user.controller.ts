@@ -4,14 +4,17 @@ import {
   Delete,
   Get,
   HttpCode,
+  Param,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -26,11 +29,15 @@ import { CheckEmailDuplicateDto } from './dto/CheckEmailDuplicate.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { GetUser } from 'src/auth/get-user.decorator';
 import { LoginUser } from 'src/auth/model/login-user.model';
+import { FollowService } from './follow.service';
 
 @Controller('user')
 @ApiTags('user')
 export class UserController {
-  constructor(private userService: UserService) {}
+  constructor(
+    private userService: UserService,
+    private followService: FollowService,
+  ) {}
 
   @Post('/email/check')
   @HttpCode(200)
@@ -134,11 +141,24 @@ export class UserController {
   //?? 팔로우여부가 포함된 유저를 response할때, 어떻게dto를 만들어야할까?
   @Get('/:userIdx/following/all')
   @ApiOperation({ summary: '팔로잉 리스트보기' })
+  @ApiQuery({ name: 'page', type: 'number' })
+  @ApiQuery({ name: 'take', type: 'number' })
   @ApiParam({ name: 'userIdx', type: 'number' })
   @Exception(400, '유효하지않은 요청')
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: UserEntity, isArray: true })
-  async getFollowingAll() {}
+  async getFollowingAll(
+    @Param('userIdx') userIdx: number,
+    @Query('page') page: number,
+    @Query('take') take: number,
+  ) {
+    return await this.followService.getFollowList({
+      type: 'followerIdx',
+      userIdx: userIdx,
+      page: page ? page : 1,
+      take: take ? take : 10,
+    });
+  }
 
   @Get('/:userIdx/follower/all')
   @ApiOperation({ summary: '팔로워 리스트보기' })

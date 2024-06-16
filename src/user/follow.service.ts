@@ -1,5 +1,4 @@
 import { FollowListPagerble } from './dto/follow-list-pagerble';
-import { AccountTb } from '@prisma/client';
 import { Injectable } from '@nestjs/common';
 import { UserEntity } from './entity/User.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -28,7 +27,7 @@ export class FollowService {
   ): Promise<UserEntity[]> {
     //팔로우리스트가져오기
 
-    const followList = await this.prismaService.followTb.findMany({
+    let followList = await this.prismaService.followTb.findMany({
       where: {
         [followListPagerble.type]: followListPagerble.userIdx,
         followee: {
@@ -38,24 +37,21 @@ export class FollowService {
           deletedAt: null,
         },
       },
+      include: {},
       skip: (followListPagerble.page - 1) * followListPagerble.take,
       take: followListPagerble.take,
     });
 
     let userFollowList = [];
 
-    if (loginUser) {
-      userFollowList = await this.prismaService.followTb.findMany({
-        where: {
-          followeeIdx: loginUser.idx,
-          followerIdx: {
-            in: followList.map((user) =>
-              user.followeeIdx ? user.followeeIdx : user.followerIdx,
-            ),
-          },
-        },
-      });
-    }
+    console.log(followList);
+
+    userFollowList =
+      followListPagerble.type === 'followeeIdx'
+        ? followList.map((elem) => elem.followerIdx)
+        : followList.map((elem) => elem.followeeIdx);
+
+    //followTB에서
 
     return followList.map((elem) => new UserEntity(elem));
   }

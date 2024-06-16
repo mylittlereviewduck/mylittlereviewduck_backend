@@ -86,8 +86,8 @@ model FollowTb {
   followerIdx                             Int       @map("follower_idx")
   followeeIdx                             Int       @map("followee_idx")
   createdAt                               DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  accountTbFollowTbFollowerIdxToaccountTb AccountTb @relation("follow_tb_follower_idxToaccount_tb", fields: [followerIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_follow_tb")
-  accountTbFollowTbFolloweeIdxToaccountTb AccountTb @relation("follow_tb_followee_idxToaccount_tb", fields: [followeeIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_follow_tb1")
+  follower AccountTb @relation("follow_tb_follower_idxToaccount_tb", fields: [followerIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_follow_tb")
+  followee AccountTb @relation("follow_tb_followee_idxToaccount_tb", fields: [followeeIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_follow_tb1")
 
   @@id([followerIdx, followeeIdx])
   @@map("follow_tb")

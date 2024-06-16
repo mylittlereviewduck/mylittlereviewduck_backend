@@ -3,7 +3,6 @@ import { MailService } from '../common/Email/Email.service';
 import {
   Body,
   Controller,
-  Delete,
   Get,
   HttpCode,
   Param,
@@ -12,7 +11,6 @@ import {
   Req,
   Res,
   UnauthorizedException,
-  UseGuards,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Exception } from 'src/decorator/exception.decorator';
@@ -24,11 +22,8 @@ import { SendEmailWithVerificationDto } from './dto/send-email-with-verification
 import { AuthService } from './auth.service';
 import { Request, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
-import { SocialAuthDto } from './dto/social-auth.dto';
 import { SocialLoginProvider } from './model/social-login-provider.model';
 import { GoogleCallbackDto } from './dto/google-callback.dto';
-import { GetUser } from './get-user.decorator';
-import { LoginUser } from './model/login-user.model';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -110,7 +105,7 @@ export class AuthController {
     @Res() res: Response,
     @Param('provider') provider: SocialLoginProvider, // google, kakao, naver, apple
   ) {
-    return this.authService.socialAuth(req, res, provider);
+    return this.authService.getToken(req, res, provider);
   }
 
   @Get('/google/callback')
@@ -132,12 +127,5 @@ export class AuthController {
     @Query() query: GoogleCallbackDto,
   ): Promise<{ accessToken: string }> {
     return await this.authService.socialAuthCallbck('naver', query);
-  }
-
-  @Delete('google')
-  async googleWithdraw(@GetUser() loginUser: LoginUser): Promise<void> {
-    return await this.authService.socialWithdraw(loginUser, {
-      provider: 'google',
-    });
   }
 }

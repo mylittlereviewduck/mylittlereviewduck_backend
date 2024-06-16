@@ -30,6 +30,6 @@ export class UserEntity {
     this.profile = data.profile;
     this.profileImg = data.profileImg;
     this.nickname = data.nickname;
-    this.isFollowing = data.isFollowing;
+    this.isFollowing = data.isFollowing == undefined ? false : data.isFollowing;
   }
 }

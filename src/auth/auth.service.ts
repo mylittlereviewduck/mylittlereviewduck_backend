@@ -1,5 +1,9 @@
 import { SignInDto } from './dto/signIn.dto';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserService } from 'src/user/user.service';
 import { JwtService } from '@nestjs/jwt';
@@ -21,7 +25,23 @@ export class AuthService {
   }
 
   async signIn(signInDto: SignInDto): Promise<{ accessToken: string }> {
-    return;
+    const user = await this.prismaService.accountTb.findFirst({
+      where: {
+        email: signInDto.email,
+        pw: signInDto.pw,
+        deletedAt: null,
+      },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    const payload = { idx: user.idx };
+
+    const accessToken = await this.jwtService.signAsync(payload);
+
+    return { accessToken };
   }
 
   async getToken(

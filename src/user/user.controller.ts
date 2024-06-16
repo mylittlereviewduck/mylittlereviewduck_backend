@@ -20,12 +20,12 @@ import {
 } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { Exception } from 'src/decorator/exception.decorator';
-import { CheckNicknameDuplicateDto } from './dto/CheckNicknameDuplicate.dto';
-import { CreateUserDto } from './dto/CreateUser.dto';
+import { CheckNicknameDuplicateDto } from './dto/check-nickname-duplicate.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 import { UserEntity } from './entity/User.entity';
-import { UpdateMyInfoDto } from './dto/UpdateMyInfo.dto';
-import { UpdateMyProfileImgDto } from './dto/UpdateMyProfileImg.dto';
-import { CheckEmailDuplicateDto } from './dto/CheckEmailDuplicate.dto';
+import { UpdateMyInfoDto } from './dto/update-my-info.dto';
+import { UpdateMyProfileImgDto } from './dto/update-my-profile-img.dto';
+import { CheckEmailDuplicateDto } from './dto/check-email-duplicate.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { GetUser } from 'src/auth/get-user.decorator';
 import { LoginUser } from 'src/auth/model/login-user.model';

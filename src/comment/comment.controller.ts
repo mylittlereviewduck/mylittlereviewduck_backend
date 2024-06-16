@@ -7,7 +7,7 @@ import {
   Param,
   Post,
   Put,
-  Query,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -18,10 +18,11 @@ import {
 } from '@nestjs/swagger';
 import { Exception } from 'src/decorator/exception.decorator';
 import { CommentEntity } from './entity/Comment.entity';
-import { CreateCommentDto } from './dto/CreateComment.dto';
-import { UpdateCommentDto } from './dto/UpdateComment.dto';
+import { CreateCommentDto } from './dto/create-comment.dto';
+import { UpdateCommentDto } from './dto/update-comment.dto';
 import { GetUser } from 'src/auth/get-user.decorator';
 import { LoginUser } from 'src/auth/model/login-user.model';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 @ApiTags('comment')
 @Controller()
@@ -35,27 +36,41 @@ export class CommentController {
   @Exception(404, '해당 리소스 없음')
   @Exception(500, '서버에러')
   @ApiResponse({ status: 200, type: CommentEntity, isArray: true })
-  async getCommemtAllByReviewIdx(@Query('reviewIdx') reviewIdx: number) {
-    await this.commentService.getCommentAll(reviewIdx);
+  async getCommemtAllByReviewIdx(
+    @Param('reviewIdx') reviewIdx: number,
+  ): Promise<{ data: CommentEntity[] }> {
+    const commentList = await this.commentService.getCommentAll(reviewIdx);
+
+    return { data: commentList };
   }
 
   @Post('/review/:reviewIdx/comment')
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: '댓글 작성' })
+  @ApiBearerAuth()
   @ApiParam({ name: 'reviewIdx', type: 'number' })
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 없음')
   @Exception(500, '서버 에러')
-  @ApiResponse({ status: 201 })
+  @ApiResponse({ status: 201, type: CommentEntity })
   async createComment(
     @Body() createCommentDto: CreateCommentDto,
     @GetUser() loginUser: LoginUser,
-  ) {
-    await this.commentService.createComment(createCommentDto, loginUser);
+  ): Promise<{ data: CommentEntity }> {
+    const commentEntity = await this.commentService.createComment(
+      createCommentDto,
+      loginUser,
+    );
+
+    // 값이 data라는 키값으로 반환되는데 이를 또 타입정의해줘야하는가? Create-Comment-Response
+    return { data: commentEntity };
   }
 
   @Put('/review/:reviewIdx/comment/:commentIdx')
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: '댓글 수정' })
+  @ApiBearerAuth()
   @ApiParam({ name: 'reviewIdx', type: 'number' })
   @ApiParam({ name: 'commentIdx', type: 'number' })
   @Exception(400, '유효하지않은 요청')
@@ -66,12 +81,19 @@ export class CommentController {
   async updateComment(
     @Body() updateCommentDto: UpdateCommentDto,
     @GetUser() loginUser: LoginUser,
-  ) {
-    await this.commentService.updateComment(updateCommentDto, loginUser);
+  ): Promise<{ data: CommentEntity }> {
+    const commentEntity = await this.commentService.updateComment(
+      updateCommentDto,
+      loginUser,
+    );
+
+    return { data: commentEntity };
   }
 
   @Delete('/review/:reviewIdx/comment/:commentIdx')
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: '댓글 삭제' })
+  @ApiBearerAuth()
   @ApiParam({ name: 'reviewIdx', type: 'number' })
   @ApiParam({ name: 'commentIdx', type: 'number' })
   @Exception(400, '유효하지않은 요청')
@@ -82,13 +104,20 @@ export class CommentController {
   async deleteComment(
     @Param('commentIdx') commentIdx: number,
     @GetUser() loginUser: LoginUser,
-  ) {
-    await this.commentService.deleteComment(commentIdx, loginUser);
+  ): Promise<{ data: CommentEntity }> {
+    const comment = await this.commentService.deleteComment(
+      commentIdx,
+      loginUser,
+    );
+
+    return { data: comment };
   }
 
   @Post('/review/:reviewIdx/comment/:commentIdx/like')
+  @UseGuards(AuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '댓글 좋아요' })
+  @ApiBearerAuth()
   @ApiParam({ name: 'reviewIdx', type: 'number' })
   @ApiParam({ name: 'commentIdx', type: 'number' })
   @Exception(400, '유효하지않은 요청')
@@ -100,8 +129,9 @@ export class CommentController {
   async likeComment() {}
 
   @Delete('/review/:reviewIdx/comment/:commentIdx/like')
-  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: '댓글 좋아요 해제' })
+  @ApiBearerAuth()
   @ApiParam({ name: 'reviewIdx', type: 'number' })
   @ApiParam({ name: 'commentIdx', type: 'number' })
   @Exception(400, '유효하지않은 요청')

@@ -20,9 +20,9 @@ model AccountBlockTb {
 
 model AccountTb {
   idx                                               Int              @id @default(autoincrement())
-  email                                             String           @unique(map: "account_tb_email_unique_key") @db.VarChar
+  email                                             String           @db.VarChar
   pw                                                String?          @db.VarChar
-  nickname                                          String           @unique(map: "account_tb_nickname_unique_key") @default(dbgenerated("uuid_generate_v4()")) @db.VarChar
+  nickname                                          String           @default(dbgenerated("uuid_generate_v4()")) @db.VarChar
   phone                                             String?          @db.VarChar
   profile                                           String?
   provider                                          String?          @db.VarChar
@@ -83,11 +83,11 @@ model CommentTb {
 }
 
 model FollowTb {
-  followerIdx                             Int       @map("follower_idx")
-  followeeIdx                             Int       @map("followee_idx")
-  createdAt                               DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  follower AccountTb @relation("follow_tb_follower_idxToaccount_tb", fields: [followerIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_follow_tb")
-  followee AccountTb @relation("follow_tb_followee_idxToaccount_tb", fields: [followeeIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_follow_tb1")
+  followerIdx Int       @map("follower_idx")
+  followeeIdx Int       @map("followee_idx")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  follower    AccountTb @relation("follow_tb_follower_idxToaccount_tb", fields: [followerIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_follow_tb")
+  followee    AccountTb @relation("follow_tb_followee_idxToaccount_tb", fields: [followeeIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_follow_tb1")
 
   @@id([followerIdx, followeeIdx])
   @@map("follow_tb")
@@ -96,7 +96,7 @@ model FollowTb {
 model ProfileImgTb {
   idx        Int       @id @default(autoincrement())
   accountIdx Int       @map("account_idx")
-  imgPath    String    @default("example.com") @map("img_path") @db.VarChar
+  imgPath    String    @default("default_img_url") @map("img_path") @db.VarChar
   createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   deletedAt  DateTime? @map("deleted_at") @db.Timestamptz(6)
   accountTb  AccountTb @relation(fields: [accountIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_profile_img_tb")
@@ -146,6 +146,7 @@ model ReviewTb {
   createdAt     DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
   deletedAt     DateTime?       @map("deleted_at") @db.Timestamptz(6)
   updatedAt     DateTime?       @map("updated_at") @db.Timestamptz(6)
+  score         Decimal         @db.Decimal(3, 2)
   bookmarkTb    BookmarkTb[]
   commentTb     CommentTb[]
   reviewBlockTb ReviewBlockTb[]

@@ -6,9 +6,20 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class CommentLikeCheckService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  //함수 분리
-  isCommentLiked: (
+  async isCommentLiked(
     loginUser: LoginUser,
     commentIdx: number,
-  ) => Promise<boolean>;
+  ): Promise<boolean> {
+    const isLiked = await this.prismaService.commentLikesTb.findUnique({
+      where: {
+        commentIdx_accountIdx: {
+          accountIdx: loginUser.idx,
+          commentIdx: commentIdx,
+        },
+      },
+    });
+    console.log('isLiked: ', isLiked);
+
+    return;
+  }
 }

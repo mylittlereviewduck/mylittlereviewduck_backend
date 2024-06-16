@@ -5,11 +5,11 @@ import {
 } from '@nestjs/common';
 import { UserEntity } from './entity/User.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { SignUpOAuthDto } from './dto/SignUpOAuth.dto';
-import { CreateUserDto } from './dto/CreateUser.dto';
-import { UpdateMyInfoDto } from './dto/UpdateMyInfo.dto';
-import { UpdateMyProfileImgDto } from './dto/UpdateMyProfileImg.dto';
-import { GetUserDto } from './dto/GetUserByEmail.dto';
+import { CreateUserOAtuhDto } from './dto/create-user-oauth.dto';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateMyInfoDto } from './dto/update-my-info.dto';
+import { UpdateMyProfileImgDto } from './dto/update-my-profile-img.dto';
+import { GetUserDto } from './dto/get-user.dto';
 import { UserWithProvider } from './model/user-with-provider.model';
 import { LoginUser } from 'src/auth/model/login-user.model';
 import { AccountTb, ProfileImgTb } from '@prisma/client';
@@ -65,16 +65,16 @@ export class UserService {
   }
 
   async createUserWithOAuth(
-    signUpOAuthDto: SignUpOAuthDto,
+    createUserOAuthDto: CreateUserOAtuhDto,
   ): Promise<UserEntity> {
     let userData: AccountTb, profileImgData: ProfileImgTb;
 
     await this.prismaService.$transaction(async (tx) => {
       const userData = await tx.accountTb.create({
         data: {
-          email: signUpOAuthDto.email,
-          provider: signUpOAuthDto.provider,
-          providerKey: signUpOAuthDto.providerKey,
+          email: createUserOAuthDto.email,
+          provider: createUserOAuthDto.provider,
+          providerKey: createUserOAuthDto.providerKey,
         },
       });
 

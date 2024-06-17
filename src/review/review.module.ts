@@ -1,8 +1,8 @@
-import { BookmarkCheckerService } from './bookmarkChecker.service';
+import { BookmarkCheckService } from './bookmark-check.service';
 import { Module, forwardRef } from '@nestjs/common';
 import { ReviewController } from './review.controller';
 import { ReviewService } from './review.service';
-import { ReviewBookmarkService } from './reviewBookmark.service';
+import { ReviewBookmarkService } from './review-bookmark.service';
 import { ReviewLikeService } from './reviewLike.service';
 import { AuthModule } from 'src/auth/auth.module';
 import { CacheModule } from '@nestjs/cache-manager';
@@ -14,9 +14,9 @@ import { PrismaModule } from 'src/prisma/prisma.module';
   providers: [
     ReviewService,
     ReviewBookmarkService,
-    BookmarkCheckerService,
+    BookmarkCheckService,
     ReviewLikeService,
   ],
-  exports: [BookmarkCheckerService],
+  exports: [BookmarkCheckService],
 })
 export class ReviewModule {}

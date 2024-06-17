@@ -1,9 +1,16 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { CreateReviewDto } from './dto/CreateReview.dto';
+import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { CreateReviewDto } from './dto/create-review.dto';
 import { ReviewEntity } from './entity/Review.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { ReviewPagerbleDto } from './dto/ReviewPagerble.dto';
+import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
+import { LoginUser } from 'src/auth/model/login-user.model';
+import { UpdateReviewDto } from './dto/update-review.dto';
 
 @Injectable()
 export class ReviewService {
@@ -13,22 +20,81 @@ export class ReviewService {
   ) {}
 
   async createReview(
-    loginUser: any,
+    loginUser: LoginUser,
     createDto: CreateReviewDto,
   ): Promise<ReviewEntity> {
-    //로그인한 유저도 엔티티로만들어야할까?
-    //로그인한 유저는 user모듈에속할텐데 다른 모듈에서 로그인유저엔티티를 쓸 수 있을까?
+    const review = await this.prismaService.reviewTb.create({
+      data: {
+        accountIdx: loginUser.idx,
+        title: createDto.title,
+        content: createDto.content,
+        score: createDto.score,
+      },
+    });
 
-    return;
+    return new ReviewEntity(review);
   }
 
-  updateMyReview: (reviewIdx: number, userIdx: number) => Promise<void>;
+  async updateReview(
+    loginUser: LoginUser,
+    reviewIdx: number,
+    updateReviewDto: UpdateReviewDto,
+  ): Promise<ReviewEntity> {
+    const review = await this.prismaService.reviewTb.findUnique({
+      where: {
+        idx: reviewIdx,
+      },
+    });
 
-  deleteMyReview: (reviewIdx: number, userIdx: number) => Promise<void>;
+    if (!review) {
+      throw new NotFoundException('Not Found Review');
+    }
+
+    if (review.accountIdx !== loginUser.idx) {
+      throw new UnauthorizedException('Unauthorized User');
+    }
+    const reviewData = this.prismaService.reviewTb.update({
+      data: {
+        title: updateReviewDto.title,
+        score: updateReviewDto.score,
+        content: updateReviewDto.content,
+      },
+      where: {
+        idx: reviewIdx,
+      },
+    });
+
+    return new ReviewEntity(reviewData);
+  }
+
+  async deleteReview(
+    loginUser: LoginUser,
+    reviewIdx: number,
+  ): Promise<ReviewEntity> {
+    const review = await this.prismaService.reviewTb.findUnique({
+      where: { idx: reviewIdx },
+    });
+
+    if (!review) {
+      throw new NotFoundException('Not Found Review');
+    }
+
+    if (review.accountIdx !== loginUser.idx) {
+      throw new UnauthorizedException('Unauthorized User');
+    }
+
+    const deletedReview = await this.prismaService.reviewTb.delete({
+      where: {
+        idx: reviewIdx,
+      },
+    });
+
+    return new ReviewEntity(deletedReview);
+  }
 
   async getReviewAll(
     reviewPagerbleDto: ReviewPagerbleDto,
-  ): Promise<ReviewEntity[]> {
+  ): Promise<{ review: ReviewEntity[]; totalPage: number }> {
     const reviewData = await this.prismaService.reviewTb.findMany({
       where: {
         accountIdx: reviewPagerbleDto.userIdx,
@@ -39,8 +105,8 @@ export class ReviewService {
           ? { createdAt: reviewPagerbleDto.sort }
           : undefined,
     });
-
-    return reviewData.map((elem) => new ReviewEntity(elem));
+    reviewData.map((elem) => new ReviewEntity(elem));
+    return;
   }
 
   // 특정유저가 북마크한 리뷰 가져오기

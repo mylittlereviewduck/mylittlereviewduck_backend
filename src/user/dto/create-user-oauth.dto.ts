@@ -1,4 +1,4 @@
-export class SignUpOAuthDto {
+export class CreateUserOAtuhDto {
   email: string;
 
   provider: string;

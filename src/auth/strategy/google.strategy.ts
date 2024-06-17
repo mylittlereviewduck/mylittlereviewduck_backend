@@ -13,14 +13,13 @@ import { PrismaService } from 'src/prisma/prisma.service';
 @Injectable()
 export class GoogleStrategy implements ISocialAuthStrategy {
   constructor(
-    private readonly prismaService: PrismaService,
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly httpService: HttpService,
     private readonly configServce: ConfigService,
   ) {}
 
-  async socialAuth(req: Request, res: Response): Promise<void> {
+  async getTokenRequest(req: Request, res: Response): Promise<void> {
     let url = `https://accounts.google.com/o/oauth2/v2/auth`;
     url += `?client_id=${this.configServce.get<string>('GOOGLE_CLIENT_ID')}`;
     url += `&redirect_uri=${this.configServce.get<string>('GOOGLE_REDIRECT_URI')}`;
@@ -64,7 +63,7 @@ export class GoogleStrategy implements ISocialAuthStrategy {
     let user = await this.userService.getUser({ email: userInfo.email });
 
     if (!user) {
-      user = await this.userService.signUpOAuth({
+      user = await this.userService.createUserWithOAuth({
         email: userInfo.email,
         provider: 'google',
         providerKey: userInfo.id,
@@ -75,17 +74,5 @@ export class GoogleStrategy implements ISocialAuthStrategy {
     const accessToken = await this.jwtService.signAsync(payload);
 
     return { accessToken };
-  }
-
-  async socialWithdraw(
-    loginUser: LoginUser,
-    socialWithdrawDto: SocialWithdrawDto,
-  ): Promise<void> {
-    const user = await this.userService.getUserWithProvider(
-      loginUser.idx,
-      socialWithdrawDto.provider,
-    );
-
-    await this.userService.deleteUser(user.idx);
   }
 }

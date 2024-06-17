@@ -5,8 +5,11 @@ import {
   Get,
   HttpCode,
   Inject,
+  Param,
   Post,
   Put,
+  Query,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -14,14 +17,18 @@ import {
   ApiResponse,
   ApiBearerAuth,
   ApiParam,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { Exception } from 'src/decorator/exception.decorator';
-import { CreateReviewDto } from './dto/CreateReview.dto';
+import { CreateReviewDto } from './dto/create-review.dto';
 import { ReviewEntity } from './entity/Review.entity';
-import { UploadReviewImageResponseDto } from './dto/response/UploadReviewImageResponse.dto';
-import { UpdateReviewDto } from './dto/UpdateReview.dto';
+import { UploadReviewImageResponseDto } from './dto/response/upload-review-image-response.dto';
+import { UpdateReviewDto } from './dto/update-review.dto';
 import { ReviewService } from './review.service';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
+import { LoginUser } from 'src/auth/model/login-user.model';
+import { GetUser } from 'src/auth/get-user.decorator';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 @Controller('')
 @ApiTags('review')
@@ -32,20 +39,32 @@ export class ReviewController {
   ) {}
 
   @Post('/review')
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: '리뷰 작성하기' })
+  @ApiBearerAuth()
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 201, description: '리뷰작성 성공시 201 반환' })
   async createReview(
+    @GetUser() loginUser: LoginUser,
     @Body() createReviewDto: CreateReviewDto,
-  ): Promise<ReviewEntity> {
-    return await this.reviewService.createReview({}, createReviewDto);
+  ): Promise<{ data: ReviewEntity }> {
+    const review = await this.reviewService.createReview(
+      loginUser,
+      createReviewDto,
+    );
+
+    return { data: review };
   }
 
-  @Post('/review')
+  //멀터생성하기
+  //멀터 정리하기
+  @Post('/review/img')
+  @UseGuards(AuthGuard)
   @HttpCode(200)
   @ApiOperation({ summary: '리뷰 이미지업로드' })
+  @ApiBearerAuth()
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한없음')
   @Exception(500, '서버 에러')
@@ -54,8 +73,11 @@ export class ReviewController {
     description: '리뷰 이미지 업로드 성공시 200반환',
     type: UploadReviewImageResponseDto,
   })
-  async uploadReviewImage() {}
+  async uploadReviewImage(): Promise<{ imgPath: string }> {
+    return;
+  }
 
+  //getReview생성하기
   @Get('/review/:reviewIdx')
   @ApiOperation({ summary: '리뷰 자세히보기' })
   @ApiParam({ name: 'reviewIdx', example: 1 })
@@ -66,6 +88,7 @@ export class ReviewController {
   async getReviewIdx() {}
 
   @Put('/review/:reviewIdx')
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: '리뷰 수정하기' })
   @ApiBearerAuth()
   @ApiParam({ name: 'reviewIdx', example: 1 })
@@ -74,7 +97,19 @@ export class ReviewController {
   @Exception(404, '해당 리소스 없음')
   @Exception(500, '서버에러')
   @ApiResponse({ status: 200 })
-  async updateReview(@Body() updateReviewDto: UpdateReviewDto) {}
+  async updateReview(
+    @GetUser() loginUser: LoginUser,
+    @Param('reviewIdx') reviewIdx: number,
+    @Body() updateReviewDto: UpdateReviewDto,
+  ): Promise<{ data: ReviewEntity }> {
+    //작업 시작해야할 부분
+    const review = await this.reviewService.updateReview(
+      loginUser,
+      reviewIdx,
+      updateReviewDto,
+    );
+    return { data: review };
+  }
 
   @Delete('/review/:reviewIdx')
   @ApiOperation({ summary: '리뷰 삭제하기' })
@@ -85,12 +120,35 @@ export class ReviewController {
   @Exception(404, '해당 리소스 없음')
   @Exception(500, '서버에러')
   @ApiResponse({ status: 200 })
-  async deleteReview() {}
+  async deleteReview(
+    @GetUser() loginUser: LoginUser,
+    @Param('reviewIdx') reviewIdx: number,
+  ): Promise<{ data: ReviewEntity }> {
+    const reviewEntity = await this.reviewService.deleteReview(
+      loginUser,
+      reviewIdx,
+    );
+    return { data: reviewEntity };
+  }
 
   @Get('/review/all')
   @ApiOperation({ summary: '최신 리뷰목록보기' })
+  @ApiQuery({ name: 'size', description: '한 페이지에 담긴 리뷰수 ' })
+  @ApiQuery({ name: 'orderby', description: '정렬기준' })
+  @ApiQuery({ name: 'sort', description: '정렬방법(asc, desc)' })
   @ApiResponse({ status: 200, type: ReviewEntity, isArray: true })
-  async getReviewAll() {}
+  async getReviewAll(
+    @Query('size') size: number,
+    @Query('orderby') orderBy: 'createdAt' | 'view',
+    @Query('sort') sort: 'asc' | 'desc',
+  ): Promise<{ data: { review: ReviewEntity; totalPage: number } }> {
+    const result = await this.reviewService.getReviewAll({
+      size: size,
+      orderby: orderBy,
+      sort: sort,
+    });
+    return;
+  }
 
   @Get('/review/popular')
   @ApiOperation({ summary: '인기 리뷰목록보기' })

@@ -4,35 +4,42 @@ import {
   Delete,
   Get,
   HttpCode,
+  Param,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { Exception } from 'src/decorator/exception.decorator';
-import { CheckNicknameDuplicateDto } from './dto/CheckNicknameDuplicate.dto';
-import { SignUpDto } from './dto/SignUp.dto';
+import { CheckNicknameDuplicateDto } from './dto/check-nickname-duplicate.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 import { UserEntity } from './entity/User.entity';
-import { UpdateMyInfoDto } from './dto/UpdateMyInfo.dto';
-import { UpdateMyProfileImgDto } from './dto/UpdateMyProfileImg.dto';
-import { CheckEmailDuplicateDto } from './dto/CheckEmailDuplicate.dto';
+import { UpdateMyInfoDto } from './dto/update-my-info.dto';
+import { UpdateMyProfileImgDto } from './dto/update-my-profile-img.dto';
+import { CheckEmailDuplicateDto } from './dto/check-email-duplicate.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { GetUser } from 'src/auth/get-user.decorator';
 import { LoginUser } from 'src/auth/model/login-user.model';
+import { FollowService } from './follow.service';
 
 @Controller('user')
 @ApiTags('user')
 export class UserController {
-  constructor(private userService: UserService) {}
+  constructor(
+    private userService: UserService,
+    private followService: FollowService,
+  ) {}
 
-  @Post('/check-email')
+  @Post('/email/check')
   @HttpCode(200)
   @ApiOperation({ summary: '이메일 중복확인' })
   @Exception(400, '유효하지않은 요청')
@@ -41,7 +48,7 @@ export class UserController {
   @ApiResponse({ status: 200, description: '사용가능한 이메일일경우 200반환' })
   async checkEmailDulicate(@Body() checkDto: CheckEmailDuplicateDto) {}
 
-  @Post('check-nickname')
+  @Post('/nickname/check')
   @HttpCode(200)
   @ApiOperation({ summary: '닉네임 중복검사' })
   @Exception(400, '유효하지않은 요청')
@@ -56,8 +63,8 @@ export class UserController {
   @Exception(409, '유효하지않은 닉네임/이메일이거나 이미가입된 회원입니다')
   @Exception(500, '서버에러')
   @ApiResponse({ status: 201 })
-  async signUp(@Body() signUpDto: SignUpDto) {
-    return await this.userService.signUp(signUpDto);
+  async signUp(@Body() createUserDto: CreateUserDto) {
+    return await this.userService.createUser(createUserDto);
   }
 
   @Get('myinfo')
@@ -95,6 +102,15 @@ export class UserController {
     @Body() updateMyProfileImgDto: UpdateMyProfileImgDto,
   ) {}
 
+  @Post('profile-img')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: '프로필 이미지 업로드' })
+  @ApiBearerAuth()
+  @Exception(400, '유효하지않은 요청')
+  @Exception(401, '권한 없음')
+  @Exception(500, '서버 에러')
+  async uploadProfileImg(@GetUser() loginUser: LoginUser) {}
+
   @Delete('profile-img')
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '프로필 이미지 삭제' })
@@ -115,14 +131,33 @@ export class UserController {
   @ApiResponse({ status: 200, type: UserEntity })
   async getUserInfo() {}
 
+  @Delete('')
+  @ApiOperation({ summary: '유저 탈퇴하기' })
+  @ApiBearerAuth()
+  @Exception(401, '권한 없음')
+  @Exception(500, '서버 에러')
+  async deleteUser(): Promise<void> {}
+
   //?? 팔로우여부가 포함된 유저를 response할때, 어떻게dto를 만들어야할까?
   @Get('/:userIdx/following/all')
   @ApiOperation({ summary: '팔로잉 리스트보기' })
+  @ApiQuery({ name: 'page', type: 'number' })
+  @ApiQuery({ name: 'take', type: 'number' })
   @ApiParam({ name: 'userIdx', type: 'number' })
   @Exception(400, '유효하지않은 요청')
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: UserEntity, isArray: true })
-  async getFollowingAll() {}
+  async getFollowingAll(
+    @Param('userIdx') userIdx: number,
+    @Query('page') page: number,
+    @Query('take') take: number,
+  ) {
+    return await this.followService.getFollowingList({
+      userIdx: userIdx,
+      page: page ? page : 1,
+      take: take ? take : 10,
+    });
+  }
 
   @Get('/:userIdx/follower/all')
   @ApiOperation({ summary: '팔로워 리스트보기' })

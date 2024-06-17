@@ -1,8 +1,6 @@
 import { Request, Response } from 'express';
 import { SocialAuthDto } from '../dto/social-auth.dto';
-import { SocialWithdrawDto } from '../dto/social-withdraw.dto';
 import { SocialLoginProvider } from '../model/social-login-provider.model';
-import { LoginUser } from '../model/login-user.model';
 
 export interface ISocialAuthStrategy {
   getTokenRequest(

@@ -1,10 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsString, Length } from 'class-validator';
 
 export class UpdateReviewDto {
-  @ApiProperty({ example: 1, description: '리뷰idx' })
-  reviewIdx: number;
-
   @ApiProperty({ example: '제목', description: '리뷰 제목' })
+  @IsString()
+  @Length(2, 50)
   title: string;
 
   @ApiProperty({ example: '내용', description: '리뷰 내용' })

@@ -34,7 +34,14 @@ export class UserService {
       return;
     }
 
-    return new UserEntity(user);
+    return new UserEntity({
+      idx: user.idx,
+      email: user.email,
+      profile: user.profile,
+      nickname: user.nickname,
+      profileImg: user.profileImgTb[0].imgPath,
+      isFollowing: null,
+    });
   }
 
   async createUser(createUserDto: CreateUserDto): Promise<void> {
@@ -91,6 +98,7 @@ export class UserService {
       profile: userData.profile,
       profileImg: profileImgData.imgPath,
       nickname: userData.nickname,
+      isFollowing: null,
     };
 
     return new UserEntity(userEntityData);

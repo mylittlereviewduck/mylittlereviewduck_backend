@@ -19,17 +19,16 @@ export class UserEntity {
   @ApiProperty({
     example: 'true',
     description: '팔로우여부',
-    required: false,
     nullable: true,
   })
-  isFollowing?: boolean | null;
+  isFollowing: boolean | null;
 
-  constructor(data) {
+  constructor(data: UserEntity) {
     this.idx = data.idx;
     this.email = data.email;
     this.profile = data.profile;
     this.profileImg = data.profileImg;
     this.nickname = data.nickname;
-    this.isFollowing = data.isFollowing == undefined ? false : data.isFollowing;
+    this.isFollowing = data.isFollowing == null ? false : data.isFollowing;
   }
 }

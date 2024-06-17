@@ -21,15 +21,27 @@ export class FollowService {
 
   // getFollwersList: (userIdx: number) => Promise<UserEntity[]>;
 
-  async getFollowList(
+  async getFollowingList(
     followListPagerble: FollowListPagerble,
     loginUser?: LoginUser | undefined,
   ): Promise<UserEntity[]> {
     //팔로우리스트가져오기
 
-    let followList = await this.prismaService.followTb.findMany({
+    let followingList = await this.prismaService.followTb.findMany({
+      include: {
+        followee: {
+          // 민경찬 (팔로워: 김기주) / 익명1 (팔로워:X null) / 익명2 (팔로워: null)
+          include: {
+            followee: {
+              where: {
+                followerIdx: loginUser.idx,
+              },
+            },
+          },
+        },
+      },
       where: {
-        [followListPagerble.type]: followListPagerble.userIdx,
+        followerIdx: followListPagerble.userIdx, // 태은이의 팔로우 목록
         followee: {
           deletedAt: null,
         },
@@ -37,22 +49,20 @@ export class FollowService {
           deletedAt: null,
         },
       },
-      include: {},
       skip: (followListPagerble.page - 1) * followListPagerble.take,
       take: followListPagerble.take,
     });
 
-    let userFollowList = [];
+    followingList.map((follower) => {
+      // 팔로워의 팔로이안에 로그인 사용자가 있으면
+      if (follower.followee) {
+      }
+    });
 
-    console.log(followList);
-
-    userFollowList =
-      followListPagerble.type === 'followeeIdx'
-        ? followList.map((elem) => elem.followerIdx)
-        : followList.map((elem) => elem.followeeIdx);
+    console.log(followingList);
 
     //followTB에서
 
-    return followList.map((elem) => new UserEntity(elem));
+    return;
   }
 }

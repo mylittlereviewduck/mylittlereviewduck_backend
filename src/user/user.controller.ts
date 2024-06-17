@@ -152,8 +152,7 @@ export class UserController {
     @Query('page') page: number,
     @Query('take') take: number,
   ) {
-    return await this.followService.getFollowList({
-      type: 'followerIdx',
+    return await this.followService.getFollowingList({
       userIdx: userIdx,
       page: page ? page : 1,
       take: take ? take : 10,

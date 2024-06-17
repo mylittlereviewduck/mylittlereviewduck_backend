@@ -8,6 +8,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -16,6 +17,7 @@ import {
   ApiResponse,
   ApiBearerAuth,
   ApiParam,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { Exception } from 'src/decorator/exception.decorator';
 import { CreateReviewDto } from './dto/create-review.dto';
@@ -101,8 +103,12 @@ export class ReviewController {
     @Body() updateReviewDto: UpdateReviewDto,
   ): Promise<{ data: ReviewEntity }> {
     //작업 시작해야할 부분
-    const review = await this.reviewService.updateReview(loginUser, {});
-    return;
+    const review = await this.reviewService.updateReview(
+      loginUser,
+      reviewIdx,
+      updateReviewDto,
+    );
+    return { data: review };
   }
 
   @Delete('/review/:reviewIdx')
@@ -114,12 +120,35 @@ export class ReviewController {
   @Exception(404, '해당 리소스 없음')
   @Exception(500, '서버에러')
   @ApiResponse({ status: 200 })
-  async deleteReview() {}
+  async deleteReview(
+    @GetUser() loginUser: LoginUser,
+    @Param('reviewIdx') reviewIdx: number,
+  ): Promise<{ data: ReviewEntity }> {
+    const reviewEntity = await this.reviewService.deleteReview(
+      loginUser,
+      reviewIdx,
+    );
+    return { data: reviewEntity };
+  }
 
   @Get('/review/all')
   @ApiOperation({ summary: '최신 리뷰목록보기' })
+  @ApiQuery({ name: 'size', description: '한 페이지에 담긴 리뷰수 ' })
+  @ApiQuery({ name: 'orderby', description: '정렬기준' })
+  @ApiQuery({ name: 'sort', description: '정렬방법(asc, desc)' })
   @ApiResponse({ status: 200, type: ReviewEntity, isArray: true })
-  async getReviewAll() {}
+  async getReviewAll(
+    @Query('size') size: number,
+    @Query('orderby') orderBy: 'createdAt' | 'view',
+    @Query('sort') sort: 'asc' | 'desc',
+  ): Promise<{ data: { review: ReviewEntity; totalPage: number } }> {
+    const result = await this.reviewService.getReviewAll({
+      size: size,
+      orderby: orderBy,
+      sort: sort,
+    });
+    return;
+  }
 
   @Get('/review/popular')
   @ApiOperation({ summary: '인기 리뷰목록보기' })

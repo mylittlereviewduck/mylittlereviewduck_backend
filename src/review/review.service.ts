@@ -37,13 +37,12 @@ export class ReviewService {
 
   async updateReview(
     loginUser: LoginUser,
+    reviewIdx: number,
     updateReviewDto: UpdateReviewDto,
   ): Promise<ReviewEntity> {
-    console.log(typeof updateReviewDto.reviewIdx);
-
     const review = await this.prismaService.reviewTb.findUnique({
       where: {
-        idx: updateReviewDto.reviewIdx,
+        idx: reviewIdx,
       },
     });
 
@@ -61,18 +60,41 @@ export class ReviewService {
         content: updateReviewDto.content,
       },
       where: {
-        idx: updateReviewDto.reviewIdx,
+        idx: reviewIdx,
       },
     });
 
     return new ReviewEntity(reviewData);
   }
 
-  deleteReview: (reviewIdx: number, userIdx: number) => Promise<void>;
+  async deleteReview(
+    loginUser: LoginUser,
+    reviewIdx: number,
+  ): Promise<ReviewEntity> {
+    const review = await this.prismaService.reviewTb.findUnique({
+      where: { idx: reviewIdx },
+    });
+
+    if (!review) {
+      throw new NotFoundException('Not Found Review');
+    }
+
+    if (review.accountIdx !== loginUser.idx) {
+      throw new UnauthorizedException('Unauthorized User');
+    }
+
+    const deletedReview = await this.prismaService.reviewTb.delete({
+      where: {
+        idx: reviewIdx,
+      },
+    });
+
+    return new ReviewEntity(deletedReview);
+  }
 
   async getReviewAll(
     reviewPagerbleDto: ReviewPagerbleDto,
-  ): Promise<ReviewEntity[]> {
+  ): Promise<{ review: ReviewEntity[]; totalPage: number }> {
     const reviewData = await this.prismaService.reviewTb.findMany({
       where: {
         accountIdx: reviewPagerbleDto.userIdx,
@@ -83,8 +105,8 @@ export class ReviewService {
           ? { createdAt: reviewPagerbleDto.sort }
           : undefined,
     });
-
-    return reviewData.map((elem) => new ReviewEntity(elem));
+    reviewData.map((elem) => new ReviewEntity(elem));
+    return;
   }
 
   // 특정유저가 북마크한 리뷰 가져오기

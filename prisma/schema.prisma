@@ -34,8 +34,8 @@ model AccountTb {
   bookmarkTb                                        BookmarkTb[]
   commentLikesTb                                    CommentLikesTb[]
   commentTb                                         CommentTb[]
-  followTbFollowTbFollowerIdxToaccountTb            FollowTb[]       @relation("follow_tb_follower_idxToaccount_tb")
-  followTbFollowTbFolloweeIdxToaccountTb            FollowTb[]       @relation("follow_tb_followee_idxToaccount_tb")
+  follower                                          FollowTb[]       @relation("follow_tb_follower_idxToaccount_tb")
+  followee                                          FollowTb[]       @relation("follow_tb_followee_idxToaccount_tb")
   profileImgTb                                      ProfileImgTb[]
   reviewBlockTb                                     ReviewBlockTb[]
   reviewLikesTb                                     ReviewLikesTb[]

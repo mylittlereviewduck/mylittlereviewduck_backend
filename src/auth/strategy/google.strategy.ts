@@ -7,8 +7,6 @@ import { UserService } from 'src/user/user.service';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { GoogleCallbackDto } from '../dto/google-callback.dto';
-import { LoginUser } from '../model/login-user.model';
-import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class GoogleStrategy implements ISocialAuthStrategy {

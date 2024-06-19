@@ -143,9 +143,9 @@ export class ReviewController {
     @Query('sort') sort: 'asc' | 'desc',
   ): Promise<{ data: { review: ReviewEntity; totalPage: number } }> {
     const result = await this.reviewService.getReviewAll({
-      size: size,
-      orderby: orderBy,
-      sort: sort,
+      size: size || 10,
+      orderby: orderBy || 'createdAt',
+      sort: sort || 'desc',
     });
     return;
   }
@@ -155,10 +155,14 @@ export class ReviewController {
   @ApiResponse({ status: 200, type: ReviewEntity, isArray: true })
   async getReviewPopular() {}
 
-  @Get('review/search')
+  @Get('/review')
   @ApiOperation({ summary: '리뷰검색하기 닉네임, 태그, 제목,내용' })
+  @ApiQuery({ name: 'search', description: '검색 키워드' })
+  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: ReviewEntity, isArray: true })
-  async getReviewWithSearch(): Promise<ReviewEntity[]> {
+  async getReviewWithSearch(
+    @Query('search') search: string;
+  ): Promise<ReviewEntity[]> {
     // const hotReviewString: string = await this.cacheManager.get('hot-review');
 
     // if (hotReviewString) {

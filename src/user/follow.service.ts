@@ -1,8 +1,8 @@
 import { FollowListPagerble } from './dto/follow-list-pagerble';
 import { Injectable } from '@nestjs/common';
 import { UserEntity } from './entity/User.entity';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { LoginUser } from 'src/auth/model/login-user.model';
+import { PrismaService } from '../../src/prisma/prisma.service';
+import { LoginUser } from '../../src/auth/model/login-user.model';
 
 @Injectable()
 export class FollowService {

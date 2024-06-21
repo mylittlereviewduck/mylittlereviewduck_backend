@@ -41,6 +41,7 @@ model AccountTb {
   reviewLikesTb                                     ReviewLikesTb[]
   reviewTb                                          ReviewTb[]
 
+  @@unique([email, deletedAt])
   @@map("account_tb")
 }
 

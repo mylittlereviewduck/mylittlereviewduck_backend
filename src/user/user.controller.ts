@@ -19,16 +19,16 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { UserService } from './user.service';
-import { Exception } from 'src/decorator/exception.decorator';
+import { Exception } from '../../src/decorator/exception.decorator';
 import { CheckNicknameDuplicateDto } from './dto/check-nickname-duplicate.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserEntity } from './entity/User.entity';
 import { UpdateMyInfoDto } from './dto/update-my-info.dto';
 import { UpdateMyProfileImgDto } from './dto/update-my-profile-img.dto';
 import { CheckEmailDuplicateDto } from './dto/check-email-duplicate.dto';
-import { AuthGuard } from 'src/auth/auth.guard';
-import { GetUser } from 'src/auth/get-user.decorator';
-import { LoginUser } from 'src/auth/model/login-user.model';
+import { AuthGuard } from '../../src/auth/auth.guard';
+import { GetUser } from '../../src/auth/get-user.decorator';
+import { LoginUser } from '../../src/auth/model/login-user.model';
 import { FollowService } from './follow.service';
 
 @Controller('user')
@@ -39,7 +39,10 @@ export class UserController {
     private followService: FollowService,
   ) {}
 
-  @Post('/email/check')
+  //비밀번호찾기
+  //아이디찾기 추가
+
+  @Post('/check-email')
   @HttpCode(200)
   @ApiOperation({ summary: '이메일 중복확인' })
   @Exception(400, '유효하지않은 요청')
@@ -48,7 +51,7 @@ export class UserController {
   @ApiResponse({ status: 200, description: '사용가능한 이메일일경우 200반환' })
   async checkEmailDulicate(@Body() checkDto: CheckEmailDuplicateDto) {}
 
-  @Post('/nickname/check')
+  @Post('/check-nickname')
   @HttpCode(200)
   @ApiOperation({ summary: '닉네임 중복검사' })
   @Exception(400, '유효하지않은 요청')

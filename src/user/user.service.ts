@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { UserEntity } from './entity/User.entity';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../../src/prisma/prisma.service';
 import { CreateUserOAtuhDto } from './dto/create-user-oauth.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateMyInfoDto } from './dto/update-my-info.dto';
@@ -44,30 +44,26 @@ export class UserService {
     });
   }
 
+  // 유저생성
+  // 인증된이메일인지 확인
+  // 이메일 중복인지확인
+  // 유저추가
+  //이메일인증 확인 로직추가
   async createUser(createUserDto: CreateUserDto): Promise<void> {
-    //트랜잭션 적용추가
-    const emailDuplicatedUser = await this.getUser({
-      email: createUserDto.email,
-    });
+    await this.prismaService.$transaction(async (tx) => {
+      const emailDuplicatedUser = await tx.accountTb.findFirst({
+        where: {
+          email: createUserDto.email,
+        },
+      });
 
-    if (emailDuplicatedUser) {
-      throw new ConflictException('Email Duplicated');
-    }
+      if (emailDuplicatedUser) {
+        throw new ConflictException('Email Duplicated');
+      }
 
-    const verifiedEmail = await this.prismaService.verifiedEmailTb.findUnique({
-      where: { email: createUserDto.email, isVerified: true },
-    });
-
-    if (!verifiedEmail) {
-      throw new ConflictException('Not Verified Email');
-    }
-
-    await this.prismaService.verifiedEmailTb.delete({
-      where: { idx: verifiedEmail.idx },
-    });
-
-    await this.prismaService.accountTb.create({
-      data: { email: createUserDto.email, pw: createUserDto.pw },
+      await tx.accountTb.create({
+        data: { email: createUserDto.email, pw: createUserDto.pw },
+      });
     });
   }
 

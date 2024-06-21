@@ -1,9 +1,8 @@
 import { JwtService } from '@nestjs/jwt';
 import { Request, Response } from 'express';
-import { SocialWithdrawDto } from '../dto/social-withdraw.dto';
 import { ISocialAuthStrategy } from '../interface/social-auth-strategy.interface';
 import { Injectable } from '@nestjs/common';
-import { UserService } from 'src/user/user.service';
+import { UserService } from '../../../src/user/user.service';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { GoogleCallbackDto } from '../dto/google-callback.dto';

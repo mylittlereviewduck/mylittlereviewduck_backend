@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString, Length, length } from 'class-validator';
+import { IsEmail, IsString, Length } from 'class-validator';
 
-export class SignInDto {
+export class LoginDto {
   @ApiProperty({ example: 'example@naver.com', description: '이메일 형식' })
   @IsEmail()
   @Length(2, 20)

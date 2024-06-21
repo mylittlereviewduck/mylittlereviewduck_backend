@@ -1,15 +1,18 @@
-import { SignInDto } from './dto/signIn.dto';
+import { LoginDto } from './dto/signIn.dto';
 import {
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { UserService } from 'src/user/user.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { UserService } from '../../src/user/user.service';
 import { JwtService } from '@nestjs/jwt';
 import { Request, Response } from 'express';
 import { GoogleStrategy } from './strategy/google.strategy';
 import { SocialLoginProvider } from './model/social-login-provider.model';
+import { NaverStrategy } from './strategy/naver.strategy';
+import { KakaoStrategy } from './strategy/kakao.strategy';
+import { AppleStrategy } from './strategy/apple.strategy';
 
 @Injectable()
 export class AuthService {
@@ -24,11 +27,11 @@ export class AuthService {
     this.strategy[SocialLoginProvider.GOOGLE] = googleStrategy;
   }
 
-  async signIn(signInDto: SignInDto): Promise<{ accessToken: string }> {
+  async login(loginDto: LoginDto): Promise<string> {
     const user = await this.prismaService.accountTb.findFirst({
       where: {
-        email: signInDto.email,
-        pw: signInDto.pw,
+        email: loginDto.email,
+        pw: loginDto.pw,
         deletedAt: null,
       },
     });
@@ -39,9 +42,7 @@ export class AuthService {
 
     const payload = { idx: user.idx };
 
-    const accessToken = await this.jwtService.signAsync(payload);
-
-    return { accessToken };
+    return await this.jwtService.signAsync(payload);
   }
 
   async getToken(
@@ -69,5 +70,9 @@ export class AuthService {
     }
 
     return strategy.socialAuthCallback(query);
+  }
+
+  async createVerificationCode(): Promise<number> {
+    return Math.floor(Math.random() * 900000 + 100000);
   }
 }

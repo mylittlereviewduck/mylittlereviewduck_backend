@@ -161,7 +161,7 @@ export class ReviewController {
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: ReviewEntity, isArray: true })
   async getReviewWithSearch(
-    @Query('search') search: string;
+    @Query('search') search: string,
   ): Promise<ReviewEntity[]> {
     // const hotReviewString: string = await this.cacheManager.get('hot-review');
 

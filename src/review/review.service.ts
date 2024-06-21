@@ -104,6 +104,7 @@ export class ReviewService {
         reviewPagerbleDto.orderby === 'createdAt'
           ? { createdAt: reviewPagerbleDto.sort }
           : undefined,
+      include: { _count: true },
     });
     reviewData.map((elem) => new ReviewEntity(elem));
     return;

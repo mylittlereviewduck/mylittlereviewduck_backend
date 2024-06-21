@@ -1,9 +1,9 @@
 import { MailerModule, MailerService } from '@nestjs-modules/mailer';
 import { Module } from '@nestjs/common';
-import { MailService } from './Email.service';
+import { MailService } from './email.service';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { join } from 'path';
-import { PrismaModule } from 'src/prisma/prisma.module';
+import { PrismaModule } from '../../prisma/prisma.module';
 
 @Module({
   imports: [

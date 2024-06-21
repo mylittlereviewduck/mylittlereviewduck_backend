@@ -1,13 +1,16 @@
-import { SendEmailWithVerificationDto } from '../../auth/dto/send-email-with-verification.dto';
+import { SendEmailDto } from './dto/send-email.dto';
+import { SendEmailWithVerificationDto } from '../../auth/dto/send-email-verification.dto';
 import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../../prisma/prisma.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class MailService {
   constructor(
     private readonly mailerService: MailerService,
     private readonly prismaService: PrismaService,
+    private readonly configService: ConfigService,
   ) {}
 
   async sendMailWithVerificationCode(
@@ -32,5 +35,13 @@ export class MailService {
     });
   }
 
-  async sendEmail(title: string, contents: string, toEmail: string) {}
+  async sendEmail(sendEmailDto: SendEmailDto): Promise<void> {
+    this.mailerService.sendMail({
+      to: sendEmailDto.toEmail,
+      from: this.configService.get<string>('MAIL_USER'),
+      subject: sendEmailDto.title,
+      text: sendEmailDto.content,
+      html: `<b> ${sendEmailDto.content} </b>`,
+    });
+  }
 }

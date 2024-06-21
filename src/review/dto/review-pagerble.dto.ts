@@ -3,9 +3,9 @@ export class ReviewPagerbleDto {
 
   reviewIdx?: number;
 
-  size: number = 10;
+  size: number;
 
-  orderby: 'createdAt' | 'view' = 'createdAt';
+  orderby: 'createdAt' | 'view';
 
-  sort: 'asc' | 'desc' = 'desc';
+  sort: 'asc' | 'desc';
 }

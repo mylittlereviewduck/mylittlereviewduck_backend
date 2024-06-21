@@ -1,14 +1,19 @@
 import { AuthGuard } from './auth.guard';
 import { Module, forwardRef } from '@nestjs/common';
-import { PrismaModule } from 'src/prisma/prisma.module';
-import { UserModule } from 'src/user/user.module';
+import { PrismaModule } from '../../src/prisma/prisma.module';
+import { UserModule } from '../../src/user/user.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from './jwtConstants';
-import { MailModule } from 'src/common/Email/Email.module';
+import { MailModule } from '../common/Email/email.module';
 import { GoogleStrategy } from './strategy/google.strategy';
 import { HttpModule } from '@nestjs/axios';
+import { UserService } from '../../src/user/user.service';
+import { NaverStrategy } from './strategy/naver.strategy';
+import { AppleStrategy } from './strategy/apple.strategy';
+import { KakaoStrategy } from './strategy/kakao.strategy';
+import { EmailAuthService } from './email-auth.service';
 
 @Module({
   imports: [
@@ -23,7 +28,13 @@ import { HttpModule } from '@nestjs/axios';
     HttpModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, AuthGuard, GoogleStrategy],
+  providers: [
+    AuthService,
+    EmailAuthService,
+    AuthGuard,
+    UserService,
+    GoogleStrategy,
+  ],
   exports: [AuthService, AuthGuard],
 })
 export class AuthModule {}

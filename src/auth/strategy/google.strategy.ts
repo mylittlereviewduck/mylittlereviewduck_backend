@@ -26,7 +26,7 @@ export class GoogleStrategy implements ISocialAuthStrategy {
     res.redirect(url);
   }
 
-  async socialAuthCallback(
+  async socialLogin(
     query: GoogleCallbackDto,
   ): Promise<{ accessToken: string }> {
     const { code, scope, authuser, prompt } = query;

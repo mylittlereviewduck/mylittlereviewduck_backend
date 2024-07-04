@@ -1,5 +1,5 @@
 import { SendEmailDto } from './dto/send-email.dto';
-import { SendEmailWithVerificationDto } from '../../auth/dto/send-email-verification.dto';
+import { SendEmailVerificationDto } from '../../auth/dto/send-email-verification.dto';
 import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -14,7 +14,7 @@ export class MailService {
   ) {}
 
   async sendMailWithVerificationCode(
-    sendEmailWithVerificationDto: SendEmailWithVerificationDto,
+    sendEmailWithVerificationDto: SendEmailVerificationDto,
     randomCode: number,
   ): Promise<void> {
     // 인증번호 발송하는 메서드가 가져야하는 책임 AuthService

@@ -1,3 +1,4 @@
+import { VerifyEmailDto } from './dto/verify-email.dto';
 import { LoginDto } from './dto/signIn.dto';
 import {
   Injectable,
@@ -59,7 +60,7 @@ export class AuthService {
     return strategy.getTokenRequest(req, res);
   }
 
-  async socialAuthCallbck(
+  async socialLogin(
     provider: string,
     query: any,
   ): Promise<{ accessToken: string }> {
@@ -69,10 +70,23 @@ export class AuthService {
       throw new NotFoundException('Not Found OAuth Service');
     }
 
-    return strategy.socialAuthCallback(query);
+    return strategy.socialLogin(query);
   }
 
-  async createVerificationCode(): Promise<number> {
-    return Math.floor(Math.random() * 900000 + 100000);
+  async verifyCode(verifyEmailDto: VerifyEmailDto): Promise<boolean> {
+    const verifiedEmail = await this.prismaService.verifiedEmailTb.findFirst({
+      where: {
+        email: verifyEmailDto.email,
+        code: verifyEmailDto.code,
+        createdAt: { gte: new Date(Date.now() - 5 * 60 * 1000) },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!verifiedEmail) {
+      throw new UnauthorizedException('Unauthorized email');
+    }
+
+    return true;
   }
 }

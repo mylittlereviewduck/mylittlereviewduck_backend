@@ -11,7 +11,7 @@ export class NaverStrategy implements ISocialAuthStrategy {
 
     res.redirect(url);
   }
-  async socialAuthCallback(query: any): Promise<{ accessToken: string }> {
+  async socialLogin(query: any): Promise<{ accessToken: string }> {
     throw new Error('Method not implemented.');
   }
 }

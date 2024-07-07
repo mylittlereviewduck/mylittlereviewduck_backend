@@ -143,6 +143,7 @@ export class UserController {
 
   //?? 팔로우여부가 포함된 유저를 response할때, 어떻게dto를 만들어야할까?
   @Get('/:userIdx/following/all')
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: '팔로잉 리스트보기' })
   @ApiQuery({ name: 'page', type: 'number' })
   @ApiQuery({ name: 'take', type: 'number' })
@@ -154,12 +155,17 @@ export class UserController {
     @Param('userIdx') userIdx: number,
     @Query('page') page: number,
     @Query('take') take: number,
+    @GetUser() loginUser: LoginUser,
   ) {
-    return await this.followService.getFollowingList({
-      userIdx: userIdx,
-      page: page ? page : 1,
-      take: take ? take : 10,
-    });
+    console.log('로그인유저확인', loginUser);
+    return await this.followService.getFollowingList(
+      {
+        userIdx: userIdx,
+        page: page || 1,
+        take: take || 20,
+      },
+      loginUser,
+    );
   }
 
   @Get('/:userIdx/follower/all')

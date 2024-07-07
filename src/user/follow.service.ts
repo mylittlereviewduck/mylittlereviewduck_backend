@@ -1,3 +1,4 @@
+import { AccountTb } from '@prisma/client';
 import { FollowListPagerble } from './dto/follow-list-pagerble';
 import { Injectable } from '@nestjs/common';
 import { UserEntity } from './entity/User.entity';
@@ -8,15 +9,23 @@ import { LoginUser } from '../../src/auth/model/login-user.model';
 export class FollowService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async isfollowing(userIdx: number, toUserIdx: number): Promise<boolean> {
-    return;
+  async getFollowStatus(userIdx: number, toUserIdx: number): Promise<boolean> {
+    const followStatus = await this.prismaService.followTb.findMany({
+      where: {
+        followerIdx: userIdx,
+        followeeIdx: toUserIdx,
+      },
+    });
+
+    console.log('followStatus', followStatus);
+
+    return followStatus ? true : false;
   }
 
   followUser: (userIdx: number, toUserIdx: number) => Promise<UserEntity[]>;
 
   unfollowUser: (userIdx: number, toUserIdx: number) => Promise<UserEntity[]>;
 
-  //두 메서드 통합하기
   // getFollowingList: (userIdx: number) => Promise<UserEntity[]>;
 
   // getFollwersList: (userIdx: number) => Promise<UserEntity[]>;
@@ -24,45 +33,66 @@ export class FollowService {
   async getFollowingList(
     followListPagerble: FollowListPagerble,
     loginUser?: LoginUser | undefined,
-  ): Promise<UserEntity[]> {
+  ): Promise<{ totalCount: number; followList: UserEntity[] }> {
     //팔로우리스트가져오기
+    console.log('실행');
+    console.log(loginUser);
 
-    let followingList = await this.prismaService.followTb.findMany({
+    const followList = await this.prismaService.followTb.findMany({
       include: {
         followee: {
-          // 민경찬 (팔로워: 김기주) / 익명1 (팔로워:X null) / 익명2 (팔로워: null)
-          include: {
-            followee: {
-              where: {
-                followerIdx: loginUser.idx,
+          select: {
+            idx: true,
+            email: true,
+            nickname: true,
+            profile: true,
+            profileImgTb: {
+              select: {
+                imgPath: true,
               },
             },
           },
         },
       },
       where: {
-        followerIdx: followListPagerble.userIdx, // 태은이의 팔로우 목록
-        followee: {
-          deletedAt: null,
-        },
-        follower: {
-          deletedAt: null,
-        },
+        followerIdx: followListPagerble.userIdx,
       },
       skip: (followListPagerble.page - 1) * followListPagerble.take,
       take: followListPagerble.take,
     });
 
-    followingList.map((follower) => {
-      // 팔로워의 팔로이안에 로그인 사용자가 있으면
-      if (follower.followee) {
-      }
-    });
+    console.log(followList);
 
-    console.log(followingList);
+    let userList = followList.map((elem) => ({
+      idx: elem.followee.idx,
+      email: elem.followee.email,
+      nickname: elem.followee.nickname,
+      profile: elem.followee.profile,
+      profileImg: elem.followee.profileImgTb[0].imgPath,
+      isFollowing: false,
+    }));
 
-    //followTB에서
+    // if (loginUser) {
+    //   console.log('팔로우 검증실행');
+    //   userList = await Promise.all(
+    //     userList.map(async (elem) => {
+    //       const isFollowing = await this.getFollowStatus(
+    //         loginUser.idx,
+    //         elem.idx,
+    //       );
+    //       return { ...elem, isFollowing };
+    //     }),
+    //   );
+    // }
 
+    return {
+      totalCount: 10,
+      followList: userList.map((elem) => new UserEntity(elem)),
+    };
+  }
+
+  //팔로워리스트 가져오기
+  async getFollowerList(): Promise<UserEntity> {
     return;
   }
 }

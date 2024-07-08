@@ -4,6 +4,7 @@ import { Injectable } from '@nestjs/common';
 import { UserEntity } from './entity/User.entity';
 import { PrismaService } from '../../src/prisma/prisma.service';
 import { LoginUser } from '../../src/auth/model/login-user.model';
+import { elementAt } from 'rxjs';
 
 @Injectable()
 export class FollowService {
@@ -17,9 +18,11 @@ export class FollowService {
       },
     });
 
-    console.log('followStatus', followStatus);
+    if (followStatus.length == 0) {
+      return false;
+    }
 
-    return followStatus ? true : false;
+    return true;
   }
 
   followUser: (userIdx: number, toUserIdx: number) => Promise<UserEntity[]>;
@@ -34,9 +37,11 @@ export class FollowService {
     followListPagerble: FollowListPagerble,
     loginUser?: LoginUser | undefined,
   ): Promise<{ totalCount: number; followList: UserEntity[] }> {
-    //팔로우리스트가져오기
-    console.log('실행');
-    console.log(loginUser);
+    const getFollowingCount = await this.prismaService.followTb.count({
+      where: {
+        followerIdx: followListPagerble.userIdx,
+      },
+    });
 
     const followList = await this.prismaService.followTb.findMany({
       include: {
@@ -61,38 +66,101 @@ export class FollowService {
       take: followListPagerble.take,
     });
 
-    console.log(followList);
+    let userList = followList.map((elem) => {
+      return {
+        idx: elem.followee.idx,
+        email: elem.followee.email,
+        nickname: elem.followee.nickname,
+        profile: elem.followee.profile,
+        profileImg: elem.followee.profileImgTb[0].imgPath,
+        isFollowing: false,
+      };
+    });
 
-    let userList = followList.map((elem) => ({
-      idx: elem.followee.idx,
-      email: elem.followee.email,
-      nickname: elem.followee.nickname,
-      profile: elem.followee.profile,
-      profileImg: elem.followee.profileImgTb[0].imgPath,
-      isFollowing: false,
-    }));
-
-    // if (loginUser) {
-    //   console.log('팔로우 검증실행');
-    //   userList = await Promise.all(
-    //     userList.map(async (elem) => {
-    //       const isFollowing = await this.getFollowStatus(
-    //         loginUser.idx,
-    //         elem.idx,
-    //       );
-    //       return { ...elem, isFollowing };
-    //     }),
-    //   );
-    // }
+    if (loginUser) {
+      userList = await Promise.all(
+        userList.map(async (elem) => {
+          const isFollowing = await this.getFollowStatus(
+            loginUser.idx,
+            elem.idx,
+          );
+          return { ...elem, isFollowing };
+        }),
+      );
+    }
 
     return {
-      totalCount: 10,
+      totalCount: getFollowingCount,
       followList: userList.map((elem) => new UserEntity(elem)),
     };
   }
 
   //팔로워리스트 가져오기
-  async getFollowerList(): Promise<UserEntity> {
-    return;
+  async getFollowerList(
+    followListPagerble: FollowListPagerble,
+    loginUser: LoginUser,
+  ): Promise<{
+    totalCount: number;
+    followList: UserEntity[];
+  }> {
+    const getFollowerCount = await this.prismaService.followTb.count({
+      where: {
+        followeeIdx: followListPagerble.userIdx,
+      },
+    });
+
+    const followList = await this.prismaService.followTb.findMany({
+      include: {
+        follower: {
+          select: {
+            idx: true,
+            email: true,
+            nickname: true,
+            profile: true,
+            profileImgTb: {
+              select: {
+                imgPath: true,
+              },
+            },
+          },
+        },
+      },
+      where: {
+        followeeIdx: followListPagerble.userIdx,
+      },
+      skip: (followListPagerble.page - 1) * followListPagerble.take,
+      take: followListPagerble.take,
+    });
+
+    console.log('followList: ', followList);
+
+    let userList = followList.map((elem) => {
+      return {
+        idx: elem.follower.idx,
+        email: elem.follower.email,
+        nickname: elem.follower.nickname,
+        profile: elem.follower.profile,
+        profileImg: elem.follower.profileImgTb[0].imgPath,
+        isFollowing: false,
+      };
+    });
+
+    if (loginUser) {
+      userList = await Promise.all(
+        userList.map(async (elem) => {
+          const isFollowing = await this.getFollowStatus(
+            loginUser.idx,
+            elem.idx,
+          );
+          return { ...elem, isFollowing };
+        }),
+      );
+    }
+    console.log('userList', userList);
+
+    return {
+      totalCount: getFollowerCount,
+      followList: userList.map((elem) => new UserEntity(elem)),
+    };
   }
 }

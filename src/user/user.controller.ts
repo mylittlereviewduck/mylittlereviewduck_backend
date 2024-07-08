@@ -141,7 +141,7 @@ export class UserController {
   @Exception(500, '서버 에러')
   async deleteUser(): Promise<void> {}
 
-  //?? 팔로우여부가 포함된 유저를 response할때, 어떻게dto를 만들어야할까?
+  //로그인유저만 쓸수있는 오류를 해결해야해
   @Get('/:userIdx/following/all')
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '팔로잉 리스트보기' })
@@ -157,7 +157,6 @@ export class UserController {
     @Query('take') take: number,
     @GetUser() loginUser: LoginUser,
   ) {
-    console.log('로그인유저확인', loginUser);
     return await this.followService.getFollowingList(
       {
         userIdx: userIdx,
@@ -169,12 +168,29 @@ export class UserController {
   }
 
   @Get('/:userIdx/follower/all')
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: '팔로워 리스트보기' })
   @ApiParam({ name: 'userIdx', type: 'number' })
   @Exception(400, '유효하지않은 요청')
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: UserEntity, isArray: true })
-  async getFollowerAll() {}
+  async getFollowerAll(
+    @Param('userIdx') userIdx: number,
+    @Query('page') page: number,
+    @Query('take') take: number,
+    @GetUser() loginUser: LoginUser,
+  ) {
+    console.log('로그인유저확인', loginUser.idx);
+
+    return await this.followService.getFollowerList(
+      {
+        userIdx: userIdx,
+        page: page || 1,
+        take: take || 20,
+      },
+      loginUser,
+    );
+  }
 
   @Post('/:userIdx/follow')
   @UseGuards(AuthGuard)

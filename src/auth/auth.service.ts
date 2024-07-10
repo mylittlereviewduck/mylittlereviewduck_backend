@@ -24,8 +24,10 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly prismaService: PrismaService,
     private readonly googleStrategy: GoogleStrategy,
+    private readonly naverStrategy: NaverStrategy,
   ) {
     this.strategy[SocialLoginProvider.GOOGLE] = googleStrategy;
+    this.strategy[SocialLoginProvider.NAVER] = naverStrategy;
   }
 
   async login(loginDto: LoginDto): Promise<string> {

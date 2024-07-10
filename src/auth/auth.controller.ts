@@ -26,6 +26,7 @@ import { ConfigService } from '@nestjs/config';
 import { SocialLoginProvider } from './model/social-login-provider.model';
 import { GoogleCallbackDto } from './dto/google-callback.dto';
 import { LoginResponseDto } from './dto/response/Login-Response.dto';
+import { NaverCallbackDto } from './dto/naver-callback.dto';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -106,7 +107,7 @@ export class AuthController {
 
   @Get('/naver/callback')
   async naverCallback(
-    @Query() query: GoogleCallbackDto,
+    @Query() query: NaverCallbackDto,
   ): Promise<{ accessToken: string }> {
     return await this.authService.socialLogin('naver', query);
   }

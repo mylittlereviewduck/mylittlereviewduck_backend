@@ -26,6 +26,8 @@ import { ConfigService } from '@nestjs/config';
 import { SocialLoginProvider } from './model/social-login-provider.model';
 import { GoogleCallbackDto } from './dto/google-callback.dto';
 import { LoginResponseDto } from './dto/response/Login-Response.dto';
+import { NaverCallbackDto } from './dto/naver-callback.dto';
+import { KakaoCallbackDto } from './dto/kakao-callback.dto';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -52,38 +54,16 @@ export class AuthController {
     );
   }
 
-  //이메일 인증번호확인
-  //req body
   @Post('email/verify')
   @ApiOperation({ summary: '이메일 인증확인' })
+  @HttpCode(200)
   @Exception(400, '유효하지않은 요청')
   @Exception(409, '이미 인증된 이메일')
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: VerifyEmailResponseDto })
   async verifyEmail(@Body() verifyEmailDto: VerifyEmailDto): Promise<boolean> {
     //true면 이메일 db저장
-
-    //서비스코드로이동
-    //테스트해보기
-    const verifiedEmail = await this.prismaService.verifiedEmailTb.findFirst({
-      where: {
-        email: verifyEmailDto.email,
-        code: verifyEmailDto.code,
-        createdAt: { gte: new Date(Date.now() - 5 * 60 * 1000) },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    if (!verifiedEmail) {
-      throw new UnauthorizedException('Unauthorized email');
-    }
-
-    await this.prismaService.verifiedEmailTb.update({
-      data: { isVerified: false },
-      where: { idx: verifiedEmail.idx },
-    });
-
-    return true;
+    return this.authService.verifyCode(verifyEmailDto);
   }
 
   @Post('/login')
@@ -113,23 +93,23 @@ export class AuthController {
   }
 
   @Get('/google/callback')
-  async socialAuthCallback(
+  async googleLogin(
     @Query() query: GoogleCallbackDto,
   ): Promise<{ accessToken: string }> {
-    return await this.authService.socialAuthCallbck('google', query);
+    return await this.authService.socialLogin('google', query);
   }
 
   @Get('/kakao/callback')
   async googleCallback(
-    @Query() query: GoogleCallbackDto,
+    @Query() query: KakaoCallbackDto,
   ): Promise<{ accessToken: string }> {
-    return await this.authService.socialAuthCallbck('kakao', query);
+    return await this.authService.socialLogin('kakao', query);
   }
 
   @Get('/naver/callback')
   async naverCallback(
-    @Query() query: GoogleCallbackDto,
+    @Query() query: NaverCallbackDto,
   ): Promise<{ accessToken: string }> {
-    return await this.authService.socialAuthCallbck('naver', query);
+    return await this.authService.socialLogin('naver', query);
   }
 }

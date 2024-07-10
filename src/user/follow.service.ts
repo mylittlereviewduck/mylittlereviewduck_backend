@@ -1,22 +1,34 @@
+import { AccountTb } from '@prisma/client';
 import { FollowListPagerble } from './dto/follow-list-pagerble';
 import { Injectable } from '@nestjs/common';
 import { UserEntity } from './entity/User.entity';
 import { PrismaService } from '../../src/prisma/prisma.service';
 import { LoginUser } from '../../src/auth/model/login-user.model';
+import { elementAt } from 'rxjs';
 
 @Injectable()
 export class FollowService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async isfollowing(userIdx: number, toUserIdx: number): Promise<boolean> {
-    return;
+  async getFollowStatus(userIdx: number, toUserIdx: number): Promise<boolean> {
+    const followStatus = await this.prismaService.followTb.findMany({
+      where: {
+        followerIdx: userIdx,
+        followeeIdx: toUserIdx,
+      },
+    });
+
+    if (followStatus.length == 0) {
+      return false;
+    }
+
+    return true;
   }
 
   followUser: (userIdx: number, toUserIdx: number) => Promise<UserEntity[]>;
 
   unfollowUser: (userIdx: number, toUserIdx: number) => Promise<UserEntity[]>;
 
-  //두 메서드 통합하기
   // getFollowingList: (userIdx: number) => Promise<UserEntity[]>;
 
   // getFollwersList: (userIdx: number) => Promise<UserEntity[]>;
@@ -24,45 +36,131 @@ export class FollowService {
   async getFollowingList(
     followListPagerble: FollowListPagerble,
     loginUser?: LoginUser | undefined,
-  ): Promise<UserEntity[]> {
-    //팔로우리스트가져오기
+  ): Promise<{ totalCount: number; followList: UserEntity[] }> {
+    const getFollowingCount = await this.prismaService.followTb.count({
+      where: {
+        followerIdx: followListPagerble.userIdx,
+      },
+    });
 
-    let followingList = await this.prismaService.followTb.findMany({
+    const followList = await this.prismaService.followTb.findMany({
       include: {
         followee: {
-          // 민경찬 (팔로워: 김기주) / 익명1 (팔로워:X null) / 익명2 (팔로워: null)
-          include: {
-            followee: {
-              where: {
-                followerIdx: loginUser.idx,
+          select: {
+            idx: true,
+            email: true,
+            nickname: true,
+            profile: true,
+            profileImgTb: {
+              select: {
+                imgPath: true,
               },
             },
           },
         },
       },
       where: {
-        followerIdx: followListPagerble.userIdx, // 태은이의 팔로우 목록
-        followee: {
-          deletedAt: null,
-        },
-        follower: {
-          deletedAt: null,
-        },
+        followerIdx: followListPagerble.userIdx,
       },
       skip: (followListPagerble.page - 1) * followListPagerble.take,
       take: followListPagerble.take,
     });
 
-    followingList.map((follower) => {
-      // 팔로워의 팔로이안에 로그인 사용자가 있으면
-      if (follower.followee) {
-      }
+    let userList = followList.map((elem) => {
+      return {
+        idx: elem.followee.idx,
+        email: elem.followee.email,
+        nickname: elem.followee.nickname,
+        profile: elem.followee.profile,
+        profileImg: elem.followee.profileImgTb[0].imgPath,
+        isFollowing: false,
+      };
     });
 
-    console.log(followingList);
+    if (loginUser) {
+      userList = await Promise.all(
+        userList.map(async (elem) => {
+          const isFollowing = await this.getFollowStatus(
+            loginUser.idx,
+            elem.idx,
+          );
+          return { ...elem, isFollowing };
+        }),
+      );
+    }
 
-    //followTB에서
+    return {
+      totalCount: getFollowingCount,
+      followList: userList.map((elem) => new UserEntity(elem)),
+    };
+  }
 
-    return;
+  //팔로워리스트 가져오기
+  async getFollowerList(
+    followListPagerble: FollowListPagerble,
+    loginUser: LoginUser,
+  ): Promise<{
+    totalCount: number;
+    followList: UserEntity[];
+  }> {
+    const getFollowerCount = await this.prismaService.followTb.count({
+      where: {
+        followeeIdx: followListPagerble.userIdx,
+      },
+    });
+
+    const followList = await this.prismaService.followTb.findMany({
+      include: {
+        follower: {
+          select: {
+            idx: true,
+            email: true,
+            nickname: true,
+            profile: true,
+            profileImgTb: {
+              select: {
+                imgPath: true,
+              },
+            },
+          },
+        },
+      },
+      where: {
+        followeeIdx: followListPagerble.userIdx,
+      },
+      skip: (followListPagerble.page - 1) * followListPagerble.take,
+      take: followListPagerble.take,
+    });
+
+    console.log('followList: ', followList);
+
+    let userList = followList.map((elem) => {
+      return {
+        idx: elem.follower.idx,
+        email: elem.follower.email,
+        nickname: elem.follower.nickname,
+        profile: elem.follower.profile,
+        profileImg: elem.follower.profileImgTb[0].imgPath,
+        isFollowing: false,
+      };
+    });
+
+    if (loginUser) {
+      userList = await Promise.all(
+        userList.map(async (elem) => {
+          const isFollowing = await this.getFollowStatus(
+            loginUser.idx,
+            elem.idx,
+          );
+          return { ...elem, isFollowing };
+        }),
+      );
+    }
+    console.log('userList', userList);
+
+    return {
+      totalCount: getFollowerCount,
+      followList: userList.map((elem) => new UserEntity(elem)),
+    };
   }
 }

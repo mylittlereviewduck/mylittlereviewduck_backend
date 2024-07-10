@@ -21,7 +21,7 @@ export class UserEntity {
     description: '팔로우여부',
     nullable: true,
   })
-  isFollowing: boolean | null;
+  isFollowing: boolean;
 
   constructor(data: UserEntity) {
     this.idx = data.idx;

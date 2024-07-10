@@ -19,7 +19,7 @@ export class UserService {
   constructor(private readonly prismaService: PrismaService) {}
 
   async getUser(getUserDto: GetUserDto): Promise<UserEntity | null> {
-    const user = await this.prismaService.accountTb.findUnique({
+    const user = await this.prismaService.accountTb.findFirst({
       where: {
         idx: getUserDto.idx,
         email: getUserDto.email,

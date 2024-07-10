@@ -12,20 +12,16 @@ export class EmailAuthService {
     private readonly prismaService: PrismaService,
   ) {}
 
-  // 인증번호확인
-  checkEmailVerification(): (email: string, code: number) => Promise<boolean> {
-    return;
-  }
-
-  // 인증된 이메일인지확인
-  getVerifiedEmail(): (email: string) => Promise<boolean> {
-    return;
-  }
-
   async sendEmailVerificationCode(
     sendEmailVerificationDto: SendEmailVerificationDto,
   ): Promise<void> {
-    const code = await this.authService.createVerificationCode();
+    const code = Math.floor(Math.random() * 900000 + 100000);
+
+    await this.prismaService.verifiedEmailTb.deleteMany({
+      where: {
+        email: sendEmailVerificationDto.email,
+      },
+    });
 
     await this.prismaService.verifiedEmailTb.create({
       data: {

@@ -34,6 +34,8 @@ import { EmailAuthService } from './email-auth.service';
     AuthGuard,
     UserService,
     GoogleStrategy,
+    NaverStrategy,
+    KakaoStrategy,
   ],
   exports: [AuthService, AuthGuard],
 })

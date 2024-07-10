@@ -27,6 +27,7 @@ import { SocialLoginProvider } from './model/social-login-provider.model';
 import { GoogleCallbackDto } from './dto/google-callback.dto';
 import { LoginResponseDto } from './dto/response/Login-Response.dto';
 import { NaverCallbackDto } from './dto/naver-callback.dto';
+import { KakaoCallbackDto } from './dto/kakao-callback.dto';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -100,7 +101,7 @@ export class AuthController {
 
   @Get('/kakao/callback')
   async googleCallback(
-    @Query() query: GoogleCallbackDto,
+    @Query() query: KakaoCallbackDto,
   ): Promise<{ accessToken: string }> {
     return await this.authService.socialLogin('kakao', query);
   }

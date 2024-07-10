@@ -25,9 +25,11 @@ export class AuthService {
     private readonly prismaService: PrismaService,
     private readonly googleStrategy: GoogleStrategy,
     private readonly naverStrategy: NaverStrategy,
+    private readonly kakaoStrategy: KakaoStrategy,
   ) {
     this.strategy[SocialLoginProvider.GOOGLE] = googleStrategy;
     this.strategy[SocialLoginProvider.NAVER] = naverStrategy;
+    this.strategy[SocialLoginProvider.KAKAO] = kakaoStrategy;
   }
 
   async login(loginDto: LoginDto): Promise<string> {

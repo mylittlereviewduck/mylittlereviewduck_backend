@@ -1,10 +1,6 @@
 import { UserService } from './../../user/user.service';
 import { Request, Response } from 'express';
-import { ParamsDictionary } from 'express-serve-static-core';
-import { ParsedQs } from 'qs';
-import { SocialAuthDto } from '../dto/social-auth.dto';
 import { ISocialAuthStrategy } from '../interface/social-auth-strategy.interface';
-import { SocialLoginProvider } from '../model/social-login-provider.model';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Injectable } from '@nestjs/common';
@@ -28,12 +24,10 @@ export class NaverStrategy implements ISocialAuthStrategy {
     url += `&redirect_uri=${this.configService.get<string>('NAVER_REDIRECT_URI')}`;
     url += `&state=test`;
 
-    console.log(url);
     res.redirect(url);
   }
 
   async socialLogin(query: any): Promise<{ accessToken: string }> {
-    console.log(query);
     const { code, state } = query;
 
     let getTokenUrl = `https://nid.naver.com/oauth2.0/token`;

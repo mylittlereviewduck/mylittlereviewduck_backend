@@ -26,7 +26,7 @@ model AccountTb {
   phone                                             String?          @db.VarChar
   profile                                           String?
   provider                                          String?          @db.VarChar
-  providerKey                                       String?          @map("provider_key") @db.VarChar
+  providerKey                                       String?          @map("provider_key") @db.VarChar(40)
   createdAt                                         DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
   deletedAt                                         DateTime?        @map("deleted_at") @db.Timestamptz(6)
   accountBlockTbAccountBlockTbBlockerIdxToaccountTb AccountBlockTb[] @relation("account_block_tb_blocker_idxToaccount_tb")
@@ -41,7 +41,6 @@ model AccountTb {
   reviewLikesTb                                     ReviewLikesTb[]
   reviewTb                                          ReviewTb[]
 
-  @@unique([email, deletedAt])
   @@map("account_tb")
 }
 
@@ -97,10 +96,10 @@ model FollowTb {
 model ProfileImgTb {
   idx        Int       @id @default(autoincrement())
   accountIdx Int       @map("account_idx")
-  imgPath    String    @default("default_img_url") @map("img_path") @db.VarChar
+  imgPath    String    @default("default_img") @map("img_path") @db.VarChar
   createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   deletedAt  DateTime? @map("deleted_at") @db.Timestamptz(6)
-  accountTb  AccountTb @relation(fields: [accountIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_profile_img_tb")
+  accountTb  AccountTb @relation(fields: [accountIdx], references: [idx], onDelete: Cascade, map: "fk_account_tb_to_profile_img_tb")
 
   @@map("profile_img_tb")
 }

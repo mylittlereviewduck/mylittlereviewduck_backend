@@ -73,9 +73,10 @@ export class UserService {
     let userData: AccountTb, profileImgData: ProfileImgTb;
 
     await this.prismaService.$transaction(async (tx) => {
-      const userData = await tx.accountTb.create({
+      userData = await tx.accountTb.create({
         data: {
           email: createUserOAuthDto.email,
+          nickname: createUserOAuthDto.nickname,
           provider: createUserOAuthDto.provider,
           providerKey: createUserOAuthDto.providerKey,
         },

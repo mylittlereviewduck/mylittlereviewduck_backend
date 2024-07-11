@@ -100,14 +100,14 @@ export class AuthController {
   }
 
   @Get('/kakao/callback')
-  async googleCallback(
+  async kakaoLogin(
     @Query() query: KakaoCallbackDto,
   ): Promise<{ accessToken: string }> {
     return await this.authService.socialLogin('kakao', query);
   }
 
   @Get('/naver/callback')
-  async naverCallback(
+  async naverLogin(
     @Query() query: NaverCallbackDto,
   ): Promise<{ accessToken: string }> {
     return await this.authService.socialLogin('naver', query);

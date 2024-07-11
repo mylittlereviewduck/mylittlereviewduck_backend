@@ -26,7 +26,6 @@ export class KakaoStrategy implements ISocialAuthStrategy {
   }
 
   async socialLogin(query: any): Promise<{ accessToken: string }> {
-    console.log(query);
     const { code } = query;
 
     const { data: tokenData } = await this.httpService.axiosRef.post(
@@ -39,15 +38,37 @@ export class KakaoStrategy implements ISocialAuthStrategy {
       },
       {
         headers: {
-          'Content-type': 'application/x-www-form-urlencoded;charset=utf-8',
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
       },
     );
 
-    //닉네임 uuid로생성하기
-    const randomNickname = uuidv4();
-    console.log(randomNickname);
+    const { data: userData } = await this.httpService.axiosRef.get(
+      `https://kapi.kakao.com/v2/user/me`,
+      {
+        headers: {
+          Authorization: `${tokenData.token_type} ${tokenData.access_token}`,
+          'Content-Type': `application/x-www-form-urlencoded;charset=utf-8`,
+        },
+      },
+    );
 
-    return;
+    let user = await this.userService.getUser({
+      email: userData.kakao_account.email,
+    });
+
+    if (!user) {
+      user = await this.userService.createUserWithOAuth({
+        email: userData.kakao_account.email,
+        nickname: uuidv4(),
+        provider: 'kakao',
+        providerKey: String(userData.id),
+      });
+    }
+
+    const payload = { idx: user.idx };
+    const accessToken = await this.jwtService.signAsync(payload);
+
+    return { accessToken };
   }
 }

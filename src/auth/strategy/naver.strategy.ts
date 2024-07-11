@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class NaverStrategy implements ISocialAuthStrategy {
@@ -16,8 +17,6 @@ export class NaverStrategy implements ISocialAuthStrategy {
   ) {}
 
   async getTokenRequest(req: Request, res: Response): Promise<void> {
-    console.log('네이버로그인실행');
-
     let url = `https://nid.naver.com/oauth2.0/authorize`;
     url += `?response_type=code`;
     url += `&client_id=${this.configService.get<string>('NAVER_CLIENT_ID')}`;
@@ -40,8 +39,6 @@ export class NaverStrategy implements ISocialAuthStrategy {
     const { data: tokenData } =
       await this.httpService.axiosRef.get(getTokenUrl);
 
-    console.log('tokenData', tokenData);
-
     let getUserInfoUrl = `https://openapi.naver.com/v1/nid/me`;
 
     const { data } = await this.httpService.axiosRef.get(getUserInfoUrl, {
@@ -59,6 +56,7 @@ export class NaverStrategy implements ISocialAuthStrategy {
     if (!user) {
       user = await this.userService.createUserWithOAuth({
         email: userInfo.email,
+        nickname: uuidv4(),
         provider: 'naver',
         providerKey: userInfo.id,
       });

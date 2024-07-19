@@ -6,11 +6,18 @@ import { UserBlockService } from './user-block.service';
 import { PrismaModule } from '../../src/prisma/prisma.module';
 import { AuthModule } from '../../src/auth/auth.module';
 import { FollowChecker } from './follow-checker.service';
+import { UserBlockChecker } from './user-block-checker.service';
 
 @Module({
   imports: [PrismaModule, forwardRef(() => AuthModule)],
   controllers: [UserController],
-  providers: [UserService, FollowService, UserBlockService, FollowChecker],
+  providers: [
+    UserService,
+    FollowService,
+    UserBlockService,
+    FollowChecker,
+    UserBlockChecker,
+  ],
   exports: [UserService, UserBlockService],
 })
 export class UserModule {}

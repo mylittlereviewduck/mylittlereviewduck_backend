@@ -1,3 +1,4 @@
+import { UserBlockService } from './user-block.service';
 import {
   Body,
   Controller,
@@ -39,6 +40,7 @@ export class UserController {
   constructor(
     private userService: UserService,
     private followService: FollowService,
+    private userBlockService: UserBlockService,
   ) {}
 
   //비밀번호찾기
@@ -243,7 +245,12 @@ export class UserController {
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, description: '차단 성공 200 반환' })
-  async blockUser(@GetUser() loginUser: LoginUser) {}
+  async blockUser(
+    @GetUser() loginUser: LoginUser,
+    @Param('userIdx') userIdx: number,
+  ) {
+    return await this.userBlockService.blockUser(loginUser, userIdx);
+  }
 
   @Delete(':userIdx/block')
   @UseGuards(AuthGuard)
@@ -254,7 +261,12 @@ export class UserController {
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, description: '차단해제 성공 200 반환' })
-  async UnblockUser(@GetUser() loginUser: LoginUser) {}
+  async UnblockUser(
+    @GetUser() loginUser: LoginUser,
+    @Param('userIdx') userIdx: number,
+  ) {
+    return await this.userBlockService.unBlockUser(loginUser, userIdx);
+  }
 
   @Get('blocked-user/all')
   @UseGuards(AuthGuard)

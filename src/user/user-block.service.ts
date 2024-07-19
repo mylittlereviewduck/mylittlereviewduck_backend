@@ -12,7 +12,3 @@ export class UserBlockService {
 
   getBlockedUserAll: (useIdx: number, 대상userIdx: number) => Promise<void>;
 }
-
-// 팔로우 기능
-// 사용자 기능
-// 사용자 차단 기능

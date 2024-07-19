@@ -1,4 +1,5 @@
 export class FollowEntity {
-  follower: number;
-  followee: number;
+  followerIdx: number;
+  followeeIdx: number;
+  createdAt: Date;
 }

@@ -1,37 +1,61 @@
-import { AccountTb } from '@prisma/client';
+import { FollowEntity } from './entity/Follow.entity';
 import { FollowListPagerble } from './dto/follow-list-pagerble';
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { UserEntity } from './entity/User.entity';
 import { PrismaService } from '../../src/prisma/prisma.service';
 import { LoginUser } from '../../src/auth/model/login-user.model';
-import { elementAt } from 'rxjs';
+import { FollowChecker } from './follow-checker.service';
 
 @Injectable()
 export class FollowService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly followChecker: FollowChecker,
+  ) {}
 
-  async getFollowStatus(userIdx: number, toUserIdx: number): Promise<boolean> {
-    const followStatus = await this.prismaService.followTb.findMany({
-      where: {
-        followerIdx: userIdx,
+  async followUser(
+    loginUser: LoginUser,
+    toUserIdx: number,
+  ): Promise<FollowEntity> {
+    console.log(loginUser.idx);
+    console.log(toUserIdx);
+
+    const existingFollow = await this.followChecker.isFollow(
+      loginUser.idx,
+      toUserIdx,
+    );
+
+    if (existingFollow) {
+      throw new ConflictException('Already Followed');
+    }
+
+    const followEntity = await this.prismaService.followTb.create({
+      data: {
+        followerIdx: loginUser.idx,
         followeeIdx: toUserIdx,
       },
     });
 
-    if (followStatus.length == 0) {
-      return false;
-    }
-
-    return true;
+    return followEntity;
   }
 
-  followUser: (userIdx: number, toUserIdx: number) => Promise<UserEntity[]>;
+  async unfollowUser(loginUser: LoginUser, toUserIdx: number): Promise<void> {
+    const existingFollow = await this.followChecker.isFollow(
+      loginUser.idx,
+      toUserIdx,
+    );
 
-  unfollowUser: (userIdx: number, toUserIdx: number) => Promise<UserEntity[]>;
+    if (!existingFollow) {
+      throw new ConflictException('Already Not Followed');
+    }
 
-  // getFollowingList: (userIdx: number) => Promise<UserEntity[]>;
-
-  // getFollwersList: (userIdx: number) => Promise<UserEntity[]>;
+    await this.prismaService.followTb.deleteMany({
+      where: {
+        followerIdx: loginUser.idx,
+        followeeIdx: toUserIdx,
+      },
+    });
+  }
 
   async getFollowingList(
     followListPagerble: FollowListPagerble,
@@ -80,11 +104,12 @@ export class FollowService {
     if (loginUser) {
       userList = await Promise.all(
         userList.map(async (elem) => {
-          const isFollowing = await this.getFollowStatus(
+          const isFollowing = await this.followChecker.isFollow(
             loginUser.idx,
             elem.idx,
           );
-          return { ...elem, isFollowing };
+
+          return { ...elem, isFollowing: isFollowing != null };
         }),
       );
     }
@@ -148,11 +173,11 @@ export class FollowService {
     if (loginUser) {
       userList = await Promise.all(
         userList.map(async (elem) => {
-          const isFollowing = await this.getFollowStatus(
+          const isFollowing = await this.followChecker.isFollow(
             loginUser.idx,
             elem.idx,
           );
-          return { ...elem, isFollowing };
+          return { ...elem, isFollowing: isFollowing != null };
         }),
       );
     }

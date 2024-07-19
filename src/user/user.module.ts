@@ -5,11 +5,12 @@ import { FollowService } from './follow.service';
 import { UserBlockService } from './user-block.service';
 import { PrismaModule } from '../../src/prisma/prisma.module';
 import { AuthModule } from '../../src/auth/auth.module';
+import { FollowChecker } from './follow-checker.service';
 
 @Module({
   imports: [PrismaModule, forwardRef(() => AuthModule)],
   controllers: [UserController],
-  providers: [UserService, FollowService, UserBlockService],
+  providers: [UserService, FollowService, UserBlockService, FollowChecker],
   exports: [UserService, UserBlockService],
 })
 export class UserModule {}

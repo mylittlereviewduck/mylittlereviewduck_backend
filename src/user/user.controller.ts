@@ -5,6 +5,7 @@ import {
   Get,
   HttpCode,
   Param,
+  ParseIntPipe,
   Post,
   Put,
   Query,
@@ -30,6 +31,7 @@ import { AuthGuard } from '../../src/auth/auth.guard';
 import { GetUser } from '../../src/auth/get-user.decorator';
 import { LoginUser } from '../../src/auth/model/login-user.model';
 import { FollowService } from './follow.service';
+import { FollowEntity } from './entity/Follow.entity';
 
 @Controller('user')
 @ApiTags('user')
@@ -201,8 +203,19 @@ export class UserController {
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
-  @ApiResponse({ status: 200, description: '팔로우 성공 200 반환' })
-  async followUser(@GetUser() loginUser: LoginUser) {}
+  @ApiResponse({
+    status: 200,
+    description: '팔로우 성공 200 반환',
+    type: FollowEntity,
+  })
+  async followUser(
+    @GetUser() loginUser: LoginUser,
+    @Param('userIdx', ParseIntPipe) userIdx: number,
+  ) {
+    console.log('userIdx', userIdx);
+
+    return await this.followService.followUser(loginUser, userIdx);
+  }
 
   @Delete('/:userIdx/follow')
   @UseGuards(AuthGuard)
@@ -213,7 +226,12 @@ export class UserController {
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, description: '언팔로우 성공 200 반환' })
-  async UnfollowUser(@GetUser() loginUser: LoginUser) {}
+  async UnfollowUser(
+    @GetUser() loginUser: LoginUser,
+    @Param('userIdx', ParseIntPipe) userIdx: number,
+  ) {
+    return await this.followService.unfollowUser(loginUser, userIdx);
+  }
 
   @Post(':userIdx/block')
   @UseGuards(AuthGuard)

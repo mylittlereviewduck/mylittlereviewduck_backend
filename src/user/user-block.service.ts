@@ -3,6 +3,8 @@ import { LoginUser } from 'src/auth/model/login-user.model';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserBlockChecker } from './user-block-checker.service';
 import { UserBlockEntity } from './entity/Block.entity';
+import { UserEntity } from './entity/User.entity';
+import { UserBlockPagerble } from './dto/user-block-pagerble';
 
 @Injectable()
 export class UserBlockService {
@@ -54,5 +56,47 @@ export class UserBlockService {
     return;
   }
 
-  getBlockedUserAll: (useIdx: number, 대상userIdx: number) => Promise<void>;
+  async getBlockedUserAll(
+    userIdx: number,
+    blockPagerble: UserBlockPagerble,
+  ): Promise<UserEntity[]> {
+    const blockedList = await this.prismaService.accountBlockTb.findMany({
+      include: {
+        blocked: {
+          select: {
+            idx: true,
+            email: true,
+            nickname: true,
+            profile: true,
+
+            profileImgTb: {
+              select: {
+                imgPath: true,
+              },
+            },
+          },
+        },
+      },
+      where: {
+        blockerIdx: userIdx,
+      },
+      skip: (blockPagerble.page - 1) * blockPagerble.take,
+      take: blockPagerble.take,
+    });
+
+    let blockedUserList = blockedList.map((elem) => {
+      return {
+        idx: elem.blocked.idx,
+        email: elem.blocked.email,
+        nickname: elem.blocked.nickname,
+        profile: elem.blocked.profile,
+        profileImg: elem.blocked.profileImgTb[0].imgPath,
+        isFollowing: false,
+      };
+    });
+
+    console.log('blockedUserList:', blockedUserList);
+
+    return blockedUserList.map((elem) => new UserEntity(elem));
+  }
 }

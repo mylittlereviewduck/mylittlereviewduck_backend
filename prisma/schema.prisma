@@ -11,8 +11,8 @@ model AccountBlockTb {
   blockerIdx                                   Int       @map("blocker_idx")
   blockedIdx                                   Int       @map("blocked_idx")
   createdAt                                    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  accountTbAccountBlockTbBlockerIdxToaccountTb AccountTb @relation("account_block_tb_blocker_idxToaccount_tb", fields: [blockerIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_account_block_tb")
-  accountTbAccountBlockTbBlockedIdxToaccountTb AccountTb @relation("account_block_tb_blocked_idxToaccount_tb", fields: [blockedIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_account_block_tb1")
+  blocker                                      AccountTb @relation("account_block_tb_blocker_idxToaccount_tb", fields: [blockerIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_account_block_tb")
+  blocked                                      AccountTb @relation("account_block_tb_blocked_idxToaccount_tb", fields: [blockedIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_account_block_tb1")
 
   @@id([blockerIdx, blockedIdx])
   @@map("account_block_tb")

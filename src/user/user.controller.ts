@@ -275,5 +275,14 @@ export class UserController {
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: UserEntity, isArray: true })
-  async getBlockedUserAll(@GetUser() loginUser: LoginUser) {}
+  async getBlockedUserAll(
+    @GetUser() loginUser: LoginUser,
+    @Query('take') take: number,
+    @Query('page') page: number,
+  ) {
+    return await this.userBlockService.getBlockedUserAll(loginUser.idx, {
+      page: page || 1,
+      take: take || 20,
+    });
+  }
 }

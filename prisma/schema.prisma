@@ -8,11 +8,11 @@ datasource db {
 }
 
 model AccountBlockTb {
-  blockerIdx                                   Int       @map("blocker_idx")
-  blockedIdx                                   Int       @map("blocked_idx")
-  createdAt                                    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  blocker                                      AccountTb @relation("account_block_tb_blocker_idxToaccount_tb", fields: [blockerIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_account_block_tb")
-  blocked                                      AccountTb @relation("account_block_tb_blocked_idxToaccount_tb", fields: [blockedIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_account_block_tb1")
+  blockerIdx Int       @map("blocker_idx")
+  blockedIdx Int       @map("blocked_idx")
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  blocker    AccountTb @relation("account_block_tb_blocker_idxToaccount_tb", fields: [blockerIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_account_block_tb")
+  blocked    AccountTb @relation("account_block_tb_blocked_idxToaccount_tb", fields: [blockedIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_account_block_tb1")
 
   @@id([blockerIdx, blockedIdx])
   @@map("account_block_tb")
@@ -26,7 +26,7 @@ model AccountTb {
   phone                                             String?          @db.VarChar
   profile                                           String?
   provider                                          String?          @db.VarChar
-  providerKey                                       String?          @map("provider_key") @db.VarChar(40)
+  providerKey                                       String?          @map("provider_key") @db.VarChar(100)
   createdAt                                         DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
   deletedAt                                         DateTime?        @map("deleted_at") @db.Timestamptz(6)
   accountBlockTbAccountBlockTbBlockerIdxToaccountTb AccountBlockTb[] @relation("account_block_tb_blocker_idxToaccount_tb")
@@ -161,7 +161,7 @@ model ReviewTb {
 model TagTb {
   idx       Int      @id @default(autoincrement())
   reviewIdx Int      @map("review_idx")
-  name      String   @db.VarChar
+  tagName   String   @map("tag_name") @db.VarChar
   reviewTb  ReviewTb @relation(fields: [reviewIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_review_tb_to_tag_tb")
 
   @@map("tag_tb")

@@ -23,25 +23,31 @@ export class ReviewService {
     loginUser: LoginUser,
     createDto: CreateReviewDto,
   ): Promise<ReviewEntity> {
-    const reviewData = await this.prismaService.reviewTb.create({
-      data: {
-        accountIdx: loginUser.idx,
-        title: createDto.title,
-        content: createDto.content,
-        score: createDto.score,
-      },
+    let reviewData;
+
+    await this.prismaService.$transaction(async (tx) => {
+      reviewData = await tx.reviewTb.create({
+        data: {
+          accountIdx: loginUser.idx,
+          title: createDto.title,
+          content: createDto.content,
+          score: createDto.score,
+        },
+      });
+
+      console.log(reviewData);
+
+      await tx.tagTb.createMany({
+        data: createDto.tags.map((tag) => ({
+          reviewIdx: reviewData.idx,
+          tagName: tag,
+        })),
+      });
     });
 
-    const tagData = await this.prismaService.tagTb.createMany({
-      data: createDto.tags.map((tag) => ({
-        reviewIdx: reviewData.idx,
-        tagName: tag,
-      })),
-    });
+    const reviewEntityData = { ...reviewData, tags: createDto.tags };
 
-    console.log(tagData);
-
-    return new ReviewEntity(reviewData);
+    return new ReviewEntity(reviewEntityData);
   }
 
   async updateReview(

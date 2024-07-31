@@ -5,7 +5,7 @@ export class ReviewEntity {
   content: string;
   view: number;
   like: number;
-  tag: string[];
+  tags: string[];
   createdAt: Date;
 
   constructor(data) {
@@ -15,7 +15,7 @@ export class ReviewEntity {
     this.content = data.content;
     this.view = data.view;
     this.like = data.like;
-    this.tag = data.tag;
+    this.tags = data.tags;
     this.createdAt = data.createdAt;
   }
 }

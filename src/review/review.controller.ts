@@ -55,7 +55,7 @@ export class ReviewController {
       createReviewDto,
     );
 
-    console.log(review);
+    console.log('review: ', review);
 
     return review;
   }
@@ -103,14 +103,14 @@ export class ReviewController {
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx') reviewIdx: number,
     @Body() updateReviewDto: UpdateReviewDto,
-  ): Promise<{ data: ReviewEntity }> {
+  ): Promise<ReviewEntity> {
     //작업 시작해야할 부분
     const review = await this.reviewService.updateReview(
       loginUser,
       reviewIdx,
       updateReviewDto,
     );
-    return { data: review };
+    return review;
   }
 
   @Delete('/review/:reviewIdx')
@@ -125,12 +125,12 @@ export class ReviewController {
   async deleteReview(
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx') reviewIdx: number,
-  ): Promise<{ data: ReviewEntity }> {
+  ): Promise<ReviewEntity> {
     const reviewEntity = await this.reviewService.deleteReview(
       loginUser,
       reviewIdx,
     );
-    return { data: reviewEntity };
+    return reviewEntity;
   }
 
   @Get('/review/all')
@@ -143,7 +143,7 @@ export class ReviewController {
     @Query('size') size: number,
     @Query('orderby') orderBy: 'createdAt' | 'view',
     @Query('sort') sort: 'asc' | 'desc',
-  ): Promise<{ data: { review: ReviewEntity; totalPage: number } }> {
+  ): Promise<{ review: ReviewEntity; totalPage: number }> {
     const result = await this.reviewService.getReviewAll({
       size: size || 10,
       orderby: orderBy || 'createdAt',

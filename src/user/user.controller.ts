@@ -143,6 +143,7 @@ export class UserController {
   @ApiBearerAuth()
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
+  @ApiResponse({ status: 200 })
   async deleteUser(): Promise<void> {}
 
   //로그인유저만 쓸수있는 오류를 해결해야해
@@ -214,8 +215,6 @@ export class UserController {
     @GetUser() loginUser: LoginUser,
     @Param('userIdx', ParseIntPipe) userIdx: number,
   ) {
-    console.log('userIdx', userIdx);
-
     return await this.followService.followUser(loginUser, userIdx);
   }
 

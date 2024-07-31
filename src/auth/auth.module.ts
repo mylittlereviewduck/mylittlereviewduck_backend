@@ -5,24 +5,26 @@ import { UserModule } from '../../src/user/user.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtModule } from '@nestjs/jwt';
-import { jwtConstants } from './jwtConstants';
 import { MailModule } from '../common/Email/email.module';
 import { GoogleStrategy } from './strategy/google.strategy';
 import { HttpModule } from '@nestjs/axios';
 import { UserService } from '../../src/user/user.service';
 import { NaverStrategy } from './strategy/naver.strategy';
-import { AppleStrategy } from './strategy/apple.strategy';
 import { KakaoStrategy } from './strategy/kakao.strategy';
 import { EmailAuthService } from './email-auth.service';
+import { ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
     PrismaModule,
     forwardRef(() => UserModule),
-    JwtModule.register({
+    JwtModule.registerAsync({
       global: true,
-      secret: jwtConstants.secret,
-      signOptions: { expiresIn: 12 * 3600 },
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: { expiresIn: 12 * 3600 },
+      }),
+      inject: [ConfigService],
     }),
     MailModule,
     HttpModule,

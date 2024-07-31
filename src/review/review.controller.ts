@@ -49,13 +49,15 @@ export class ReviewController {
   async createReview(
     @GetUser() loginUser: LoginUser,
     @Body() createReviewDto: CreateReviewDto,
-  ): Promise<{ data: ReviewEntity }> {
+  ): Promise<ReviewEntity> {
     const review = await this.reviewService.createReview(
       loginUser,
       createReviewDto,
     );
 
-    return { data: review };
+    console.log(review);
+
+    return review;
   }
 
   //멀터생성하기

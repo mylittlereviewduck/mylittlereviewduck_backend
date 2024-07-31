@@ -1,3 +1,4 @@
+import { ConfigService } from '@nestjs/config';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { LoginDto } from './dto/signIn.dto';
 import {
@@ -23,6 +24,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly prismaService: PrismaService,
+    private readonly conifgService: ConfigService,
     private readonly googleStrategy: GoogleStrategy,
     private readonly naverStrategy: NaverStrategy,
     private readonly kakaoStrategy: KakaoStrategy,
@@ -41,11 +43,16 @@ export class AuthService {
       },
     });
 
+    console.log('user', user);
+
     if (!user) {
       throw new UnauthorizedException('Unauthorized');
     }
 
     const payload = { idx: user.idx };
+
+    console.log('configService', this.conifgService.get('JWT_SECRET'));
+    console.log('process', process.env.JWT_SECRET);
 
     return await this.jwtService.signAsync(payload);
   }

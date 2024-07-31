@@ -56,6 +56,7 @@ export class UserBlockService {
     return;
   }
 
+  // 차단기능을 결국 어떻게 적용할건지?(차단한 유저의 댓글, 차단한 유저의 리뷰 => 유저엔티티에 isBlocked를 추가해야겠지?)
   async getBlockedUserAll(
     userIdx: number,
     blockPagerble: UserBlockPagerble,
@@ -94,8 +95,6 @@ export class UserBlockService {
         isFollowing: false,
       };
     });
-
-    console.log('blockedUserList:', blockedUserList);
 
     return blockedUserList.map((elem) => new UserEntity(elem));
   }

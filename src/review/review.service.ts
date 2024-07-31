@@ -23,7 +23,7 @@ export class ReviewService {
     loginUser: LoginUser,
     createDto: CreateReviewDto,
   ): Promise<ReviewEntity> {
-    const review = await this.prismaService.reviewTb.create({
+    const reviewData = await this.prismaService.reviewTb.create({
       data: {
         accountIdx: loginUser.idx,
         title: createDto.title,
@@ -32,7 +32,16 @@ export class ReviewService {
       },
     });
 
-    return new ReviewEntity(review);
+    const tagData = await this.prismaService.tagTb.createMany({
+      data: createDto.tags.map((tag) => ({
+        reviewIdx: reviewData.idx,
+        tagName: tag,
+      })),
+    });
+
+    console.log(tagData);
+
+    return new ReviewEntity(reviewData);
   }
 
   async updateReview(

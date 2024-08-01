@@ -142,7 +142,7 @@ model ReviewTb {
   accountIdx    Int             @map("account_idx")
   title         String          @db.VarChar
   content       String          @db.VarChar
-  view          Int             @default(0)
+  viewCount     Int             @default(0) @map("view_count")
   createdAt     DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
   deletedAt     DateTime?       @map("deleted_at") @db.Timestamptz(6)
   updatedAt     DateTime?       @map("updated_at") @db.Timestamptz(6)

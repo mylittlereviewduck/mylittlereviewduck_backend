@@ -16,12 +16,14 @@ import { ReviewSearchPagerbleDto } from './dto/review-search-pagerble.dto';
 import { ReviewPagerbleResponseDto } from './dto/response/review-pagerble-response.dto';
 import { contains } from 'class-validator';
 import { ReviewSearchResponseDto } from './dto/response/review-search-response.dto';
+import { ReviewLikeCheckService } from './review-like-check.service';
 
 @Injectable()
 export class ReviewService {
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly prismaService: PrismaService,
+    private readonly reviewLikeCheckService: ReviewLikeCheckService,
   ) {}
 
   async createReview(
@@ -112,17 +114,15 @@ export class ReviewService {
     return new ReviewEntity(deletedReview);
   }
 
-  async getReviewAll(
+  async getReviewWithAccountIdx(
     reviewPagerbleDto: ReviewPagerbleDto,
+    accountIdx: number,
   ): Promise<ReviewPagerbleResponseDto> {
     const reviewCount = await this.prismaService.reviewTb.count({
       where: {
-        accountIdx: reviewPagerbleDto.userIdx,
-        idx: reviewPagerbleDto.reviewIdx,
+        accountIdx: accountIdx,
       },
     });
-
-    console.log(reviewCount);
 
     const reviewSQLResult = await this.prismaService.reviewTb.findMany({
       include: {
@@ -134,14 +134,13 @@ export class ReviewService {
         _count: {
           select: {
             reviewLikesTb: true,
+            review_report_tb: true,
           },
         },
       },
       where: {
-        accountIdx: reviewPagerbleDto.userIdx,
-        idx: reviewPagerbleDto.reviewIdx,
+        accountIdx: accountIdx,
       },
-      //orderBy idx로해야 인덱싱됨
       orderBy: {
         idx: 'desc',
       },
@@ -153,16 +152,57 @@ export class ReviewService {
       return {
         ...elem,
         likeCount: elem._count.reviewLikesTb,
+        reportCount: elem._count.review_report_tb,
         tags: elem.tagTb.map((elem) => elem.tagName),
       };
     });
 
-    const reviews = reviewData.map((elem) => new ReviewEntity(elem));
-
     return {
-      reviews: reviews,
       totalPage: Math.ceil(reviewCount / reviewPagerbleDto.size),
       page: reviewPagerbleDto.page,
+      reviews: reviewData.map((elem) => new ReviewEntity(elem)),
+    };
+  }
+
+  async getLatestReview(
+    reviewPagerbleDto: ReviewPagerbleDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    const reviewCount = await this.prismaService.reviewTb.count({});
+
+    const reviewSQLResult = await this.prismaService.reviewTb.findMany({
+      include: {
+        tagTb: {
+          select: {
+            tagName: true,
+          },
+        },
+        _count: {
+          select: {
+            reviewLikesTb: true,
+            review_report_tb: true,
+          },
+        },
+      },
+      orderBy: {
+        idx: 'desc',
+      },
+      take: reviewPagerbleDto.size,
+      skip: (reviewPagerbleDto.page - 1) * reviewPagerbleDto.size,
+    });
+
+    const reviewData = reviewSQLResult.map((elem) => {
+      return {
+        ...elem,
+        likeCount: elem._count.reviewLikesTb,
+        reportCount: elem._count.review_report_tb,
+        tags: elem.tagTb.map((elem) => elem.tagName),
+      };
+    });
+
+    return {
+      totalPage: Math.ceil(reviewCount / reviewPagerbleDto.size),
+      page: reviewPagerbleDto.page,
+      reviews: reviewData.map((elem) => new ReviewEntity(elem)),
     };
   }
 
@@ -284,15 +324,16 @@ export class ReviewService {
   // 특정유저가 북마크한 리뷰 가져오기
   async getBookmarkedReviewAll(
     reviewPagerbleDto: ReviewPagerbleDto,
+    accountIdx: number,
   ): Promise<ReviewEntity[]> {
     const reviewList = await this.prismaService.reviewTb.findMany({
       where: {
-        accountIdx: reviewPagerbleDto.userIdx,
+        accountIdx: accountIdx,
         commentTb: reviewPagerbleDto['like-user']
-          ? { some: { accountIdx: reviewPagerbleDto.userIdx } }
+          ? { some: { accountIdx: accountIdx } }
           : undefined,
         bookmarkTb: reviewPagerbleDto['bookmark-user']
-          ? { some: { accountIdx: reviewPagerbleDto.userIdx } }
+          ? { some: { accountIdx: accountIdx } }
           : undefined,
       },
     });

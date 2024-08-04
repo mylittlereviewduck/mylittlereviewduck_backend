@@ -9,6 +9,7 @@ import {
   Post,
   Put,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -30,6 +31,8 @@ import { LoginUser } from 'src/auth/model/login-user.model';
 import { GetUser } from 'src/auth/get-user.decorator';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { ReviewSearchResponseDto } from './dto/response/review-search-response.dto';
+import { OptionalAuthGuard } from 'src/auth/optional-auth.guard';
+import { ReviewPagerbleResponseDto } from './dto/response/review-pagerble-response.dto';
 
 @Controller('')
 @ApiTags('review')
@@ -40,16 +43,31 @@ export class ReviewController {
   ) {}
 
   @Get('/review/all')
+  @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '최신 리뷰목록보기' })
   @ApiQuery({ name: 'size', description: '한 페이지에 담긴 리뷰수' })
   @ApiQuery({ name: 'page', description: '페이지' })
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: ReviewEntity, isArray: true })
-  async getReviewAll(@Query('page') page: number, @Query('size') size: number) {
-    return await this.reviewService.getReviewAll({
+  async getReviewAll(
+    @Req() req: Request,
+    @GetUser() loginUser: LoginUser,
+    @Query('page') page: number,
+    @Query('size') size: number,
+  ): Promise<ReviewPagerbleResponseDto> {
+    if (!loginUser) {
+      console.log('비로그인유저');
+      return;
+    }
+
+    //사용자 좋아요 여부, 북마크 여부, 공유여부도 반환해야함
+    console.log('로그인유저');
+    const reviews = await this.reviewService.getLatestReview({
       size: size || 10,
       page: page || 1,
     });
+    console.log('reviews');
+    return reviews;
   }
 
   @Get('/review/popular')

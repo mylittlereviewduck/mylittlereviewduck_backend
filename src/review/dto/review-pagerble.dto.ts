@@ -5,7 +5,5 @@ export class ReviewPagerbleDto {
 
   size: number;
 
-  orderby: 'createdAt' | 'view';
-
-  sort: 'asc' | 'desc';
+  page: number;
 }

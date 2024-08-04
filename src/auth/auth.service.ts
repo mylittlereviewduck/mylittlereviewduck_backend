@@ -43,16 +43,11 @@ export class AuthService {
       },
     });
 
-    console.log('user', user);
-
     if (!user) {
       throw new UnauthorizedException('Unauthorized');
     }
 
     const payload = { idx: user.idx };
-
-    console.log('configService', this.conifgService.get('JWT_SECRET'));
-    console.log('process', process.env.JWT_SECRET);
 
     return await this.jwtService.signAsync(payload);
   }

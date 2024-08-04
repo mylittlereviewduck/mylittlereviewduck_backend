@@ -29,6 +29,7 @@ import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { LoginUser } from 'src/auth/model/login-user.model';
 import { GetUser } from 'src/auth/get-user.decorator';
 import { AuthGuard } from 'src/auth/auth.guard';
+import { ReviewSearchResponseDto } from './dto/response/review-search-response.dto';
 
 @Controller('')
 @ApiTags('review')
@@ -38,6 +39,26 @@ export class ReviewController {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
+  @Get('/review/all')
+  @ApiOperation({ summary: '최신 리뷰목록보기' })
+  @ApiQuery({ name: 'size', description: '한 페이지에 담긴 리뷰수' })
+  @ApiQuery({ name: 'page', description: '페이지' })
+  @Exception(500, '서버 에러')
+  @ApiResponse({ status: 200, type: ReviewEntity, isArray: true })
+  async getReviewAll(@Query('page') page: number, @Query('size') size: number) {
+    return await this.reviewService.getReviewAll({
+      size: size || 10,
+      page: page || 1,
+    });
+  }
+
+  @Get('/review/popular')
+  @ApiOperation({ summary: '인기 리뷰목록보기' })
+  @ApiResponse({ status: 200, type: ReviewEntity, isArray: true })
+  async getReviewPopular() {
+    console.log('api시작');
+  }
+
   @Post('/review')
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '리뷰 작성하기' })
@@ -45,19 +66,16 @@ export class ReviewController {
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
-  @ApiResponse({ status: 201, description: '리뷰작성 성공시 201 반환' })
+  @ApiResponse({
+    status: 201,
+    type: ReviewEntity,
+    description: '리뷰작성 성공시 201 반환',
+  })
   async createReview(
     @GetUser() loginUser: LoginUser,
     @Body() createReviewDto: CreateReviewDto,
   ): Promise<ReviewEntity> {
-    const review = await this.reviewService.createReview(
-      loginUser,
-      createReviewDto,
-    );
-
-    console.log('review: ', review);
-
-    return review;
+    return await this.reviewService.createReview(loginUser, createReviewDto);
   }
 
   //멀터생성하기
@@ -126,6 +144,7 @@ export class ReviewController {
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx') reviewIdx: number,
   ): Promise<ReviewEntity> {
+    console.log('실행되면안되는api');
     const reviewEntity = await this.reviewService.deleteReview(
       loginUser,
       reviewIdx,
@@ -133,48 +152,25 @@ export class ReviewController {
     return reviewEntity;
   }
 
-  @Get('/review/all')
-  @ApiOperation({ summary: '최신 리뷰목록보기' })
-  @ApiQuery({ name: 'size', description: '한 페이지에 담긴 리뷰수 ' })
-  @ApiQuery({ name: 'orderby', description: '정렬기준' })
-  @ApiQuery({ name: 'sort', description: '정렬방법(asc, desc)' })
-  @ApiResponse({ status: 200, type: ReviewEntity, isArray: true })
-  async getReviewAll(
-    @Query('size') size: number,
-    @Query('orderby') orderBy: 'createdAt' | 'view',
-    @Query('sort') sort: 'asc' | 'desc',
-  ): Promise<{ review: ReviewEntity; totalPage: number }> {
-    const result = await this.reviewService.getReviewAll({
-      size: size || 10,
-      orderby: orderBy || 'createdAt',
-      sort: sort || 'desc',
-    });
-    return;
-  }
-
-  @Get('/review/popular')
-  @ApiOperation({ summary: '인기 리뷰목록보기' })
-  @ApiResponse({ status: 200, type: ReviewEntity, isArray: true })
-  async getReviewPopular() {}
-
   @Get('/review')
   @ApiOperation({ summary: '리뷰검색하기 닉네임, 태그, 제목,내용' })
   @ApiQuery({ name: 'search', description: '검색 키워드' })
+  @Exception(404, 'Not Found Page')
   @Exception(500, '서버 에러')
-  @ApiResponse({ status: 200, type: ReviewEntity, isArray: true })
+  @ApiResponse({ status: 200, type: ReviewSearchResponseDto })
   async getReviewWithSearch(
     @Query('search') search: string,
-  ): Promise<ReviewEntity[]> {
-    // const hotReviewString: string = await this.cacheManager.get('hot-review');
+    @Query('page') page: number,
+    @Query('size') size: number,
+  ): Promise<ReviewSearchResponseDto> {
+    console.log('api시작');
 
-    // if (hotReviewString) {
-    //   return JSON.parse(hotReviewString);
-    // }
-
-    const reviews = await this.reviewService.getHotReviewAll();
-    // await this.redisService.set('hot-review', JSON.stringify(reviews));
-
-    return reviews;
+    return await this.reviewService.getReviewWithSearch({
+      search: search,
+      size: size || 2,
+      sort: 'asc',
+      page: page || 1,
+    });
   }
 
   @Post('/review/:reviewIdx/bookmark')

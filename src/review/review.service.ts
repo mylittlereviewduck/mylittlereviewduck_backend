@@ -111,25 +111,38 @@ export class ReviewService {
   }
 
   async getReviewWithIdx(reviewIdx: number): Promise<ReviewEntity> {
-    let reviewData = await this.prismaService.reviewTb.findFirst({
-      include: {
-        tagTb: {
-          select: {
-            tagName: true,
+    let reviewData;
+
+    await this.prismaService.$transaction(async (tx) => {
+      reviewData = await tx.reviewTb.findFirst({
+        include: {
+          tagTb: {
+            select: {
+              tagName: true,
+            },
+          },
+          _count: {
+            select: {
+              reviewLikesTb: true,
+              reviewBookmarkTb: true,
+              reviewReportTb: true,
+              reviewShareTb: true,
+            },
           },
         },
-        _count: {
-          select: {
-            reviewLikesTb: true,
-            reviewBookmarkTb: true,
-            reviewReportTb: true,
-            reviewShareTb: true,
-          },
+        where: {
+          idx: reviewIdx,
         },
-      },
-      where: {
-        idx: reviewIdx,
-      },
+      });
+
+      await tx.reviewTb.update({
+        data: {
+          viewCount: reviewData.viewCount + 1,
+        },
+        where: {
+          idx: reviewIdx,
+        },
+      });
     });
 
     if (!reviewData) {
@@ -139,6 +152,7 @@ export class ReviewService {
     const review = {
       ...reviewData,
       tags: reviewData.tagTb.map((tag) => tag.tagName),
+      viewCount: reviewData.viewCount + 1,
       likeCount: reviewData._count.reviewLikesTb,
       bookmarkCount: reviewData._count.reviewBookmarkTb,
       shareCount: reviewData._count.reviewShareTb,
@@ -214,6 +228,8 @@ export class ReviewService {
           select: {
             reviewLikesTb: true,
             reviewReportTb: true,
+            reviewShareTb: true,
+            reviewBookmarkTb: true,
           },
         },
       },
@@ -228,7 +244,10 @@ export class ReviewService {
       return {
         ...elem,
         likeCount: elem._count.reviewLikesTb,
+        bookmarkCount: elem._count.reviewBookmarkTb,
+        shareCount: elem._count.reviewShareTb,
         reportCount: elem._count.reviewReportTb,
+
         tags: elem.tagTb.map((elem) => elem.tagName),
       };
     });

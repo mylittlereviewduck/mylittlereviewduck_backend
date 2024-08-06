@@ -1,11 +1,49 @@
-import { Injectable } from '@nestjs/common';
-import { ReviewEntity } from './entity/Review.entity';
+import { ConflictException, Injectable } from '@nestjs/common';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class ReviewBookmarkService {
-  constructor() {}
+  constructor(private readonly prismaService: PrismaService) {}
 
-  bookmarkReview: (userIdx: number, reviewIdx: number) => Promise<void>;
+  async bookmarkReview(accountIdx: number, reviewIdx: number): Promise<void> {
+    const existingBookmark = await this.prismaService.bookmarkTb.findFirst({
+      where: {
+        accountIdx: accountIdx,
+        reviewIdx: reviewIdx,
+      },
+    });
 
-  unBookmarkReview: (userIdx: number, reviewIdx: number) => Promise<void>;
+    if (existingBookmark) {
+      throw new ConflictException('Already Bookmark');
+    }
+
+    await this.prismaService.bookmarkTb.create({
+      data: {
+        accountIdx: accountIdx,
+        reviewIdx: reviewIdx,
+      },
+    });
+  }
+
+  async unBookmarkReview(accountIdx: number, reviewIdx: number): Promise<void> {
+    const existingBookmark = await this.prismaService.bookmarkTb.findFirst({
+      where: {
+        accountIdx: accountIdx,
+        reviewIdx: reviewIdx,
+      },
+    });
+
+    if (!existingBookmark) {
+      throw new ConflictException('Already Not Bookmark');
+    }
+
+    await this.prismaService.bookmarkTb.delete({
+      where: {
+        accountIdx_reviewIdx: {
+          accountIdx: accountIdx,
+          reviewIdx: reviewIdx,
+        },
+      },
+    });
+  }
 }

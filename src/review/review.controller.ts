@@ -3,13 +3,11 @@ import {
   Controller,
   Delete,
   Get,
-  HttpCode,
   Inject,
   Param,
   Post,
   Put,
   Query,
-  Req,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -34,6 +32,7 @@ import { ReviewSearchResponseDto } from './dto/response/review-search-response.d
 import { OptionalAuthGuard } from 'src/auth/optional-auth.guard';
 import { ReviewPagerbleResponseDto } from './dto/response/review-pagerble-response.dto';
 import { ReviewLikeCheckService } from './review-like-check.service';
+import { ReviewBookmarkService } from './review-bookmark.service';
 
 @Controller('')
 @ApiTags('review')
@@ -41,6 +40,7 @@ export class ReviewController {
   constructor(
     private readonly reviewService: ReviewService,
     private readonly reviewLikeCheckService: ReviewLikeCheckService,
+    private readonly reviewBookmarkService: ReviewBookmarkService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
@@ -109,15 +109,14 @@ export class ReviewController {
   //멀터 정리하기
   @Post('/review/img')
   @UseGuards(AuthGuard)
-  @HttpCode(200)
   @ApiOperation({ summary: '리뷰 이미지업로드' })
   @ApiBearerAuth()
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한없음')
   @Exception(500, '서버 에러')
   @ApiResponse({
-    status: 200,
-    description: '리뷰 이미지 업로드 성공시 200반환',
+    status: 201,
+    description: '리뷰 이미지 업로드 성공시 201반환',
     type: UploadReviewImageResponseDto,
   })
   async uploadReviewImage(): Promise<{ imgPath: string }> {
@@ -201,7 +200,7 @@ export class ReviewController {
   }
 
   @Post('/review/:reviewIdx/bookmark')
-  @HttpCode(200)
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: '리뷰 북마크하기' })
   @ApiParam({ name: 'reviewIdx', example: 1 })
   @ApiBearerAuth()
@@ -210,10 +209,16 @@ export class ReviewController {
   @Exception(404, '해당 리소스 찾을수 없음')
   @Exception(409, '현재상태와 요청 충돌')
   @Exception(500, '서버 에러')
-  @ApiResponse({ status: 200 })
-  async bookmarkReview() {}
+  @ApiResponse({ status: 201 })
+  async bookmarkReview(
+    @GetUser() loginUser: LoginUser,
+    @Param('reviewIdx') reviewIdx: number,
+  ) {
+    await this.reviewBookmarkService.bookmarkReview(loginUser.idx, reviewIdx);
+  }
 
   @Delete('/review/:reviewIdx/bookmark')
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: '리뷰 북마크해제하기' })
   @ApiParam({ name: 'reviewIdx', example: 1 })
   @ApiBearerAuth()
@@ -222,11 +227,15 @@ export class ReviewController {
   @Exception(404, '해당 리소스 찾을수 없음')
   @Exception(409, '현재상태와 요청 충돌')
   @Exception(500, '서버 에러')
-  @ApiResponse({ status: 200 })
-  async unbookmarkReview() {}
+  @ApiResponse({ status: 201 })
+  async unbookmarkReview(
+    @GetUser() loginUser: LoginUser,
+    @Param('reviewIdx') reviewIdx: number,
+  ) {
+    await this.reviewBookmarkService.unBookmarkReview(loginUser.idx, reviewIdx);
+  }
 
   @Post('/review/:reviewIdx/like')
-  @HttpCode(200)
   @ApiOperation({ summary: '리뷰 좋아요하기' })
   @ApiParam({ name: 'reviewIdx', example: 1 })
   @ApiBearerAuth()
@@ -235,7 +244,7 @@ export class ReviewController {
   @Exception(404, '해당 리소스 찾을수 없음')
   @Exception(409, '현재상태와 요청 충돌')
   @Exception(500, '서버 에러')
-  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 201 })
   async likeReview() {}
 
   @Delete('/review/:reviewIdx/like')

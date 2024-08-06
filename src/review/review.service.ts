@@ -41,10 +41,12 @@ export class ReviewService {
       });
 
       await tx.tagTb.createMany({
-        data: createDto.tags.map((tag) => ({
-          reviewIdx: reviewData.idx,
-          tagName: tag,
-        })),
+        data: createDto.tags.map((tag) => {
+          return {
+            reviewIdx: reviewData.idx,
+            tagName: tag,
+          };
+        }),
       });
     });
 
@@ -58,31 +60,84 @@ export class ReviewService {
     reviewIdx: number,
     updateReviewDto: UpdateReviewDto,
   ): Promise<ReviewEntity> {
-    const review = await this.prismaService.reviewTb.findUnique({
-      where: {
-        idx: reviewIdx,
-      },
+    let reviewData;
+    let tagData;
+
+    await this.prismaService.$transaction(async (tx) => {
+      const review = await tx.reviewTb.findUnique({
+        where: {
+          idx: reviewIdx,
+        },
+      });
+
+      if (!review) {
+        throw new NotFoundException('Not Found Review');
+      }
+
+      if (review.accountIdx !== loginUser.idx) {
+        throw new UnauthorizedException('Unauthorized User');
+      }
+      reviewData = await tx.reviewTb.update({
+        include: {
+          tagTb: {
+            select: {
+              tagName: true,
+            },
+          },
+          _count: {
+            select: {
+              reviewLikesTb: true,
+              reviewBookmarkTb: true,
+              reviewShareTb: true,
+              reviewReportTb: true,
+            },
+          },
+        },
+        data: {
+          title: updateReviewDto.title,
+          score: updateReviewDto.score,
+          content: updateReviewDto.content,
+        },
+        where: {
+          idx: reviewIdx,
+        },
+      });
+
+      await tx.tagTb.deleteMany({
+        where: {
+          reviewIdx: reviewIdx,
+        },
+      });
+
+      await tx.tagTb.createMany({
+        data: updateReviewDto.tags.map((tag) => {
+          return {
+            reviewIdx: reviewIdx,
+            tagName: tag,
+          };
+        }),
+      });
+
+      tagData = await tx.tagTb.findMany({
+        where: {
+          reviewIdx: reviewIdx,
+        },
+        select: {
+          tagName: true,
+        },
+      });
     });
 
-    if (!review) {
-      throw new NotFoundException('Not Found Review');
-    }
+    const review = {
+      ...reviewData,
+      tags: tagData.map((tag) => tag.tagName),
+      likeCount: reviewData._count.reviewLikesTb,
+      bookmarkCount: reviewData._count.reviewBookmarkTb,
+      shareCount: reviewData._count.reviewShareTb,
+      reportCount: reviewData._count.reviewReportTb,
+    };
 
-    if (review.accountIdx !== loginUser.idx) {
-      throw new UnauthorizedException('Unauthorized User');
-    }
-    const reviewData = this.prismaService.reviewTb.update({
-      data: {
-        title: updateReviewDto.title,
-        score: updateReviewDto.score,
-        content: updateReviewDto.content,
-      },
-      where: {
-        idx: reviewIdx,
-      },
-    });
-
-    return new ReviewEntity(reviewData);
+    return new ReviewEntity(review);
   }
 
   async deleteReview(

@@ -231,6 +231,8 @@ export class ReviewController {
   @Get('/review')
   @ApiOperation({ summary: '리뷰검색하기 닉네임, 태그, 제목,내용' })
   @ApiQuery({ name: 'search', description: '검색 키워드' })
+  @ApiQuery({ name: 'size', description: '한 페이지당 가져올 리뷰수' })
+  @ApiQuery({ name: 'page', description: '가져올 페이지' })
   @Exception(404, 'Not Found Page')
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: ReviewSearchResponseDto })
@@ -241,8 +243,7 @@ export class ReviewController {
   ): Promise<ReviewSearchResponseDto> {
     return await this.reviewService.getReviewWithSearch({
       search: search,
-      size: size || 2,
-      sort: 'asc',
+      size: size || 10,
       page: page || 1,
     });
   }

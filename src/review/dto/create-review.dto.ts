@@ -18,7 +18,10 @@ export class CreateReviewDto {
   @Max(5)
   score: number;
 
-  @ApiProperty({ example: 'example', description: '태그, 리스트 형태' })
+  @ApiProperty({
+    example: ['태그1', '태그2', '태그3'],
+    description: '태그, 리스트 형태',
+  })
   @IsArray()
   tags: string[];
 }

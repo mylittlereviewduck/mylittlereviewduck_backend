@@ -3,7 +3,5 @@ export class ReviewSearchPagerbleDto {
 
   size: number;
 
-  sort: 'asc' | 'desc';
-
   page: number;
 }

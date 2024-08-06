@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { ReviewEntity } from './entity/Review.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -6,7 +6,45 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class ReviewLikeService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  likeReview: (userIdx: number, reviewIdx: number) => Promise<void>;
+  async likeReview(accountIdx: number, reviewIdx: number): Promise<void> {
+    const existingLike = await this.prismaService.reviewLikesTb.findFirst({
+      where: {
+        accountIdx: accountIdx,
+        reviewIdx: reviewIdx,
+      },
+    });
 
-  unlikeReview: (userIdx: number, reviewIdx: number) => Promise<void>;
+    if (existingLike) {
+      throw new ConflictException('Already Review Like');
+    }
+
+    await this.prismaService.reviewLikesTb.create({
+      data: {
+        accountIdx: accountIdx,
+        reviewIdx: reviewIdx,
+      },
+    });
+  }
+
+  async unlikeReview(accountIdx: number, reviewIdx: number): Promise<void> {
+    const existingLike = await this.prismaService.reviewLikesTb.findFirst({
+      where: {
+        accountIdx: accountIdx,
+        reviewIdx: reviewIdx,
+      },
+    });
+
+    if (!existingLike) {
+      throw new ConflictException('Already Not Review Like');
+    }
+
+    await this.prismaService.reviewLikesTb.delete({
+      where: {
+        accountIdx_reviewIdx: {
+          accountIdx: accountIdx,
+          reviewIdx: reviewIdx,
+        },
+      },
+    });
+  }
 }

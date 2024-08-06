@@ -1,3 +1,4 @@
+import { ReviewLikeService } from './review-like.service';
 import {
   Body,
   Controller,
@@ -39,6 +40,7 @@ import { ReviewBookmarkService } from './review-bookmark.service';
 export class ReviewController {
   constructor(
     private readonly reviewService: ReviewService,
+    private readonly reviewLikeService: ReviewLikeService,
     private readonly reviewLikeCheckService: ReviewLikeCheckService,
     private readonly reviewBookmarkService: ReviewBookmarkService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
@@ -236,6 +238,7 @@ export class ReviewController {
   }
 
   @Post('/review/:reviewIdx/like')
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: '리뷰 좋아요하기' })
   @ApiParam({ name: 'reviewIdx', example: 1 })
   @ApiBearerAuth()
@@ -245,9 +248,15 @@ export class ReviewController {
   @Exception(409, '현재상태와 요청 충돌')
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 201 })
-  async likeReview() {}
+  async likeReview(
+    @GetUser() loginUser: LoginUser,
+    @Param('reviewIdx') reviewIdx: number,
+  ) {
+    await this.reviewLikeService.likeReview(loginUser.idx, reviewIdx);
+  }
 
   @Delete('/review/:reviewIdx/like')
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: '리뷰 좋아요해제하기' })
   @ApiParam({ name: 'reviewIdx', example: 1 })
   @ApiBearerAuth()
@@ -257,7 +266,12 @@ export class ReviewController {
   @Exception(409, '현재상태와 요청 충돌')
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200 })
-  async unlikeReview() {}
+  async unlikeReview(
+    @GetUser() loginUser: LoginUser,
+    @Param('reviewIdx') reviewIdx: number,
+  ) {
+    await this.reviewLikeService.unlikeReview(loginUser.idx, reviewIdx);
+  }
 
   @Get('/user/:userIdx/review/all')
   @ApiOperation({ summary: '유저가 쓴 리뷰목록보기' })

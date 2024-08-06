@@ -21,7 +21,6 @@ export class OptionalAuthGuard implements CanActivate {
 
     try {
       if (!token) {
-        console.log('토큰없음 함수종료');
         return true;
       }
 
@@ -30,16 +29,15 @@ export class OptionalAuthGuard implements CanActivate {
       });
 
       request.user = payload;
-    } catch {
-      console.log('인증실패입니다');
-    }
 
-    return true;
+      return true;
+    } catch {
+      return true;
+    }
   }
 
   private extractTokenFromHeader(request: Request): string | undefined {
     if (!request.headers.authorization) {
-      console.log('authorization없음');
       return;
     }
 

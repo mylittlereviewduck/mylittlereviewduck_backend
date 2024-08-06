@@ -33,12 +33,14 @@ import { AuthGuard } from 'src/auth/auth.guard';
 import { ReviewSearchResponseDto } from './dto/response/review-search-response.dto';
 import { OptionalAuthGuard } from 'src/auth/optional-auth.guard';
 import { ReviewPagerbleResponseDto } from './dto/response/review-pagerble-response.dto';
+import { ReviewLikeCheckService } from './review-like-check.service';
 
 @Controller('')
 @ApiTags('review')
 export class ReviewController {
   constructor(
     private readonly reviewService: ReviewService,
+    private readonly reviewLikeCheckService: ReviewLikeCheckService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
@@ -50,14 +52,16 @@ export class ReviewController {
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: ReviewEntity, isArray: true })
   async getReviewAll(
-    @Req() req: Request,
     @GetUser() loginUser: LoginUser,
     @Query('page') page: number,
     @Query('size') size: number,
   ): Promise<ReviewPagerbleResponseDto> {
     if (!loginUser) {
       console.log('비로그인유저');
-      return;
+      return await this.reviewService.getLatestReview({
+        size: size || 10,
+        page: page || 1,
+      });
     }
 
     //사용자 좋아요 여부, 북마크 여부, 공유여부도 반환해야함
@@ -66,7 +70,12 @@ export class ReviewController {
       size: size || 10,
       page: page || 1,
     });
-    console.log('reviews');
+
+    await this.reviewLikeCheckService.isReviewLiked(
+      loginUser.idx,
+      reviews.reviews,
+    );
+
     return reviews;
   }
 

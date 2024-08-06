@@ -6,28 +6,30 @@ import { ReviewEntity } from './entity/Review.entity';
 export class ReviewLikeCheckService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  //리뷰 리스트형태로도 받을수 있어야함
   async isReviewLiked(
     accountIdx: number,
-    reviewIdx: number[],
-  ): Promise<boolean> {
-    console.log('accountIdx,', accountIdx);
-    console.log('reviewIdx,', reviewIdx);
-
+    reviews: ReviewEntity[],
+  ): Promise<ReviewEntity[]> {
     const sqlResult = await this.prismaService.reviewLikesTb.findMany({
       where: {
         accountIdx: accountIdx,
         reviewIdx: {
-          in: reviewIdx,
+          in: reviews.map((elem) => elem.idx),
         },
       },
-      // select: {
-      //   reviewIdx: true,
-      // },
+      select: {
+        reviewIdx: true,
+      },
     });
 
-    console.log('ReviewLike SQL result: ', sqlResult);
+    const likedReviewIdxList = sqlResult.map((elem) => elem.reviewIdx);
 
-    return;
+    for (let i = 0; i < reviews.length; i++) {
+      if (likedReviewIdxList.includes(reviews[i].idx)) {
+        reviews[i].isMyLike = true;
+      }
+    }
+
+    return reviews;
   }
 }

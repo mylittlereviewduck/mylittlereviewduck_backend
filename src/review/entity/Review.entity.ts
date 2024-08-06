@@ -59,7 +59,7 @@ export class ReviewEntity {
     example: 'false',
     description: '차단여부',
   })
-  isMyBlocked: boolean = false;
+  isMyBlock: boolean = false;
 
   constructor(data) {
     this.idx = data.idx;
@@ -74,6 +74,6 @@ export class ReviewEntity {
     this.isMyLike = data.isMyLike ?? false;
     this.isMyBookmark = data.isMyBookmark ?? false;
     this.isMyShare = data.isMyShare ?? false;
-    this.isMyBlocked = data.isMyBlocked ?? false;
+    this.isMyBlock = data.isMyBlock ?? false;
   }
 }

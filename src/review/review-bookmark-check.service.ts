@@ -10,7 +10,7 @@ export class ReviewBookmarkCheckService {
     accountIdx: number,
     reviews: ReviewEntity[],
   ): Promise<ReviewEntity[]> {
-    const sqlResult = await this.prismaService.bookmarkTb.findMany({
+    const sqlResult = await this.prismaService.reviewBookmarkTb.findMany({
       where: {
         accountIdx: accountIdx,
         reviewIdx: {

@@ -42,8 +42,6 @@ export class ReviewService {
         },
       });
 
-      console.log(reviewData);
-
       await tx.tagTb.createMany({
         data: createDto.tags.map((tag) => ({
           reviewIdx: reviewData.idx,
@@ -134,7 +132,7 @@ export class ReviewService {
         _count: {
           select: {
             reviewLikesTb: true,
-            review_report_tb: true,
+            reviewReportTb: true,
           },
         },
       },
@@ -152,7 +150,7 @@ export class ReviewService {
       return {
         ...elem,
         likeCount: elem._count.reviewLikesTb,
-        reportCount: elem._count.review_report_tb,
+        reportCount: elem._count.reviewReportTb,
         tags: elem.tagTb.map((elem) => elem.tagName),
       };
     });
@@ -179,7 +177,7 @@ export class ReviewService {
         _count: {
           select: {
             reviewLikesTb: true,
-            review_report_tb: true,
+            reviewReportTb: true,
           },
         },
       },
@@ -194,7 +192,7 @@ export class ReviewService {
       return {
         ...elem,
         likeCount: elem._count.reviewLikesTb,
-        reportCount: elem._count.review_report_tb,
+        reportCount: elem._count.reviewReportTb,
         tags: elem.tagTb.map((elem) => elem.tagName),
       };
     });
@@ -332,7 +330,7 @@ export class ReviewService {
         commentTb: reviewPagerbleDto['like-user']
           ? { some: { accountIdx: accountIdx } }
           : undefined,
-        bookmarkTb: reviewPagerbleDto['bookmark-user']
+        reviewBookmarkTb: reviewPagerbleDto['bookmark-user']
           ? { some: { accountIdx: accountIdx } }
           : undefined,
       },

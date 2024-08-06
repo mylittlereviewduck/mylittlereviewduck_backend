@@ -1,3 +1,4 @@
+import { ReviewBlockService } from './review-block.service';
 import { ReviewBlockCheckService } from './review-block-check.service';
 import { ReviewBookmarkCheckService } from './review-bookmark-check.service';
 import { ReviewLikeService } from './review-like.service';
@@ -46,6 +47,8 @@ export class ReviewController {
     private readonly reviewLikeCheckService: ReviewLikeCheckService,
     private readonly reviewBookmarkService: ReviewBookmarkService,
     private readonly reviewBookmarkCheckService: ReviewBookmarkCheckService,
+    private readonly reviewBlockService: ReviewBlockService,
+    private readonly reviewBlockCheckService: ReviewBlockCheckService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
@@ -82,6 +85,11 @@ export class ReviewController {
     );
 
     await this.reviewBookmarkCheckService.isReviewBookmarked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
+
+    await this.reviewBlockCheckService.isReviewBlocked(
       loginUser.idx,
       reviewPagerbleResponseDto.reviews,
     );
@@ -237,12 +245,12 @@ export class ReviewController {
   @Exception(404, '해당 리소스 찾을수 없음')
   @Exception(409, '현재상태와 요청 충돌')
   @Exception(500, '서버 에러')
-  @ApiResponse({ status: 201 })
+  @ApiResponse({ status: 200 })
   async unbookmarkReview(
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx') reviewIdx: number,
   ) {
-    await this.reviewBookmarkService.unBookmarkReview(loginUser.idx, reviewIdx);
+    await this.reviewBookmarkService.unbookmarkReview(loginUser.idx, reviewIdx);
   }
 
   @Post('/review/:reviewIdx/like')
@@ -279,6 +287,42 @@ export class ReviewController {
     @Param('reviewIdx') reviewIdx: number,
   ) {
     await this.reviewLikeService.unlikeReview(loginUser.idx, reviewIdx);
+  }
+
+  @Post('/review/:reviewIdx/block')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: '리뷰 차단하기' })
+  @ApiParam({ name: 'reviewIdx', example: 1 })
+  @ApiBearerAuth()
+  @Exception(400, '유효하지않은요청')
+  @Exception(401, '권한없음')
+  @Exception(404, '해당리소스 찾을 수 없음')
+  @Exception(409, '현재상태와 요청 충돌')
+  @Exception(500, '서버 에러')
+  @ApiResponse({ status: 200 })
+  async blockReview(
+    @GetUser() loginUser: LoginUser,
+    @Param('reviewIdx') reviewIdx: number,
+  ) {
+    await this.reviewBlockService.blockReview(loginUser.idx, reviewIdx);
+  }
+
+  @Delete('/review/:reviewIdx/block')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: '리뷰 차단해제하기' })
+  @ApiParam({ name: 'reviewIdx', example: 1 })
+  @ApiBearerAuth()
+  @Exception(400, '유효하지않은요청')
+  @Exception(401, '권한없음')
+  @Exception(404, '해당리소스 찾을 수 없음')
+  @Exception(409, '현재상태와 요청 충돌')
+  @Exception(500, '서버 에러')
+  @ApiResponse({ status: 200 })
+  async unblockReview(
+    @GetUser() loginUser: LoginUser,
+    @Param('reviewIdx') reviewIdx: number,
+  ) {
+    await this.reviewBlockService.unblockReview(loginUser.idx, reviewIdx);
   }
 
   @Get('/user/:userIdx/review/all')

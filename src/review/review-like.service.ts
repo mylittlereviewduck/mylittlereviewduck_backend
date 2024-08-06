@@ -1,4 +1,8 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { ReviewEntity } from './entity/Review.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -7,6 +11,16 @@ export class ReviewLikeService {
   constructor(private readonly prismaService: PrismaService) {}
 
   async likeReview(accountIdx: number, reviewIdx: number): Promise<void> {
+    const review = await this.prismaService.reviewTb.findFirst({
+      where: {
+        idx: reviewIdx,
+      },
+    });
+
+    if (!review) {
+      throw new NotFoundException('Not Found Review');
+    }
+
     const existingLike = await this.prismaService.reviewLikesTb.findFirst({
       where: {
         accountIdx: accountIdx,
@@ -27,6 +41,16 @@ export class ReviewLikeService {
   }
 
   async unlikeReview(accountIdx: number, reviewIdx: number): Promise<void> {
+    const review = await this.prismaService.reviewTb.findFirst({
+      where: {
+        idx: reviewIdx,
+      },
+    });
+
+    if (!review) {
+      throw new NotFoundException('Not Found Review');
+    }
+
     const existingLike = await this.prismaService.reviewLikesTb.findFirst({
       where: {
         accountIdx: accountIdx,

@@ -19,42 +19,31 @@ model AccountBlockTb {
 }
 
 model AccountTb {
-  idx                                               Int              @id @default(autoincrement())
-  email                                             String           @db.VarChar
-  pw                                                String?          @db.VarChar
-  nickname                                          String           @default(dbgenerated("uuid_generate_v4()")) @db.VarChar
-  phone                                             String?          @db.VarChar
+  idx                                               Int                @id @default(autoincrement())
+  email                                             String             @db.VarChar
+  pw                                                String?            @db.VarChar
+  nickname                                          String             @default(dbgenerated("uuid_generate_v4()")) @db.VarChar
+  phone                                             String?            @db.VarChar
   profile                                           String?
-  provider                                          String?          @db.VarChar
-  providerKey                                       String?          @map("provider_key") @db.VarChar(100)
-  createdAt                                         DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
-  deletedAt                                         DateTime?        @map("deleted_at") @db.Timestamptz(6)
-  accountBlockTbAccountBlockTbBlockerIdxToaccountTb AccountBlockTb[] @relation("account_block_tb_blocker_idxToaccount_tb")
-  accountBlockTbAccountBlockTbBlockedIdxToaccountTb AccountBlockTb[] @relation("account_block_tb_blocked_idxToaccount_tb")
-  bookmarkTb                                        BookmarkTb[]
+  provider                                          String?            @db.VarChar
+  providerKey                                       String?            @map("provider_key") @db.VarChar(100)
+  createdAt                                         DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt                                         DateTime?          @map("deleted_at") @db.Timestamptz(6)
+  accountBlockTbAccountBlockTbBlockerIdxToaccountTb AccountBlockTb[]   @relation("account_block_tb_blocker_idxToaccount_tb")
+  accountBlockTbAccountBlockTbBlockedIdxToaccountTb AccountBlockTb[]   @relation("account_block_tb_blocked_idxToaccount_tb")
   commentLikesTb                                    CommentLikesTb[]
   commentTb                                         CommentTb[]
-  follower                                          FollowTb[]       @relation("follow_tb_follower_idxToaccount_tb")
-  followee                                          FollowTb[]       @relation("follow_tb_followee_idxToaccount_tb")
+  follower                                          FollowTb[]         @relation("follow_tb_follower_idxToaccount_tb")
+  followee                                          FollowTb[]         @relation("follow_tb_followee_idxToaccount_tb")
   profileImgTb                                      ProfileImgTb[]
   reviewBlockTb                                     ReviewBlockTb[]
+  reviewBookmarkTb                                  ReviewBookmarkTb[]
   reviewLikesTb                                     ReviewLikesTb[]
   reviewReportTb                                    ReviewReportTb[]
   reviewShareTb                                     ReviewShareTb[]
   reviewTb                                          ReviewTb[]
 
   @@map("account_tb")
-}
-
-model BookmarkTb {
-  accountIdx Int       @map("account_idx")
-  reviewIdx  Int       @map("review_idx")
-  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  accountTb  AccountTb @relation(fields: [accountIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_bookmark_tb")
-  reviewTb   ReviewTb  @relation(fields: [reviewIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_review_tb_to_bookmark_tb")
-
-  @@id([accountIdx, reviewIdx])
-  @@map("bookmark_tb")
 }
 
 model CommentLikesTb {
@@ -140,24 +129,24 @@ model ReviewLikesTb {
 }
 
 model ReviewTb {
-  idx            Int              @id @default(autoincrement())
-  accountIdx     Int              @map("account_idx")
-  title          String           @db.VarChar
-  content        String           @db.VarChar
-  viewCount      Int              @default(0) @map("view_count")
-  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
-  deletedAt      DateTime?        @map("deleted_at") @db.Timestamptz(6)
-  updatedAt      DateTime?        @map("updated_at") @db.Timestamptz(6)
-  score          Decimal          @db.Decimal(3, 2)
-  bookmarkTb     BookmarkTb[]
-  commentTb      CommentTb[]
-  reviewBlockTb  ReviewBlockTb[]
-  reviewImgTb    ReviewImgTb[]
-  reviewLikesTb  ReviewLikesTb[]
-  reviewReportTb ReviewReportTb[]
-  reviewShareTb  ReviewShareTb[]
-  accountTb      AccountTb        @relation(fields: [accountIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_review_tb")
-  tagTb          TagTb[]
+  idx              Int                @id @default(autoincrement())
+  accountIdx       Int                @map("account_idx")
+  title            String             @db.VarChar
+  content          String             @db.VarChar
+  viewCount        Int                @default(0) @map("view_count")
+  createdAt        DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt        DateTime?          @map("deleted_at") @db.Timestamptz(6)
+  updatedAt        DateTime?          @map("updated_at") @db.Timestamptz(6)
+  score            Decimal            @db.Decimal(3, 2)
+  commentTb        CommentTb[]
+  reviewBlockTb    ReviewBlockTb[]
+  reviewBookmarkTb ReviewBookmarkTb[]
+  reviewImgTb      ReviewImgTb[]
+  reviewLikesTb    ReviewLikesTb[]
+  reviewReportTb   ReviewReportTb[]
+  reviewShareTb    ReviewShareTb[]
+  accountTb        AccountTb          @relation(fields: [accountIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_review_tb")
+  tagTb            TagTb[]
 
   @@map("review_tb")
 }
@@ -201,4 +190,15 @@ model ReviewShareTb {
 
   @@id([accountIdx, reviewIdx])
   @@map("review_share_tb")
+}
+
+model ReviewBookmarkTb {
+  accountIdx Int       @map("account_idx")
+  reviewIdx  Int       @map("review_idx")
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  accountTb  AccountTb @relation(fields: [accountIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_account_tb_to_bookmark_tb")
+  reviewTb   ReviewTb  @relation(fields: [reviewIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_review_tb_to_bookmark_tb")
+
+  @@id([accountIdx, reviewIdx], map: "bookmark_tb_pkey")
+  @@map("review_bookmark_tb")
 }

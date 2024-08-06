@@ -21,7 +21,7 @@ export class ReviewReportService {
     }
 
     if (review.accountIdx == accountIdx) {
-      throw new ConflictException("Can't report my review");
+      throw new ConflictException("Can't Report My Review");
     }
 
     const existingReport = await this.prismaService.reviewReportTb.findFirst({
@@ -56,7 +56,7 @@ export class ReviewReportService {
     }
 
     if (review.accountIdx == accountIdx) {
-      throw new ConflictException("Can't report my review");
+      throw new ConflictException("Can't Report My Review");
     }
 
     const existingReport = await this.prismaService.reviewReportTb.findFirst({

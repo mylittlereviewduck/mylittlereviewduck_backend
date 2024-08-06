@@ -110,6 +110,44 @@ export class ReviewService {
     return new ReviewEntity(deletedReview);
   }
 
+  async getReviewWithIdx(reviewIdx: number): Promise<ReviewEntity> {
+    let reviewData = await this.prismaService.reviewTb.findFirst({
+      include: {
+        tagTb: {
+          select: {
+            tagName: true,
+          },
+        },
+        _count: {
+          select: {
+            reviewLikesTb: true,
+            reviewBookmarkTb: true,
+            reviewReportTb: true,
+            reviewShareTb: true,
+          },
+        },
+      },
+      where: {
+        idx: reviewIdx,
+      },
+    });
+
+    if (!reviewData) {
+      throw new NotFoundException('Not Found Review');
+    }
+
+    const review = {
+      ...reviewData,
+      tags: reviewData.tagTb.map((tag) => tag.tagName),
+      likeCount: reviewData._count.reviewLikesTb,
+      bookmarkCount: reviewData._count.reviewBookmarkTb,
+      shareCount: reviewData._count.reviewShareTb,
+      reportCount: reviewData._count.reviewReportTb,
+    };
+
+    return new ReviewEntity(review);
+  }
+
   async getReviewWithAccountIdx(
     reviewPagerbleDto: ReviewPagerbleDto,
     accountIdx: number,

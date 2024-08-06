@@ -145,13 +145,36 @@ export class ReviewController {
 
   //getReview생성하기
   @Get('/review/:reviewIdx')
+  @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '리뷰 자세히보기' })
   @ApiParam({ name: 'reviewIdx', example: 1 })
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: ReviewEntity })
-  async getReviewIdx() {}
+  async getReviewWithIdx(
+    @GetUser() loginUser: LoginUser,
+    @Param('reviewIdx') reviewIdx: number,
+  ) {
+    const reviewEntity = await this.reviewService.getReviewWithIdx(reviewIdx);
+    if (!loginUser) {
+      return reviewEntity;
+    }
+
+    await this.reviewLikeCheckService.isReviewLiked(loginUser.idx, [
+      reviewEntity,
+    ]);
+
+    await this.reviewBookmarkCheckService.isReviewBookmarked(loginUser.idx, [
+      reviewEntity,
+    ]);
+
+    await this.reviewBlockCheckService.isReviewBlocked(loginUser.idx, [
+      reviewEntity,
+    ]);
+
+    return reviewEntity;
+  }
 
   @Put('/review/:reviewIdx')
   @UseGuards(AuthGuard)

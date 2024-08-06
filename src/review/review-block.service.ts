@@ -54,6 +54,10 @@ export class ReviewBlockService {
       throw new NotFoundException('Not Found Review');
     }
 
+    if (review.accountIdx == accountIdx) {
+      throw new ConflictException("Can't block my review");
+    }
+
     const existingBlock = await this.prismaService.reviewBlockTb.findFirst({
       where: {
         accountIdx: accountIdx,

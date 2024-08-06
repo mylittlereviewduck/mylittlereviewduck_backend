@@ -37,6 +37,7 @@ import { OptionalAuthGuard } from 'src/auth/optional-auth.guard';
 import { ReviewPagerbleResponseDto } from './dto/response/review-pagerble-response.dto';
 import { ReviewLikeCheckService } from './review-like-check.service';
 import { ReviewBookmarkService } from './review-bookmark.service';
+import { ReviewReportService } from './review-report.service';
 
 @Controller('')
 @ApiTags('review')
@@ -49,6 +50,7 @@ export class ReviewController {
     private readonly reviewBookmarkCheckService: ReviewBookmarkCheckService,
     private readonly reviewBlockService: ReviewBlockService,
     private readonly reviewBlockCheckService: ReviewBlockCheckService,
+    private readonly reviewReportService: ReviewReportService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
@@ -58,7 +60,7 @@ export class ReviewController {
   @ApiQuery({ name: 'size', description: '한 페이지에 담긴 리뷰수' })
   @ApiQuery({ name: 'page', description: '페이지' })
   @Exception(500, '서버 에러')
-  @ApiResponse({ status: 200, type: ReviewEntity, isArray: true })
+  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
   async getReviewAll(
     @GetUser() loginUser: LoginUser,
     @Query('page') page: number,
@@ -325,6 +327,25 @@ export class ReviewController {
     await this.reviewBlockService.unblockReview(loginUser.idx, reviewIdx);
   }
 
+  //데이터 추가될 수 있음
+  @Post('/review/:reviewIdx/report')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: '리뷰 신고하기' })
+  @ApiParam({ name: 'reviewIdx', example: 1 })
+  @ApiBearerAuth()
+  @Exception(400, '유효하지않은요청')
+  @Exception(401, '권한없음')
+  @Exception(404, '해당리소스 찾을 수 없음')
+  @Exception(409, '현재상태와 요청 충돌')
+  @Exception(500, '서버 에러')
+  @ApiResponse({ status: 200 })
+  async reportReview(
+    @GetUser() loginUser: LoginUser,
+    @Param('reviewIdx') reviewIdx: number,
+  ) {
+    await this.reviewReportService.reportReview(loginUser.idx, reviewIdx);
+  }
+
   @Get('/user/:userIdx/review/all')
   @ApiOperation({ summary: '유저가 쓴 리뷰목록보기' })
   @ApiParam({ name: 'userIdx', example: 1 })
@@ -348,6 +369,4 @@ export class ReviewController {
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: ReviewEntity, isArray: true })
   async getCommentAllByuserIdx() {}
-
-  //리뷰신고하기
 }

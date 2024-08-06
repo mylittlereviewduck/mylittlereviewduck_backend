@@ -1,4 +1,3 @@
-import { AccountTb } from '@prisma/client';
 import {
   Inject,
   Injectable,
@@ -14,7 +13,6 @@ import { LoginUser } from 'src/auth/model/login-user.model';
 import { UpdateReviewDto } from './dto/update-review.dto';
 import { ReviewSearchPagerbleDto } from './dto/review-search-pagerble.dto';
 import { ReviewPagerbleResponseDto } from './dto/response/review-pagerble-response.dto';
-import { contains } from 'class-validator';
 import { ReviewSearchResponseDto } from './dto/response/review-search-response.dto';
 import { ReviewLikeCheckService } from './review-like-check.service';
 

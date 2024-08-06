@@ -1,3 +1,5 @@
+import { ReviewBlockCheckService } from './review-block-check.service';
+import { ReviewBookmarkCheckService } from './review-bookmark-check.service';
 import { ReviewLikeService } from './review-like.service';
 import {
   Body,
@@ -43,6 +45,7 @@ export class ReviewController {
     private readonly reviewLikeService: ReviewLikeService,
     private readonly reviewLikeCheckService: ReviewLikeCheckService,
     private readonly reviewBookmarkService: ReviewBookmarkService,
+    private readonly reviewBookmarkCheckService: ReviewBookmarkCheckService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
@@ -68,17 +71,22 @@ export class ReviewController {
 
     //사용자 좋아요 여부, 북마크 여부, 공유여부도 반환해야함
     console.log('로그인유저');
-    const reviews = await this.reviewService.getLatestReview({
+    const reviewPagerbleResponseDto = await this.reviewService.getLatestReview({
       size: size || 10,
       page: page || 1,
     });
 
     await this.reviewLikeCheckService.isReviewLiked(
       loginUser.idx,
-      reviews.reviews,
+      reviewPagerbleResponseDto.reviews,
     );
 
-    return reviews;
+    await this.reviewBookmarkCheckService.isReviewBookmarked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
+
+    return reviewPagerbleResponseDto;
   }
 
   @Get('/review/popular')

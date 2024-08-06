@@ -8,6 +8,7 @@ import { AuthModule } from 'src/auth/auth.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { ReviewLikeCheckService } from './review-like-check.service';
+import { ReviewBookmarkCheckService } from './review-bookmark-check.service';
 
 @Module({
   imports: [CacheModule.register(), forwardRef(() => AuthModule), PrismaModule],
@@ -15,10 +16,10 @@ import { ReviewLikeCheckService } from './review-like-check.service';
   providers: [
     ReviewService,
     ReviewBookmarkService,
-    BookmarkCheckService,
+    ReviewBookmarkCheckService,
     ReviewLikeService,
     ReviewLikeCheckService,
   ],
-  exports: [BookmarkCheckService],
+  exports: [],
 })
 export class ReviewModule {}

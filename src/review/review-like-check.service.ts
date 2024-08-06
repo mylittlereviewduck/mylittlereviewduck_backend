@@ -14,7 +14,7 @@ export class ReviewLikeCheckService {
       where: {
         accountIdx: accountIdx,
         reviewIdx: {
-          in: reviews.map((elem) => elem.idx),
+          in: reviews.map((review) => review.idx),
         },
       },
       select: {

@@ -12,6 +12,8 @@ import { ReviewBookmarkCheckService } from './review-bookmark-check.service';
 import { ReviewBlockService } from './review-block.service';
 import { ReviewBlockCheckService } from './review-block-check.service';
 import { ReviewReportService } from './review-report.service';
+import { ReviewShareService } from './review-share.service';
+import { ReviewShareCheckService } from './review-share-check.service';
 
 @Module({
   imports: [CacheModule.register(), forwardRef(() => AuthModule), PrismaModule],
@@ -22,6 +24,8 @@ import { ReviewReportService } from './review-report.service';
     ReviewLikeCheckService,
     ReviewBookmarkService,
     ReviewBookmarkCheckService,
+    ReviewShareService,
+    ReviewShareCheckService,
     ReviewBlockService,
     ReviewBlockCheckService,
     ReviewReportService,

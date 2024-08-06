@@ -1,3 +1,5 @@
+import { ReviewShareCheckService } from './review-share-check.service';
+import { ReviewShareService } from './review-share.service';
 import { ReviewBlockService } from './review-block.service';
 import { ReviewBlockCheckService } from './review-block-check.service';
 import { ReviewBookmarkCheckService } from './review-bookmark-check.service';
@@ -48,6 +50,8 @@ export class ReviewController {
     private readonly reviewLikeCheckService: ReviewLikeCheckService,
     private readonly reviewBookmarkService: ReviewBookmarkService,
     private readonly reviewBookmarkCheckService: ReviewBookmarkCheckService,
+    private readonly reviewShareService: ReviewShareService,
+    private readonly reviewShareCheckService: ReviewShareCheckService,
     private readonly reviewBlockService: ReviewBlockService,
     private readonly reviewBlockCheckService: ReviewBlockCheckService,
     private readonly reviewReportService: ReviewReportService,
@@ -67,15 +71,12 @@ export class ReviewController {
     @Query('size') size: number,
   ): Promise<ReviewPagerbleResponseDto> {
     if (!loginUser) {
-      console.log('비로그인유저');
       return await this.reviewService.getLatestReview({
         size: size || 10,
         page: page || 1,
       });
     }
 
-    //사용자 좋아요 여부, 북마크 여부, 공유여부도 반환해야함
-    console.log('로그인유저');
     const reviewPagerbleResponseDto = await this.reviewService.getLatestReview({
       size: size || 10,
       page: page || 1,
@@ -96,15 +97,18 @@ export class ReviewController {
       reviewPagerbleResponseDto.reviews,
     );
 
+    await this.reviewShareCheckService.isReviewShared(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
+
     return reviewPagerbleResponseDto;
   }
 
   @Get('/review/popular')
   @ApiOperation({ summary: '인기 리뷰목록보기' })
   @ApiResponse({ status: 200, type: ReviewEntity, isArray: true })
-  async getReviewPopular() {
-    console.log('api시작');
-  }
+  async getReviewPopular() {}
 
   @Post('/review')
   @UseGuards(AuthGuard)
@@ -173,6 +177,10 @@ export class ReviewController {
       reviewEntity,
     ]);
 
+    await this.reviewShareCheckService.isReviewShared(loginUser.idx, [
+      reviewEntity,
+    ]);
+
     return reviewEntity;
   }
 
@@ -213,7 +221,6 @@ export class ReviewController {
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx') reviewIdx: number,
   ): Promise<ReviewEntity> {
-    console.log('실행되면안되는api');
     const reviewEntity = await this.reviewService.deleteReview(
       loginUser,
       reviewIdx,
@@ -232,14 +239,48 @@ export class ReviewController {
     @Query('page') page: number,
     @Query('size') size: number,
   ): Promise<ReviewSearchResponseDto> {
-    console.log('api시작');
-
     return await this.reviewService.getReviewWithSearch({
       search: search,
       size: size || 2,
       sort: 'asc',
       page: page || 1,
     });
+  }
+
+  @Post('/review/:reviewIdx/like')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: '리뷰 좋아요하기' })
+  @ApiParam({ name: 'reviewIdx', example: 1 })
+  @ApiBearerAuth()
+  @Exception(400, '유효하지않은 요청')
+  @Exception(401, '권한 없음')
+  @Exception(404, '해당 리소스 찾을수 없음')
+  @Exception(409, '현재상태와 요청 충돌')
+  @Exception(500, '서버 에러')
+  @ApiResponse({ status: 201 })
+  async likeReview(
+    @GetUser() loginUser: LoginUser,
+    @Param('reviewIdx') reviewIdx: number,
+  ) {
+    await this.reviewLikeService.likeReview(loginUser.idx, reviewIdx);
+  }
+
+  @Delete('/review/:reviewIdx/like')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: '리뷰 좋아요해제하기' })
+  @ApiParam({ name: 'reviewIdx', example: 1 })
+  @ApiBearerAuth()
+  @Exception(400, '유효하지않은 요청')
+  @Exception(401, '권한 없음')
+  @Exception(404, '해당 리소스 찾을수 없음')
+  @Exception(409, '현재상태와 요청 충돌')
+  @Exception(500, '서버 에러')
+  @ApiResponse({ status: 200 })
+  async unlikeReview(
+    @GetUser() loginUser: LoginUser,
+    @Param('reviewIdx') reviewIdx: number,
+  ) {
+    await this.reviewLikeService.unlikeReview(loginUser.idx, reviewIdx);
   }
 
   @Post('/review/:reviewIdx/bookmark')
@@ -278,9 +319,9 @@ export class ReviewController {
     await this.reviewBookmarkService.unbookmarkReview(loginUser.idx, reviewIdx);
   }
 
-  @Post('/review/:reviewIdx/like')
+  @Post('/review/:reviewIdx/share')
   @UseGuards(AuthGuard)
-  @ApiOperation({ summary: '리뷰 좋아요하기' })
+  @ApiOperation({ summary: '리뷰 공유하기' })
   @ApiParam({ name: 'reviewIdx', example: 1 })
   @ApiBearerAuth()
   @Exception(400, '유효하지않은 요청')
@@ -289,29 +330,11 @@ export class ReviewController {
   @Exception(409, '현재상태와 요청 충돌')
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 201 })
-  async likeReview(
+  async shareReview(
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx') reviewIdx: number,
   ) {
-    await this.reviewLikeService.likeReview(loginUser.idx, reviewIdx);
-  }
-
-  @Delete('/review/:reviewIdx/like')
-  @UseGuards(AuthGuard)
-  @ApiOperation({ summary: '리뷰 좋아요해제하기' })
-  @ApiParam({ name: 'reviewIdx', example: 1 })
-  @ApiBearerAuth()
-  @Exception(400, '유효하지않은 요청')
-  @Exception(401, '권한 없음')
-  @Exception(404, '해당 리소스 찾을수 없음')
-  @Exception(409, '현재상태와 요청 충돌')
-  @Exception(500, '서버 에러')
-  @ApiResponse({ status: 200 })
-  async unlikeReview(
-    @GetUser() loginUser: LoginUser,
-    @Param('reviewIdx') reviewIdx: number,
-  ) {
-    await this.reviewLikeService.unlikeReview(loginUser.idx, reviewIdx);
+    await this.reviewShareService.shareReview(loginUser.idx, reviewIdx);
   }
 
   @Post('/review/:reviewIdx/block')

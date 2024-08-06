@@ -14,7 +14,7 @@ export class ReviewEntity {
   content: string;
 
   @ApiProperty({
-    examples: ['태그1', '태그2', '태그3'],
+    example: ['태그1', '태그2', '태그3'],
     description: '태그 개수 제한x',
   })
   tags: string[];

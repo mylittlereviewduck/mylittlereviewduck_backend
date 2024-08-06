@@ -193,19 +193,17 @@ export class ReviewController {
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 없음')
   @Exception(500, '서버에러')
-  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 200, type: ReviewEntity })
   async updateReview(
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx') reviewIdx: number,
     @Body() updateReviewDto: UpdateReviewDto,
   ): Promise<ReviewEntity> {
-    //작업 시작해야할 부분
-    const review = await this.reviewService.updateReview(
+    return await this.reviewService.updateReview(
       loginUser,
       reviewIdx,
       updateReviewDto,
     );
-    return review;
   }
 
   @Delete('/review/:reviewIdx')

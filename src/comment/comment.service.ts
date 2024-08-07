@@ -40,10 +40,11 @@ export class CommentService {
 
   async createComment(
     loginUser: LoginUser,
+    reviewIdx: number,
     createCommentDto: CreateCommentDto,
   ): Promise<CommentEntity> {
     const review = await this.prismaService.reviewTb.findUnique({
-      where: { idx: createCommentDto.reviewIdx },
+      where: { idx: reviewIdx },
     });
 
     if (!review) {
@@ -52,7 +53,7 @@ export class CommentService {
 
     const commentData = await this.prismaService.commentTb.create({
       data: {
-        reviewIdx: createCommentDto.reviewIdx,
+        reviewIdx: reviewIdx,
         accountIdx: loginUser.idx,
         content: createCommentDto.content,
         commentIdx: createCommentDto.commentIdx,

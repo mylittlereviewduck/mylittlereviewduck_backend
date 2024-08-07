@@ -217,15 +217,17 @@ export class ReviewService {
     return new ReviewEntity(review);
   }
 
-  async getReviewWithAccountIdx(
-    accountIdx: number,
+  async getReviews(
     reviewPagerbleDto: ReviewPagerbleDto,
+    accountIdx?: number,
   ): Promise<ReviewPagerbleResponseDto> {
     const reviewCount = await this.prismaService.reviewTb.count({
-      where: {
-        accountIdx: accountIdx,
-        deletedAt: null,
-      },
+      where: accountIdx
+        ? {
+            accountIdx: accountIdx,
+            deletedAt: null,
+          }
+        : {},
     });
 
     const reviewSQLResult = await this.prismaService.reviewTb.findMany({
@@ -244,9 +246,7 @@ export class ReviewService {
           },
         },
       },
-      where: {
-        accountIdx: accountIdx,
-      },
+      where: accountIdx ? { accountIdx: accountIdx } : {},
       orderBy: {
         idx: 'desc',
       },
@@ -257,71 +257,23 @@ export class ReviewService {
     const reviewData = reviewSQLResult.map((elem) => {
       return {
         ...elem,
+        tags: elem.tagTb.map((elem) => elem.tagName),
         likeCount: elem._count.reviewLikesTb,
         bookmarkCount: elem._count.reviewBookmarkTb,
         shareCount: elem._count.reviewShareTb,
         reportCount: elem._count.reviewReportTb,
-        tags: elem.tagTb.map((elem) => elem.tagName),
       };
     });
 
     return {
       totalPage: Math.ceil(reviewCount / reviewPagerbleDto.size),
-      page: reviewPagerbleDto.page,
-      reviews: reviewData.map((elem) => new ReviewEntity(elem)),
-    };
-  }
-
-  async getLatestReview(
-    reviewPagerbleDto: ReviewPagerbleDto,
-  ): Promise<ReviewPagerbleResponseDto> {
-    const reviewCount = await this.prismaService.reviewTb.count({});
-
-    const reviewSQLResult = await this.prismaService.reviewTb.findMany({
-      include: {
-        tagTb: {
-          select: {
-            tagName: true,
-          },
-        },
-        _count: {
-          select: {
-            reviewLikesTb: true,
-            reviewReportTb: true,
-            reviewShareTb: true,
-            reviewBookmarkTb: true,
-          },
-        },
-      },
-      orderBy: {
-        idx: 'desc',
-      },
-      take: reviewPagerbleDto.size,
-      skip: (reviewPagerbleDto.page - 1) * reviewPagerbleDto.size,
-    });
-
-    const reviewData = reviewSQLResult.map((elem) => {
-      return {
-        ...elem,
-        likeCount: elem._count.reviewLikesTb,
-        bookmarkCount: elem._count.reviewBookmarkTb,
-        shareCount: elem._count.reviewShareTb,
-        reportCount: elem._count.reviewReportTb,
-
-        tags: elem.tagTb.map((elem) => elem.tagName),
-      };
-    });
-
-    return {
-      totalPage: Math.ceil(reviewCount / reviewPagerbleDto.size),
-      page: reviewPagerbleDto.page,
       reviews: reviewData.map((elem) => new ReviewEntity(elem)),
     };
   }
 
   async getReviewWithSearch(
     reviewSearchPagerbleDto: ReviewSearchPagerbleDto,
-  ): Promise<ReviewSearchResponseDto> {
+  ): Promise<ReviewPagerbleResponseDto> {
     const totalCount = await this.prismaService.reviewTb.count({
       where: {
         OR: [
@@ -434,27 +386,67 @@ export class ReviewService {
     };
   }
 
-  // 특정유저가 북마크한 리뷰 가져오기
   async getBookmarkedReviewAll(
     accountIdx: number,
     reviewPagerbleDto: ReviewPagerbleDto,
-  ): Promise<ReviewEntity[]> {
-    const reviewList = await this.prismaService.reviewTb.findMany({
+  ): Promise<ReviewPagerbleResponseDto> {
+    const totalCount = await this.prismaService.reviewTb.count({
       where: {
-        accountIdx: accountIdx,
-        commentTb: reviewPagerbleDto['like-user']
-          ? { some: { accountIdx: accountIdx } }
-          : undefined,
-        reviewBookmarkTb: reviewPagerbleDto['bookmark-user']
-          ? { some: { accountIdx: accountIdx } }
-          : undefined,
+        reviewBookmarkTb: {
+          every: {
+            accountIdx: accountIdx,
+          },
+        },
       },
     });
 
-    return reviewList.map((elem) => new ReviewEntity(elem));
+    const reviewData = await this.prismaService.reviewTb.findMany({
+      include: {
+        tagTb: {
+          select: {
+            tagName: true,
+          },
+        },
+        _count: {
+          select: {
+            reviewLikesTb: true,
+            reviewBookmarkTb: true,
+            reviewShareTb: true,
+            reviewReportTb: true,
+          },
+        },
+      },
+      where: {
+        reviewBookmarkTb: {
+          every: {
+            accountIdx: accountIdx,
+          },
+        },
+      },
+      orderBy: {
+        idx: 'desc',
+      },
+      skip: (reviewPagerbleDto.page - 1) * reviewPagerbleDto.size,
+      take: reviewPagerbleDto.size,
+    });
+
+    const reviews = reviewData.map((elem) => {
+      return {
+        ...elem,
+        tags: elem.tagTb.map((elem) => elem.tagName),
+        likeCount: elem._count.reviewLikesTb,
+        bookmarkCount: elem._count.reviewBookmarkTb,
+        shareCount: elem._count.reviewShareTb,
+        reportCount: elem._count.reviewReportTb,
+      };
+    });
+
+    return {
+      totalPage: Math.ceil(totalCount / reviewPagerbleDto.size),
+      reviews: reviews.map((elem) => new ReviewEntity(elem)),
+    };
   }
 
-  // 좋아요많은 순서로 리뷰가져오기
   async getHotReviewAll(): Promise<ReviewEntity[]> {
     const mostRecentNoon = this.getMostRecentNoon();
 
@@ -472,6 +464,69 @@ export class ReviewService {
     reviewList.sort((a, b) => b.reviewLikesTb.length - a.reviewLikesTb.length);
 
     return reviewList.map((elem) => new ReviewEntity(elem));
+  }
+
+  async getReviewCommented(
+    reviewPagerbleDto: ReviewPagerbleDto,
+    accountIdx: number,
+  ): Promise<ReviewPagerbleResponseDto> {
+    const totalCount = await this.prismaService.reviewTb.count({
+      where: {
+        commentTb: {
+          some: {
+            accountIdx: accountIdx,
+            deletedAt: null,
+          },
+        },
+      },
+    });
+
+    const reviewData = await this.prismaService.reviewTb.findMany({
+      include: {
+        tagTb: {
+          select: {
+            tagName: true,
+          },
+        },
+        _count: {
+          select: {
+            reviewLikesTb: true,
+            reviewBookmarkTb: true,
+            reviewShareTb: true,
+            reviewReportTb: true,
+          },
+        },
+      },
+      where: {
+        commentTb: {
+          some: {
+            accountIdx: accountIdx,
+            deletedAt: null,
+          },
+        },
+      },
+      orderBy: {
+        idx: 'desc',
+      },
+      skip: (reviewPagerbleDto.page - 1) * reviewPagerbleDto.size,
+      take: reviewPagerbleDto.size,
+    });
+
+    const reviews = reviewData.map((elem) => {
+      return {
+        ...elem,
+        tags: elem.tagTb.map((elem) => elem.tagName),
+        likeCount: elem._count.reviewLikesTb,
+        bookmarkCount: elem._count.reviewBookmarkTb,
+        shareCount: elem._count.reviewShareTb,
+        reportCount: elem._count.reviewReportTb,
+      };
+    });
+
+    return {
+      totalPage: Math.ceil(totalCount / reviewPagerbleDto.size),
+      reviews: reviews.map((elem) => new ReviewEntity(elem)),
+    };
   }
 
   getMostRecentNoon(): Date {

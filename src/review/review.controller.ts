@@ -78,17 +78,14 @@ export class ReviewController {
     @Query('page') page: number,
     @Query('size') size: number,
   ): Promise<ReviewPagerbleResponseDto> {
-    if (!loginUser) {
-      return await this.reviewService.getLatestReview({
-        size: size || 10,
-        page: page || 1,
-      });
-    }
-
-    const reviewPagerbleResponseDto = await this.reviewService.getLatestReview({
+    const reviewPagerbleResponseDto = await this.reviewService.getReviews({
       size: size || 10,
       page: page || 1,
     });
+
+    if (!loginUser) {
+      return reviewPagerbleResponseDto;
+    }
 
     await this.reviewLikeCheckService.isReviewLiked(
       loginUser.idx,
@@ -178,8 +175,9 @@ export class ReviewController {
   async getReviewWithIdx(
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx') reviewIdx: number,
-  ) {
+  ): Promise<ReviewEntity> {
     const reviewEntity = await this.reviewService.getReviewWithIdx(reviewIdx);
+
     if (!loginUser) {
       return reviewEntity;
     }
@@ -287,7 +285,7 @@ export class ReviewController {
   async likeReview(
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx') reviewIdx: number,
-  ) {
+  ): Promise<void> {
     await this.reviewLikeService.likeReview(loginUser.idx, reviewIdx);
   }
 
@@ -305,7 +303,7 @@ export class ReviewController {
   async unlikeReview(
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx') reviewIdx: number,
-  ) {
+  ): Promise<void> {
     await this.reviewLikeService.unlikeReview(loginUser.idx, reviewIdx);
   }
 
@@ -323,7 +321,7 @@ export class ReviewController {
   async bookmarkReview(
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx') reviewIdx: number,
-  ) {
+  ): Promise<void> {
     await this.reviewBookmarkService.bookmarkReview(loginUser.idx, reviewIdx);
   }
 
@@ -341,7 +339,7 @@ export class ReviewController {
   async unbookmarkReview(
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx') reviewIdx: number,
-  ) {
+  ): Promise<void> {
     await this.reviewBookmarkService.unbookmarkReview(loginUser.idx, reviewIdx);
   }
 
@@ -359,7 +357,7 @@ export class ReviewController {
   async shareReview(
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx') reviewIdx: number,
-  ) {
+  ): Promise<void> {
     await this.reviewShareService.shareReview(loginUser.idx, reviewIdx);
   }
 
@@ -377,7 +375,7 @@ export class ReviewController {
   async blockReview(
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx') reviewIdx: number,
-  ) {
+  ): Promise<void> {
     await this.reviewBlockService.blockReview(loginUser.idx, reviewIdx);
   }
 
@@ -395,7 +393,7 @@ export class ReviewController {
   async unblockReview(
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx') reviewIdx: number,
-  ) {
+  ): Promise<void> {
     await this.reviewBlockService.unblockReview(loginUser.idx, reviewIdx);
   }
 
@@ -414,7 +412,7 @@ export class ReviewController {
   async reportReview(
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx') reviewIdx: number,
-  ) {
+  ): Promise<void> {
     await this.reviewReportService.reportReview(loginUser.idx, reviewIdx);
   }
 
@@ -438,26 +436,99 @@ export class ReviewController {
     @Param('userIdx') accountIdx: number,
     @Query('page') page: number,
     @Query('size') size: number,
-  ) {
-    return await this.reviewService.getReviewWithAccountIdx(accountIdx, {
-      page: page || 1,
-      size: size || 10,
-    });
+  ): Promise<ReviewPagerbleResponseDto> {
+    return await this.reviewService.getReviews(
+      {
+        page: page || 1,
+        size: size || 10,
+      },
+      accountIdx,
+    );
   }
 
   @Get('/user/:userIdx/review/bookmark')
+  @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '유저의 북마크한 리뷰목록보기' })
-  @ApiParam({ name: 'userIdx', example: 1 })
-  @Exception(400, 'Invalid Request Query')
+  @ApiParam({ name: 'userIdx', example: 1, description: '유저 idx' })
+  @ApiQuery({
+    name: 'size',
+    example: 10,
+    description: '한 페이지에 가져올 리뷰수, 기본값 10',
+  })
+  @ApiQuery({
+    name: 'page',
+    example: 1,
+    description: '가져올 페이지, 기본값 1',
+  })
+  @Exception(400, '유효하지않은 요청')
   @Exception(500, '서버 에러')
-  @ApiResponse({ status: 200, type: ReviewEntity, isArray: true })
-  async getBookmarkedReviewByuserIdx() {}
+  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
+  async getBookmarkedReviewByuserIdx(
+    @GetUser() loginUser: LoginUser,
+    @Param('userIdx') accountIdx: number,
+    @Query('size') size: number,
+    @Query('page') page: number,
+  ): Promise<ReviewPagerbleResponseDto> {
+    const reviewPagerbleResponseDto =
+      await this.reviewService.getBookmarkedReviewAll(accountIdx, {
+        size: size || 10,
+        page: page || 1,
+      });
+
+    if (!loginUser) {
+      return reviewPagerbleResponseDto;
+    }
+
+    await this.reviewLikeCheckService.isReviewLiked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
+
+    await this.reviewBookmarkCheckService.isReviewBookmarked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
+
+    await this.reviewShareCheckService.isReviewShared(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
+
+    await this.reviewBlockCheckService.isReviewBlocked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
+
+    return reviewPagerbleResponseDto;
+  }
 
   @Get('/user/:userIdx/review/commented')
   @ApiOperation({ summary: '유저의 댓글단 리뷰목록보기' })
-  @ApiParam({ name: 'userIdx', example: 1 })
-  @Exception(400, 'Invalid Request Query')
+  @ApiParam({ name: 'userIdx', example: 1, description: '유저 idx' })
+  @ApiQuery({
+    name: 'size',
+    example: 10,
+    description: '한 페이지에 가져올 리뷰수, 기본값 10',
+  })
+  @ApiQuery({
+    name: 'page',
+    example: 1,
+    description: '가져올 페이지, 기본값 1',
+  })
+  @Exception(400, '유효하지않은 요청')
   @Exception(500, '서버 에러')
-  @ApiResponse({ status: 200, type: ReviewEntity, isArray: true })
-  async getCommentAllByuserIdx() {}
+  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
+  async getReviewCommented(
+    @Param('userIdx') accountIdx: number,
+    @Query('page') page: number,
+    @Query('size') size: number,
+  ): Promise<ReviewPagerbleResponseDto> {
+    return await this.reviewService.getReviewCommented(
+      {
+        size: size || 10,
+        page: page || 1,
+      },
+      accountIdx,
+    );
+  }
 }

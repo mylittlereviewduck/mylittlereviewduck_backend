@@ -5,9 +5,6 @@ export class ReviewPagerbleResponseDto {
   @ApiProperty({ description: '전체 페이지 수', example: 9 })
   totalPage: number;
 
-  @ApiProperty({ description: '현재 페이지(1~totalPage까지 가능)', example: 1 })
-  page: number;
-
   @ApiProperty({
     description: '리뷰리스트',
     isArray: true,

@@ -38,10 +38,10 @@ export class CommentController {
   @ApiResponse({ status: 200, type: CommentEntity, isArray: true })
   async getCommemtAllByReviewIdx(
     @Param('reviewIdx') reviewIdx: number,
-  ): Promise<{ data: CommentEntity[] }> {
+  ): Promise<CommentEntity[]> {
     const commentList = await this.commentService.getCommentAll(reviewIdx);
 
-    return { data: commentList };
+    return commentList;
   }
 
   @Post('/review/:reviewIdx/comment')
@@ -59,8 +59,8 @@ export class CommentController {
     @GetUser() loginUser: LoginUser,
   ): Promise<{ data: CommentEntity }> {
     const commentEntity = await this.commentService.createComment(
-      createCommentDto,
       loginUser,
+      createCommentDto,
     );
 
     // 값이 data라는 키값으로 반환되는데 이를 또 타입정의해줘야하는가? Create-Comment-Response

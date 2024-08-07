@@ -61,10 +61,18 @@ export class ReviewController {
   @Get('/review/all')
   @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '최신 리뷰목록보기' })
-  @ApiQuery({ name: 'size', description: '한 페이지에 담긴 리뷰수' })
-  @ApiQuery({ name: 'page', description: '페이지' })
+  @ApiQuery({
+    name: 'size',
+    example: 10,
+    description: '한 페이지에 담긴 리뷰수, 기본값 10',
+  })
+  @ApiQuery({
+    name: 'page',
+    example: 1,
+    description: '가져올 페이지, 기본값 1',
+  })
   @Exception(500, '서버 에러')
-  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
+  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
   async getReviewAll(
     @GetUser() loginUser: LoginUser,
     @Query('page') page: number,
@@ -107,7 +115,18 @@ export class ReviewController {
 
   @Get('/review/popular')
   @ApiOperation({ summary: '인기 리뷰목록보기' })
-  @ApiResponse({ status: 200, type: ReviewEntity, isArray: true })
+  @ApiQuery({
+    name: 'size',
+    example: 10,
+    description: '한 페이지에 담긴 리뷰수, 기본값 10',
+  })
+  @ApiQuery({
+    name: 'page',
+    example: 1,
+    description: '가져올 페이지, 기본값 1',
+  })
+  @Exception(500, '서버 에러')
+  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
   async getReviewPopular() {}
 
   @Post('/review')
@@ -229,8 +248,16 @@ export class ReviewController {
   @Get('/review')
   @ApiOperation({ summary: '리뷰검색하기 닉네임, 태그, 제목,내용' })
   @ApiQuery({ name: 'search', description: '검색 키워드' })
-  @ApiQuery({ name: 'size', description: '한 페이지당 가져올 리뷰수' })
-  @ApiQuery({ name: 'page', description: '가져올 페이지' })
+  @ApiQuery({
+    name: 'size',
+    example: 1,
+    description: '한 페이지당 가져올 리뷰수, 기본값 10',
+  })
+  @ApiQuery({
+    name: 'page',
+    example: 1,
+    description: '가져올 페이지, 기본값 1',
+  })
   @Exception(404, 'Not Found Page')
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: ReviewSearchResponseDto })
@@ -393,11 +420,30 @@ export class ReviewController {
 
   @Get('/user/:userIdx/review/all')
   @ApiOperation({ summary: '유저가 쓴 리뷰목록보기' })
-  @ApiParam({ name: 'userIdx', example: 1 })
+  @ApiParam({ name: 'userIdx', example: 1, description: '유저 idx' })
+  @ApiQuery({
+    name: 'size',
+    example: 10,
+    description: '한 페이지에 가져올 리뷰수, 기본값 10',
+  })
+  @ApiQuery({
+    name: 'page',
+    example: 1,
+    description: '가져올 페이지, 기본값 1',
+  })
   @Exception(400, '유효하지않은 요청')
   @Exception(500, '서버 에러')
-  @ApiResponse({ status: 200, type: ReviewEntity, isArray: true })
-  async getReviewAllByuserIdx() {}
+  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
+  async getReviewAllByuserIdx(
+    @Param('userIdx') accountIdx: number,
+    @Query('page') page: number,
+    @Query('size') size: number,
+  ) {
+    return await this.reviewService.getReviewWithAccountIdx(accountIdx, {
+      page: page || 1,
+      size: size || 10,
+    });
+  }
 
   @Get('/user/:userIdx/review/bookmark')
   @ApiOperation({ summary: '유저의 북마크한 리뷰목록보기' })

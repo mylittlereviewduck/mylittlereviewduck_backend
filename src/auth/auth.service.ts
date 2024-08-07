@@ -14,7 +14,6 @@ import { GoogleStrategy } from './strategy/google.strategy';
 import { SocialLoginProvider } from './model/social-login-provider.model';
 import { NaverStrategy } from './strategy/naver.strategy';
 import { KakaoStrategy } from './strategy/kakao.strategy';
-import { AppleStrategy } from './strategy/apple.strategy';
 
 @Injectable()
 export class AuthService {

@@ -218,12 +218,13 @@ export class ReviewService {
   }
 
   async getReviewWithAccountIdx(
-    reviewPagerbleDto: ReviewPagerbleDto,
     accountIdx: number,
+    reviewPagerbleDto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
     const reviewCount = await this.prismaService.reviewTb.count({
       where: {
         accountIdx: accountIdx,
+        deletedAt: null,
       },
     });
 
@@ -237,6 +238,8 @@ export class ReviewService {
         _count: {
           select: {
             reviewLikesTb: true,
+            reviewBookmarkTb: true,
+            reviewShareTb: true,
             reviewReportTb: true,
           },
         },
@@ -255,6 +258,8 @@ export class ReviewService {
       return {
         ...elem,
         likeCount: elem._count.reviewLikesTb,
+        bookmarkCount: elem._count.reviewBookmarkTb,
+        shareCount: elem._count.reviewShareTb,
         reportCount: elem._count.reviewReportTb,
         tags: elem.tagTb.map((elem) => elem.tagName),
       };
@@ -431,8 +436,8 @@ export class ReviewService {
 
   // 특정유저가 북마크한 리뷰 가져오기
   async getBookmarkedReviewAll(
-    reviewPagerbleDto: ReviewPagerbleDto,
     accountIdx: number,
+    reviewPagerbleDto: ReviewPagerbleDto,
   ): Promise<ReviewEntity[]> {
     const reviewList = await this.prismaService.reviewTb.findMany({
       where: {

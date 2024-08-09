@@ -15,12 +15,14 @@ import { ReviewSearchPagerbleDto } from './dto/review-search-pagerble.dto';
 import { ReviewPagerbleResponseDto } from './dto/response/review-pagerble-response.dto';
 import { ReviewSearchResponseDto } from './dto/response/review-search-response.dto';
 import { ReviewLikeCheckService } from './review-like-check.service';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class ReviewService {
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly prismaService: PrismaService,
+    private readonly userService: UserService,
     private readonly reviewLikeCheckService: ReviewLikeCheckService,
   ) {}
 
@@ -221,6 +223,14 @@ export class ReviewService {
     reviewPagerbleDto: ReviewPagerbleDto,
     accountIdx?: number,
   ): Promise<ReviewPagerbleResponseDto> {
+    if (accountIdx) {
+      const user = await this.userService.getUser({ idx: accountIdx });
+
+      if (!user) {
+        throw new NotFoundException('Not Found User');
+      }
+    }
+
     const reviewCount = await this.prismaService.reviewTb.count({
       where: accountIdx
         ? {
@@ -390,6 +400,12 @@ export class ReviewService {
     accountIdx: number,
     reviewPagerbleDto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
+    const user = await this.userService.getUser({ idx: accountIdx });
+
+    if (!user) {
+      throw new NotFoundException('Not Found User');
+    }
+
     const totalCount = await this.prismaService.reviewTb.count({
       where: {
         reviewBookmarkTb: {
@@ -470,6 +486,12 @@ export class ReviewService {
     reviewPagerbleDto: ReviewPagerbleDto,
     accountIdx: number,
   ): Promise<ReviewPagerbleResponseDto> {
+    const user = await this.userService.getUser({ idx: accountIdx });
+
+    if (!user) {
+      throw new NotFoundException('Not Found User');
+    }
+
     const totalCount = await this.prismaService.reviewTb.count({
       where: {
         commentTb: {

@@ -14,9 +14,15 @@ import { ReviewBlockCheckService } from './review-block-check.service';
 import { ReviewReportService } from './review-report.service';
 import { ReviewShareService } from './review-share.service';
 import { ReviewShareCheckService } from './review-share-check.service';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
-  imports: [CacheModule.register(), forwardRef(() => AuthModule), PrismaModule],
+  imports: [
+    CacheModule.register(),
+    forwardRef(() => AuthModule),
+    PrismaModule,
+    UserModule,
+  ],
   controllers: [ReviewController],
   providers: [
     ReviewService,

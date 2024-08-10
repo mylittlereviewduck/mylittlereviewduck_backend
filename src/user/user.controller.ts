@@ -10,10 +10,13 @@ import {
   Post,
   Put,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiBody,
   ApiOperation,
   ApiParam,
   ApiQuery,
@@ -33,6 +36,7 @@ import { GetUser } from '../../src/auth/get-user.decorator';
 import { LoginUser } from '../../src/auth/model/login-user.model';
 import { FollowService } from './follow.service';
 import { FollowEntity } from './entity/Follow.entity';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('user')
 @ApiTags('user')
@@ -98,16 +102,33 @@ export class UserController {
 
   @Put('profile-img')
   @UseGuards(AuthGuard)
+  @UseInterceptors(FileInterceptor('image'))
   @ApiOperation({ summary: '프로필 이미지 수정' })
   @ApiBearerAuth()
+  @ApiBody({
+    required: true,
+    description: '프로필 이미지',
+    schema: {
+      type: 'object',
+      properties: {
+        image: {
+          type: 'string',
+          format: 'binary',
+          description: '업로드할 이미지 파일',
+        },
+      },
+    },
+  })
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200 })
   async updateMyProfileImg(
     @GetUser() loginUser: LoginUser,
-    @Body() updateMyProfileImgDto: UpdateMyProfileImgDto,
-  ) {}
+    @UploadedFile() image: Express.Multer.File,
+  ) {
+    console.log('image: ', image);
+  }
 
   @Post('profile-img')
   @UseGuards(AuthGuard)

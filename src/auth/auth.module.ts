@@ -5,7 +5,7 @@ import { UserModule } from '../../src/user/user.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtModule } from '@nestjs/jwt';
-import { MailModule } from '../common/Email/email.module';
+import { MailModule } from '../common/email/email.module';
 import { GoogleStrategy } from './strategy/google.strategy';
 import { HttpModule } from '@nestjs/axios';
 import { UserService } from '../../src/user/user.service';

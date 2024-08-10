@@ -1,6 +1,6 @@
 import { EmailAuthService } from './email-auth.service';
 import { PrismaService } from './../prisma/prisma.service';
-import { MailService } from '../common/Email/email.service';
+import { MailService } from '../common/email/email.service';
 import {
   Body,
   Controller,

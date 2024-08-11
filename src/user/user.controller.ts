@@ -114,7 +114,9 @@ export class UserController {
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: UserEntity })
-  async GetMyInfo(@GetUser() loginUser: LoginUser) {}
+  async GetMyInfo(@GetUser() loginUser: LoginUser) {
+    return await this.userService.getUser({ idx: loginUser.idx });
+  }
 
   @Put('myinfo')
   @UseGuards(AuthGuard)

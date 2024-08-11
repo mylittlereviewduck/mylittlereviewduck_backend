@@ -15,6 +15,7 @@ import { ReviewReportService } from './review-report.service';
 import { ReviewShareService } from './review-share.service';
 import { ReviewShareCheckService } from './review-share-check.service';
 import { UserModule } from 'src/user/user.module';
+import { AwsModule } from 'src/common/aws/aws.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { UserModule } from 'src/user/user.module';
     forwardRef(() => AuthModule),
     PrismaModule,
     UserModule,
+    AwsModule,
   ],
   controllers: [ReviewController],
   providers: [

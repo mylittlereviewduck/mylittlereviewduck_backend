@@ -16,19 +16,60 @@ export class UserEntity {
   @ApiProperty({ example: '닉네임', description: '닉네임' })
   nickname: string;
 
+  @ApiProperty({ example: '2024-08-01T07:58:57.844Z', description: '가입일' })
+  createdAt: Date;
+
+  @ApiProperty({
+    example: '111',
+    description: '팔로잉수',
+    nullable: true,
+  })
+  followingCount?: number;
+
+  @ApiProperty({
+    example: '112',
+    description: '팔로워수',
+    nullable: true,
+  })
+  followerCount?: number;
+
+  @ApiProperty({
+    example: '1',
+    description: '신고횟수',
+    nullable: true,
+  })
+  reportCount?: number;
+
   @ApiProperty({
     example: 'true',
     description: '팔로우여부',
-    nullable: true,
   })
-  isFollowing: boolean;
+  isFollowing: boolean = false;
 
-  constructor(data: UserEntity) {
+  @ApiProperty({
+    example: 'false',
+    description: '차단여부',
+  })
+  isBlocked: boolean = false;
+
+  @ApiProperty({
+    example: 'false',
+    description: '신고여부',
+  })
+  isReported: boolean = false;
+
+  constructor(data) {
     this.idx = data.idx;
     this.email = data.email;
     this.profile = data.profile;
     this.profileImg = data.profileImg;
     this.nickname = data.nickname;
-    this.isFollowing = data.isFollowing == null ? false : data.isFollowing;
+    this.createdAt = data.createdAt;
+    this.followingCount = data.followingCount;
+    this.followerCount = data.followerCount;
+    this.reportCount = data.reportCount;
+    this.isFollowing = data.isFollowing ?? false;
+    this.isBlocked = data.isBlocked ?? false;
+    this.isReported = data.isReported ?? false;
   }
 }

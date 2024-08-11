@@ -1,3 +1,4 @@
+import { AwsService } from './../common/aws/aws.service';
 import { ReviewShareCheckService } from './review-share-check.service';
 import { ReviewShareService } from './review-share.service';
 import { ReviewBlockService } from './review-block.service';
@@ -56,6 +57,7 @@ export class ReviewController {
     private readonly reviewBlockCheckService: ReviewBlockCheckService,
     private readonly reviewReportService: ReviewReportService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private readonly awsService: AwsService,
   ) {}
 
   @Get('/review/all')
@@ -160,6 +162,8 @@ export class ReviewController {
     type: UploadReviewImageResponseDto,
   })
   async uploadReviewImage(): Promise<{ imgPath: string }> {
+    // await this.awsService.uploadImageToS3(, )
+
     return;
   }
 

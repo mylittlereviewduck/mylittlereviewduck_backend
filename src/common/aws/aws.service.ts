@@ -17,16 +17,15 @@ export class AwsService {
       },
     });
   }
-  async uploadImageToS3(
-    fileName: string,
-    file: Express.Multer.File,
-    ext: string,
-  ) {
+
+  async uploadImageToS3(file: Express.Multer.File) {
+    const fileName = String(new Date().getTime());
+    const ext = file.mimetype.split('/')[1];
+
     const command = new PutObjectCommand({
       Bucket: this.configService.get<'string'>('AWS_BUCKET_NAME'),
-      Key: fileName,
+      Key: `${fileName}.${ext}`,
       Body: file.buffer,
-      ACL: 'public-read',
       ContentType: `image/${ext}`,
     });
 

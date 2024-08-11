@@ -1,5 +1,5 @@
 export class FollowListPagerble {
-  userIdx: number;
+  accountIdx: number;
   page: number;
-  take: number;
+  size: number;
 }

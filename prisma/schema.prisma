@@ -23,7 +23,6 @@ model AccountTb {
   email                                             String             @db.VarChar
   pw                                                String?            @db.VarChar
   nickname                                          String             @default(dbgenerated("uuid_generate_v4()")) @db.VarChar
-  phone                                             String?            @db.VarChar
   profile                                           String?
   provider                                          String?            @db.VarChar
   providerKey                                       String?            @map("provider_key") @db.VarChar(100)

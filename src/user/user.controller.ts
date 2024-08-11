@@ -1,3 +1,4 @@
+import { UserBlockCheckService } from './user-block-checker.service';
 import { UserBlockService } from './user-block.service';
 import {
   Body,
@@ -29,7 +30,6 @@ import { CheckNicknameDuplicateDto } from './dto/check-nickname-duplicate.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserEntity } from './entity/User.entity';
 import { UpdateMyInfoDto } from './dto/update-my-info.dto';
-import { UpdateMyProfileImgDto } from './dto/update-my-profile-img.dto';
 import { CheckEmailDuplicateDto } from './dto/check-email-duplicate.dto';
 import { AuthGuard } from '../../src/auth/auth.guard';
 import { GetUser } from '../../src/auth/get-user.decorator';
@@ -37,14 +37,22 @@ import { LoginUser } from '../../src/auth/model/login-user.model';
 import { FollowService } from './follow.service';
 import { FollowEntity } from './entity/Follow.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { AwsService } from 'src/common/aws/aws.service';
+import { OptionalAuthGuard } from 'src/auth/optional-auth.guard';
+import { UserPagerbleResponseDto } from './dto/response/user-pagerble-response.dto';
+import { FollowCheckService } from './follow-checker.service';
+import { UserBlockEntity } from './entity/Block.entity';
 
 @Controller('user')
 @ApiTags('user')
 export class UserController {
   constructor(
-    private userService: UserService,
-    private followService: FollowService,
-    private userBlockService: UserBlockService,
+    private readonly userService: UserService,
+    private readonly followService: FollowService,
+    private readonly followCheckService: FollowCheckService,
+    private readonly userBlockService: UserBlockService,
+    private readonly userBlockCheckService: UserBlockCheckService,
+    private readonly awsService: AwsService,
   ) {}
 
   //비밀번호찾기
@@ -100,6 +108,15 @@ export class UserController {
     @Body() updateMyInfoDto: UpdateMyInfoDto,
   ) {}
 
+  // @Post('profile-img')
+  // @UseGuards(AuthGuard)
+  // @ApiOperation({ summary: '프로필 이미지 업로드' })
+  // @ApiBearerAuth()
+  // @Exception(400, '유효하지않은 요청')
+  // @Exception(401, '권한 없음')
+  // @Exception(500, '서버 에러')
+  // async uploadProfileImg(@GetUser() loginUser: LoginUser) {}
+
   @Put('profile-img')
   @UseGuards(AuthGuard)
   @UseInterceptors(FileInterceptor('image'))
@@ -127,17 +144,10 @@ export class UserController {
     @GetUser() loginUser: LoginUser,
     @UploadedFile() image: Express.Multer.File,
   ) {
-    console.log('image: ', image);
-  }
+    const imgPath = await this.awsService.uploadImageToS3(image);
 
-  @Post('profile-img')
-  @UseGuards(AuthGuard)
-  @ApiOperation({ summary: '프로필 이미지 업로드' })
-  @ApiBearerAuth()
-  @Exception(400, '유효하지않은 요청')
-  @Exception(401, '권한 없음')
-  @Exception(500, '서버 에러')
-  async uploadProfileImg(@GetUser() loginUser: LoginUser) {}
+    await this.userService.updateMyProfileImg(loginUser, imgPath);
+  }
 
   @Delete('profile-img')
   @UseGuards(AuthGuard)
@@ -146,7 +156,9 @@ export class UserController {
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200 })
-  async deleteMyProfileImg(@GetUser() loginUser: LoginUser) {}
+  async deleteMyProfileImg(@GetUser() loginUser: LoginUser) {
+    await this.userService.deleteMyProfileImg(loginUser);
+  }
 
   @Get('/info/:userIdx')
   @ApiOperation({ summary: '유저 정보 보기' })
@@ -167,30 +179,37 @@ export class UserController {
   @ApiResponse({ status: 200 })
   async deleteUser(): Promise<void> {}
 
-  //로그인유저만 쓸수있는 오류를 해결해야해
   @Get('/:userIdx/following/all')
-  @UseGuards(AuthGuard)
+  @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '팔로잉 리스트보기' })
   @ApiQuery({ name: 'page', type: 'number' })
-  @ApiQuery({ name: 'take', type: 'number' })
+  @ApiQuery({ name: 'size', type: 'number' })
   @ApiParam({ name: 'userIdx', type: 'number' })
   @Exception(400, '유효하지않은 요청')
   @Exception(500, '서버 에러')
-  @ApiResponse({ status: 200, type: UserEntity, isArray: true })
+  @ApiResponse({ status: 200, type: UserPagerbleResponseDto, isArray: true })
   async getFollowingAll(
-    @Param('userIdx') userIdx: number,
+    @Param('userIdx') accountIdx: number,
     @Query('page') page: number,
     @Query('take') take: number,
     @GetUser() loginUser: LoginUser,
-  ) {
-    return await this.followService.getFollowingList(
-      {
-        userIdx: userIdx,
-        page: page || 1,
-        take: take || 20,
-      },
-      loginUser,
+  ): Promise<UserPagerbleResponseDto> {
+    const userPagerbleResponseDto = await this.followService.getFollowingList({
+      accountIdx: accountIdx,
+      page: page || 1,
+      size: take || 20,
+    });
+
+    if (!loginUser) {
+      return userPagerbleResponseDto;
+    }
+
+    await this.followCheckService.isFollow(
+      loginUser.idx,
+      userPagerbleResponseDto.users,
     );
+
+    return userPagerbleResponseDto;
   }
 
   @Get('/:userIdx/follower/all')
@@ -201,21 +220,27 @@ export class UserController {
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: UserEntity, isArray: true })
   async getFollowerAll(
-    @Param('userIdx') userIdx: number,
+    @Param('userIdx') accountIdx: number,
     @Query('page') page: number,
-    @Query('take') take: number,
+    @Query('size') size: number,
     @GetUser() loginUser: LoginUser,
-  ) {
-    console.log('로그인유저확인', loginUser.idx);
+  ): Promise<UserPagerbleResponseDto> {
+    const userPagerbleResponseDto = await this.followService.getFollowerList({
+      accountIdx: accountIdx,
+      page: page || 1,
+      size: size || 20,
+    });
 
-    return await this.followService.getFollowerList(
-      {
-        userIdx: userIdx,
-        page: page || 1,
-        take: take || 20,
-      },
-      loginUser,
+    if (!loginUser) {
+      return userPagerbleResponseDto;
+    }
+
+    await this.followCheckService.isFollow(
+      loginUser.idx,
+      userPagerbleResponseDto.users,
     );
+
+    return userPagerbleResponseDto;
   }
 
   @Post('/:userIdx/follow')
@@ -234,9 +259,9 @@ export class UserController {
   })
   async followUser(
     @GetUser() loginUser: LoginUser,
-    @Param('userIdx', ParseIntPipe) userIdx: number,
-  ) {
-    return await this.followService.followUser(loginUser, userIdx);
+    @Param('userIdx', ParseIntPipe) accountIdx: number,
+  ): Promise<FollowEntity> {
+    return await this.followService.followUser(loginUser.idx, accountIdx);
   }
 
   @Delete('/:userIdx/follow')
@@ -250,9 +275,9 @@ export class UserController {
   @ApiResponse({ status: 200, description: '언팔로우 성공 200 반환' })
   async UnfollowUser(
     @GetUser() loginUser: LoginUser,
-    @Param('userIdx', ParseIntPipe) userIdx: number,
-  ) {
-    return await this.followService.unfollowUser(loginUser, userIdx);
+    @Param('userIdx', ParseIntPipe) accountIdx: number,
+  ): Promise<void> {
+    await this.followService.unfollowUser(loginUser.idx, accountIdx);
   }
 
   @Post(':userIdx/block')
@@ -267,9 +292,9 @@ export class UserController {
   @ApiResponse({ status: 200, description: '차단 성공 200 반환' })
   async blockUser(
     @GetUser() loginUser: LoginUser,
-    @Param('userIdx') userIdx: number,
-  ) {
-    return await this.userBlockService.blockUser(loginUser, userIdx);
+    @Param('userIdx') accountIdx: number,
+  ): Promise<UserBlockEntity> {
+    return await this.userBlockService.blockUser(loginUser.idx, accountIdx);
   }
 
   @Delete(':userIdx/block')
@@ -283,9 +308,9 @@ export class UserController {
   @ApiResponse({ status: 200, description: '차단해제 성공 200 반환' })
   async UnblockUser(
     @GetUser() loginUser: LoginUser,
-    @Param('userIdx') userIdx: number,
-  ) {
-    return await this.userBlockService.unBlockUser(loginUser, userIdx);
+    @Param('userIdx') accountIdx: number,
+  ): Promise<void> {
+    await this.userBlockService.unBlockUser(loginUser.idx, accountIdx);
   }
 
   @Get('blocked-user/all')
@@ -299,10 +324,11 @@ export class UserController {
     @GetUser() loginUser: LoginUser,
     @Query('take') take: number,
     @Query('page') page: number,
-  ) {
-    return await this.userBlockService.getBlockedUserAll(loginUser.idx, {
+  ): Promise<UserPagerbleResponseDto> {
+    await this.userBlockService.getBlockedUserAll(loginUser.idx, {
       page: page || 1,
       take: take || 20,
     });
+    return;
   }
 }

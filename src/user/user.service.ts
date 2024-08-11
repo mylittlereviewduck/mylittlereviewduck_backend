@@ -27,21 +27,30 @@ export class UserService {
       },
       include: {
         profileImgTb: true,
+        _count: {
+          select: {
+            follower: true,
+            followee: true,
+          },
+        },
       },
     });
+
+    console.log('user: ', user);
 
     if (!user) {
       return;
     }
 
-    return new UserEntity({
-      idx: user.idx,
-      email: user.email,
-      profile: user.profile,
-      nickname: user.nickname,
-      profileImg: user.profileImgTb[0].imgPath,
-      isFollowing: null,
-    });
+    return;
+
+    // return new UserEntity({
+    //   idx: user.idx,
+    //   email: user.email,
+    //   profile: user.profile,
+    //   nickname: user.nickname,
+    //   profileImg: user.profileImgTb[0].imgPath,
+    // });
   }
 
   // 유저생성
@@ -95,10 +104,10 @@ export class UserService {
       profile: userData.profile,
       profileImg: profileImgData.imgPath,
       nickname: userData.nickname,
-      isFollowing: null,
     };
 
-    return new UserEntity(userEntityData);
+    return;
+    // return new UserEntity(userEntityData);
   }
 
   async updateMyinfo(
@@ -126,35 +135,37 @@ export class UserService {
 
   async updateMyProfileImg(
     loginUser: LoginUser,
-    updateMyProfileImgDto: UpdateMyProfileImgDto,
+    imgPath: string,
   ): Promise<void> {
     await this.prismaService.$transaction([
-      this.prismaService.profileImgTb.update({
+      this.prismaService.profileImgTb.updateMany({
         data: {
           deletedAt: new Date(),
         },
         where: {
-          idx: loginUser.idx,
+          accountIdx: loginUser.idx,
         },
       }),
 
       this.prismaService.profileImgTb.create({
         data: {
           accountIdx: loginUser.idx,
-          imgPath: updateMyProfileImgDto.profileImg,
+          imgPath: imgPath,
         },
       }),
     ]);
   }
 
   async deleteMyProfileImg(loginUser: LoginUser): Promise<void> {
+    console.log('accountIdx', loginUser.idx);
+
     await this.prismaService.$transaction([
-      this.prismaService.profileImgTb.update({
+      this.prismaService.profileImgTb.updateMany({
         data: {
           deletedAt: new Date(),
         },
         where: {
-          idx: loginUser.idx,
+          accountIdx: loginUser.idx,
         },
       }),
 

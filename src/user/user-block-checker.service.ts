@@ -3,7 +3,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { UserBlockEntity } from './entity/Block.entity';
 
 @Injectable()
-export class UserBlockChecker {
+export class UserBlockCheckService {
   constructor(private readonly prismaService: PrismaService) {}
 
   async isBlocked(

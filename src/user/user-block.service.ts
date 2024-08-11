@@ -1,24 +1,23 @@
 import { ConflictException, Injectable } from '@nestjs/common';
-import { LoginUser } from 'src/auth/model/login-user.model';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { UserBlockChecker } from './user-block-checker.service';
 import { UserBlockEntity } from './entity/Block.entity';
 import { UserEntity } from './entity/User.entity';
 import { UserBlockPagerble } from './dto/user-block-pagerble';
+import { UserBlockCheckService } from './user-block-checker.service';
 
 @Injectable()
 export class UserBlockService {
   constructor(
     private readonly prismaService: PrismaService,
-    private readonly userBlockChecker: UserBlockChecker,
+    private readonly userBlockCheckService: UserBlockCheckService,
   ) {}
 
   async blockUser(
-    loginUser: LoginUser,
+    accountIdx: number,
     toUserIdx: number,
   ): Promise<UserBlockEntity> {
-    const existingBlock = await this.userBlockChecker.isBlocked(
-      loginUser.idx,
+    const existingBlock = await this.userBlockCheckService.isBlocked(
+      accountIdx,
       toUserIdx,
     );
 
@@ -28,7 +27,7 @@ export class UserBlockService {
 
     const userBlockEntity = await this.prismaService.accountBlockTb.create({
       data: {
-        blockerIdx: loginUser.idx,
+        blockerIdx: accountIdx,
         blockedIdx: toUserIdx,
       },
     });
@@ -36,9 +35,9 @@ export class UserBlockService {
     return userBlockEntity;
   }
 
-  async unBlockUser(loginUser: LoginUser, toUserIdx: number): Promise<void> {
-    const existingBlock = await this.userBlockChecker.isBlocked(
-      loginUser.idx,
+  async unBlockUser(accountIdx: number, toUserIdx: number): Promise<void> {
+    const existingBlock = await this.userBlockCheckService.isBlocked(
+      accountIdx,
       toUserIdx,
     );
 
@@ -48,7 +47,7 @@ export class UserBlockService {
 
     await this.prismaService.accountBlockTb.deleteMany({
       where: {
-        blockerIdx: loginUser.idx,
+        blockerIdx: accountIdx,
         blockedIdx: toUserIdx,
       },
     });
@@ -96,6 +95,7 @@ export class UserBlockService {
       };
     });
 
-    return blockedUserList.map((elem) => new UserEntity(elem));
+    return;
+    // return blockedUserList.map((elem) => new UserEntity(elem));
   }
 }

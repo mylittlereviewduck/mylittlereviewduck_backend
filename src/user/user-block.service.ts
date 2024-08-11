@@ -1,9 +1,10 @@
+import { UserPagerbleDto } from './dto/user-pagerble.dto';
 import { ConflictException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserBlockEntity } from './entity/Block.entity';
 import { UserEntity } from './entity/User.entity';
 import { UserBlockPagerble } from './dto/user-block-pagerble';
-import { UserBlockCheckService } from './user-block-checker.service';
+import { UserBlockCheckService } from './user-block-check.service';
 
 @Injectable()
 export class UserBlockService {
@@ -58,7 +59,7 @@ export class UserBlockService {
   // 차단기능을 결국 어떻게 적용할건지?(차단한 유저의 댓글, 차단한 유저의 리뷰 => 유저엔티티에 isBlocked를 추가해야겠지?)
   async getBlockedUserAll(
     userIdx: number,
-    blockPagerble: UserBlockPagerble,
+    userPagerbleDto: UserPagerbleDto,
   ): Promise<UserEntity[]> {
     const blockedList = await this.prismaService.accountBlockTb.findMany({
       include: {
@@ -80,8 +81,8 @@ export class UserBlockService {
       where: {
         blockerIdx: userIdx,
       },
-      skip: (blockPagerble.page - 1) * blockPagerble.take,
-      take: blockPagerble.take,
+      skip: (userPagerbleDto.page - 1) * userPagerbleDto.size,
+      take: userPagerbleDto.size,
     });
 
     let blockedUserList = blockedList.map((elem) => {

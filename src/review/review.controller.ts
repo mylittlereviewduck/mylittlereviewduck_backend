@@ -171,7 +171,7 @@ export class ReviewController {
   @Get('/review/:reviewIdx')
   @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '리뷰 자세히보기' })
-  @ApiParam({ name: 'reviewIdx', example: 1 })
+  @ApiParam({ name: 'reviewIdx', type: 'number', example: 1 })
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
@@ -209,7 +209,7 @@ export class ReviewController {
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '리뷰 수정하기' })
   @ApiBearerAuth()
-  @ApiParam({ name: 'reviewIdx', example: 1 })
+  @ApiParam({ name: 'reviewIdx', type: 'number', example: 1 })
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 없음')
@@ -230,7 +230,7 @@ export class ReviewController {
   @Delete('/review/:reviewIdx')
   @ApiOperation({ summary: '리뷰 삭제하기' })
   @ApiBearerAuth()
-  @ApiParam({ name: 'reviewIdx', example: 3 })
+  @ApiParam({ name: 'reviewIdx', type: 'number', example: 3 })
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 없음')
@@ -278,7 +278,7 @@ export class ReviewController {
   @Post('/review/:reviewIdx/like')
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '리뷰 좋아요하기' })
-  @ApiParam({ name: 'reviewIdx', example: 1 })
+  @ApiParam({ name: 'reviewIdx', type: 'number', example: 1 })
   @ApiBearerAuth()
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
@@ -296,7 +296,7 @@ export class ReviewController {
   @Delete('/review/:reviewIdx/like')
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '리뷰 좋아요해제하기' })
-  @ApiParam({ name: 'reviewIdx', example: 1 })
+  @ApiParam({ name: 'reviewIdx', type: 'number', example: 1 })
   @ApiBearerAuth()
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
@@ -314,7 +314,7 @@ export class ReviewController {
   @Post('/review/:reviewIdx/bookmark')
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '리뷰 북마크하기' })
-  @ApiParam({ name: 'reviewIdx', example: 1 })
+  @ApiParam({ name: 'reviewIdx', type: 'number', example: 1 })
   @ApiBearerAuth()
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
@@ -332,7 +332,7 @@ export class ReviewController {
   @Delete('/review/:reviewIdx/bookmark')
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '리뷰 북마크해제하기' })
-  @ApiParam({ name: 'reviewIdx', example: 1 })
+  @ApiParam({ name: 'reviewIdx', type: 'number', example: 1 })
   @ApiBearerAuth()
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
@@ -350,7 +350,7 @@ export class ReviewController {
   @Post('/review/:reviewIdx/share')
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '리뷰 공유하기' })
-  @ApiParam({ name: 'reviewIdx', example: 1 })
+  @ApiParam({ name: 'reviewIdx', type: 'number', example: 1 })
   @ApiBearerAuth()
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
@@ -368,7 +368,7 @@ export class ReviewController {
   @Post('/review/:reviewIdx/block')
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '리뷰 차단하기' })
-  @ApiParam({ name: 'reviewIdx', example: 1 })
+  @ApiParam({ name: 'reviewIdx', type: 'number', example: 1 })
   @ApiBearerAuth()
   @Exception(400, '유효하지않은요청')
   @Exception(401, '권한없음')
@@ -386,7 +386,7 @@ export class ReviewController {
   @Delete('/review/:reviewIdx/block')
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '리뷰 차단해제하기' })
-  @ApiParam({ name: 'reviewIdx', example: 1 })
+  @ApiParam({ name: 'reviewIdx', type: 'number', example: 1 })
   @ApiBearerAuth()
   @Exception(400, '유효하지않은요청')
   @Exception(401, '권한없음')
@@ -405,7 +405,7 @@ export class ReviewController {
   @Post('/review/:reviewIdx/report')
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '리뷰 신고하기' })
-  @ApiParam({ name: 'reviewIdx', example: 1 })
+  @ApiParam({ name: 'reviewIdx', type: 'number', example: 1 })
   @ApiBearerAuth()
   @Exception(400, '유효하지않은요청')
   @Exception(401, '권한없음')
@@ -422,7 +422,7 @@ export class ReviewController {
 
   @Get('/user/:userIdx/review/all')
   @ApiOperation({ summary: '유저가 쓴 리뷰목록보기' })
-  @ApiParam({ name: 'userIdx', example: 1, description: '유저 idx' })
+  @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
   @ApiQuery({
     name: 'size',
     example: 10,
@@ -453,7 +453,7 @@ export class ReviewController {
   @Get('/user/:userIdx/review/bookmark')
   @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '유저의 북마크한 리뷰목록보기' })
-  @ApiParam({ name: 'userIdx', example: 1, description: '유저 idx' })
+  @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
   @ApiQuery({
     name: 'size',
     example: 10,
@@ -508,7 +508,7 @@ export class ReviewController {
 
   @Get('/user/:userIdx/review/commented')
   @ApiOperation({ summary: '유저의 댓글단 리뷰목록보기' })
-  @ApiParam({ name: 'userIdx', example: 1, description: '유저 idx' })
+  @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
   @ApiQuery({
     name: 'size',
     example: 10,

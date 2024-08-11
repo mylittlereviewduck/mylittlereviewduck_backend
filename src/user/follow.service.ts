@@ -1,5 +1,5 @@
 import { UserService } from 'src/user/user.service';
-import { FollowCheckService } from './follow-checker.service';
+import { FollowCheckService } from './follow-check.service';
 import { FollowEntity } from './entity/Follow.entity';
 import { FollowListPagerble } from './dto/follow-list-pagerble';
 import {
@@ -9,8 +9,8 @@ import {
 } from '@nestjs/common';
 import { UserEntity } from './entity/User.entity';
 import { PrismaService } from '../../src/prisma/prisma.service';
-import { LoginUser } from '../../src/auth/model/login-user.model';
 import { UserPagerbleResponseDto } from './dto/response/user-pagerble-response.dto';
+import { UserPagerbleDto } from './dto/user-pagerble.dto';
 
 @Injectable()
 export class FollowService {
@@ -74,11 +74,11 @@ export class FollowService {
   }
 
   async getFollowingList(
-    followListPagerble: FollowListPagerble,
+    userPagerbleDto: UserPagerbleDto,
   ): Promise<UserPagerbleResponseDto> {
     const getFollowingCount = await this.prismaService.followTb.count({
       where: {
-        followerIdx: followListPagerble.accountIdx,
+        followerIdx: userPagerbleDto.accountIdx,
       },
     });
 
@@ -95,10 +95,10 @@ export class FollowService {
         },
       },
       where: {
-        followerIdx: followListPagerble.accountIdx,
+        followerIdx: userPagerbleDto.accountIdx,
       },
-      skip: (followListPagerble.page - 1) * followListPagerble.size,
-      take: followListPagerble.size,
+      skip: (userPagerbleDto.page - 1) * userPagerbleDto.size,
+      take: userPagerbleDto.size,
     });
 
     let userList = followList.map((elem) => {
@@ -113,18 +113,18 @@ export class FollowService {
     });
 
     return {
-      totalPage: Math.ceil(getFollowingCount / followListPagerble.size),
+      totalPage: Math.ceil(getFollowingCount / userPagerbleDto.size),
       users: userList.map((elem) => new UserEntity(elem)),
     };
   }
 
   //팔로워리스트 가져오기
   async getFollowerList(
-    followListPagerble: FollowListPagerble,
+    userPagerbleDto: UserPagerbleDto,
   ): Promise<UserPagerbleResponseDto> {
     const getFollowerCount = await this.prismaService.followTb.count({
       where: {
-        followeeIdx: followListPagerble.accountIdx,
+        followeeIdx: userPagerbleDto.accountIdx,
       },
     });
 
@@ -141,10 +141,10 @@ export class FollowService {
         },
       },
       where: {
-        followeeIdx: followListPagerble.accountIdx,
+        followeeIdx: userPagerbleDto.accountIdx,
       },
-      skip: (followListPagerble.page - 1) * followListPagerble.size,
-      take: followListPagerble.size,
+      skip: (userPagerbleDto.page - 1) * userPagerbleDto.size,
+      take: userPagerbleDto.size,
     });
 
     let userList = followList.map((elem) => {
@@ -159,7 +159,7 @@ export class FollowService {
     });
 
     return {
-      totalPage: Math.ceil(getFollowerCount / followListPagerble.size),
+      totalPage: Math.ceil(getFollowerCount / userPagerbleDto.size),
       users: userList.map((elem) => new UserEntity(elem)),
     };
   }

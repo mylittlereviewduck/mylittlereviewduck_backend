@@ -1,4 +1,3 @@
-import { BookmarkCheckService } from './bookmark-check.service';
 import { Module, forwardRef } from '@nestjs/common';
 import { ReviewController } from './review.controller';
 import { ReviewService } from './review.service';

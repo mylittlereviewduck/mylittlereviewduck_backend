@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { ReviewEntity } from 'src/review/entity/Review.entity';
 
 export class ReviewPagerbleResponseDto {
-  @ApiProperty({ description: '전체 페이지 수', example: 9 })
+  @ApiProperty({ example: 9, description: '전체 페이지 수' })
   totalPage: number;
 
   @ApiProperty({

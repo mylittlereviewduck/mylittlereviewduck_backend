@@ -1,4 +1,4 @@
-import { UserBlockCheckService } from './user-block-checker.service';
+import { UserBlockCheckService } from './user-block-check.service';
 import { UserBlockService } from './user-block.service';
 import {
   Body,
@@ -40,7 +40,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { AwsService } from 'src/common/aws/aws.service';
 import { OptionalAuthGuard } from 'src/auth/optional-auth.guard';
 import { UserPagerbleResponseDto } from './dto/response/user-pagerble-response.dto';
-import { FollowCheckService } from './follow-checker.service';
+import { FollowCheckService } from './follow-check.service';
 import { UserBlockEntity } from './entity/Block.entity';
 
 @Controller('user')
@@ -165,6 +165,7 @@ export class UserController {
   @ApiParam({
     name: 'userIdx',
     type: 'number',
+    example: 1,
   })
   @Exception(400, '유효하지않은 요청')
   @Exception(500, '서버 에러')
@@ -182,22 +183,26 @@ export class UserController {
   @Get('/:userIdx/following/all')
   @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '팔로잉 리스트보기' })
-  @ApiQuery({ name: 'page', type: 'number' })
-  @ApiQuery({ name: 'size', type: 'number' })
-  @ApiParam({ name: 'userIdx', type: 'number' })
+  @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
+  @ApiQuery({ name: 'page', example: 1, description: '페이지, 기본값 1' })
+  @ApiQuery({
+    name: 'size',
+    example: 10,
+    description: '페이지크기, 기본값 10',
+  })
   @Exception(400, '유효하지않은 요청')
   @Exception(500, '서버 에러')
-  @ApiResponse({ status: 200, type: UserPagerbleResponseDto, isArray: true })
+  @ApiResponse({ status: 200, type: UserPagerbleResponseDto })
   async getFollowingAll(
     @Param('userIdx') accountIdx: number,
     @Query('page') page: number,
-    @Query('take') take: number,
+    @Query('size') size: number,
     @GetUser() loginUser: LoginUser,
   ): Promise<UserPagerbleResponseDto> {
     const userPagerbleResponseDto = await this.followService.getFollowingList({
       accountIdx: accountIdx,
       page: page || 1,
-      size: take || 20,
+      size: size || 20,
     });
 
     if (!loginUser) {
@@ -215,10 +220,16 @@ export class UserController {
   @Get('/:userIdx/follower/all')
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '팔로워 리스트보기' })
-  @ApiParam({ name: 'userIdx', type: 'number' })
+  @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
+  @ApiQuery({ name: 'page', example: 1, description: '페이지, 기본값 1' })
+  @ApiQuery({
+    name: 'size',
+    example: 10,
+    description: '페이지크기, 기본값 10',
+  })
   @Exception(400, '유효하지않은 요청')
   @Exception(500, '서버 에러')
-  @ApiResponse({ status: 200, type: UserEntity, isArray: true })
+  @ApiResponse({ status: 200, type: UserPagerbleResponseDto })
   async getFollowerAll(
     @Param('userIdx') accountIdx: number,
     @Query('page') page: number,
@@ -248,7 +259,7 @@ export class UserController {
   @HttpCode(200)
   @ApiOperation({ summary: '유저 팔로우' })
   @ApiBearerAuth()
-  @ApiParam({ name: 'userIdx', type: 'number' })
+  @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
@@ -268,7 +279,7 @@ export class UserController {
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '유저 언팔로우' })
   @ApiBearerAuth()
-  @ApiParam({ name: 'userIdx', type: 'number' })
+  @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
@@ -285,7 +296,7 @@ export class UserController {
   @HttpCode(200)
   @ApiOperation({ summary: '유저 차단하기' })
   @ApiBearerAuth()
-  @ApiParam({ name: 'userIdx', type: 'number' })
+  @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
@@ -301,7 +312,7 @@ export class UserController {
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '유저 차단해제하기' })
   @ApiBearerAuth()
-  @ApiParam({ name: 'userIdx', type: 'number' })
+  @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
@@ -319,15 +330,15 @@ export class UserController {
   @ApiBearerAuth()
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
-  @ApiResponse({ status: 200, type: UserEntity, isArray: true })
+  @ApiResponse({ status: 200, type: UserPagerbleResponseDto })
   async getBlockedUserAll(
     @GetUser() loginUser: LoginUser,
-    @Query('take') take: number,
+    @Query('size') size: number,
     @Query('page') page: number,
   ): Promise<UserPagerbleResponseDto> {
     await this.userBlockService.getBlockedUserAll(loginUser.idx, {
       page: page || 1,
-      take: take || 20,
+      size: size || 20,
     });
     return;
   }

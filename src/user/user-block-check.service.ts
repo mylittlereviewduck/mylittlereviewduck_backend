@@ -17,8 +17,6 @@ export class UserBlockCheckService {
       },
     });
 
-    console.log(userBlockEntity);
-
     return userBlockEntity;
   }
 }

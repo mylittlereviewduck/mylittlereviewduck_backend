@@ -1,3 +1,4 @@
+import { ConfigService } from '@nestjs/config';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { LoginDto } from './dto/signIn.dto';
 import {
@@ -13,7 +14,6 @@ import { GoogleStrategy } from './strategy/google.strategy';
 import { SocialLoginProvider } from './model/social-login-provider.model';
 import { NaverStrategy } from './strategy/naver.strategy';
 import { KakaoStrategy } from './strategy/kakao.strategy';
-import { AppleStrategy } from './strategy/apple.strategy';
 
 @Injectable()
 export class AuthService {
@@ -23,6 +23,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly prismaService: PrismaService,
+    private readonly conifgService: ConfigService,
     private readonly googleStrategy: GoogleStrategy,
     private readonly naverStrategy: NaverStrategy,
     private readonly kakaoStrategy: KakaoStrategy,

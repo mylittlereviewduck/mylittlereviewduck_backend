@@ -17,12 +17,34 @@ export class CommentService {
     private readonly commentLikeCheckService: CommentLikeCheckService,
   ) {}
 
+  async getCommentAll(reviewIdx: number): Promise<CommentEntity[]> {
+    const commentData = await this.prismaService.commentTb.findMany({
+      include: {
+        accountTb: true,
+      },
+      where: {
+        reviewIdx: reviewIdx,
+        deletedAt: {
+          equals: null,
+        },
+      },
+      orderBy: {
+        idx: 'desc',
+      },
+    });
+
+    console.log('commentData: ', commentData);
+
+    return commentData.map((elem) => new CommentEntity(elem));
+  }
+
   async createComment(
-    createCommentDto: CreateCommentDto,
     loginUser: LoginUser,
+    reviewIdx: number,
+    createCommentDto: CreateCommentDto,
   ): Promise<CommentEntity> {
     const review = await this.prismaService.reviewTb.findUnique({
-      where: { idx: createCommentDto.reviewIdx },
+      where: { idx: reviewIdx },
     });
 
     if (!review) {
@@ -31,7 +53,7 @@ export class CommentService {
 
     const commentData = await this.prismaService.commentTb.create({
       data: {
-        reviewIdx: createCommentDto.reviewIdx,
+        reviewIdx: reviewIdx,
         accountIdx: loginUser.idx,
         content: createCommentDto.content,
         commentIdx: createCommentDto.commentIdx,
@@ -100,30 +122,5 @@ export class CommentService {
       },
     });
     return new CommentEntity(deletedCommentData);
-  }
-
-  async getCommentAll(reviewIdx: number): Promise<CommentEntity[]> {
-    const commentData = await this.prismaService.commentTb.findMany({
-      where: {
-        reviewIdx: reviewIdx,
-        deletedAt: {
-          equals: null,
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
-
-    console.log('commentIdx', commentData);
-
-    //로그인 유저 -> 좋아요여부 확인
-    //비로그인 유저 -> 좋아요여부 확인x
-    //리스트 형태로 판단하는게 좋을지?
-    //commentEntity에 좋아요 여부 프로퍼티 넣을지?
-    //
-    // await this.commentLikeCheckService.isCommentLiked()
-
-    return commentData.map((elem) => new CommentEntity(elem));
   }
 }

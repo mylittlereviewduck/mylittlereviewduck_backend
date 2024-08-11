@@ -12,4 +12,10 @@ export class UpdateReviewDto {
 
   @ApiProperty({ example: 4.5, description: '별점 최대 5점' })
   score: number;
+
+  @ApiProperty({
+    example: ['수정된 태그1', '수정된 태그2'],
+    description: '태그',
+  })
+  tags: string[];
 }

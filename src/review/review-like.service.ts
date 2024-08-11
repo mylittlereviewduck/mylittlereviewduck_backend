@@ -3,13 +3,14 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ReviewEntity } from './entity/Review.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
-export class ReviewBookmarkService {
+export class ReviewLikeService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async bookmarkReview(accountIdx: number, reviewIdx: number): Promise<void> {
+  async likeReview(accountIdx: number, reviewIdx: number): Promise<void> {
     const review = await this.prismaService.reviewTb.findFirst({
       where: {
         idx: reviewIdx,
@@ -20,19 +21,18 @@ export class ReviewBookmarkService {
       throw new NotFoundException('Not Found Review');
     }
 
-    const existingBookmark =
-      await this.prismaService.reviewBookmarkTb.findFirst({
-        where: {
-          accountIdx: accountIdx,
-          reviewIdx: reviewIdx,
-        },
-      });
+    const existingLike = await this.prismaService.reviewLikesTb.findFirst({
+      where: {
+        accountIdx: accountIdx,
+        reviewIdx: reviewIdx,
+      },
+    });
 
-    if (existingBookmark) {
-      throw new ConflictException('Already Bookmark');
+    if (existingLike) {
+      throw new ConflictException('Already Review Like');
     }
 
-    await this.prismaService.reviewBookmarkTb.create({
+    await this.prismaService.reviewLikesTb.create({
       data: {
         accountIdx: accountIdx,
         reviewIdx: reviewIdx,
@@ -40,7 +40,7 @@ export class ReviewBookmarkService {
     });
   }
 
-  async unbookmarkReview(accountIdx: number, reviewIdx: number): Promise<void> {
+  async unlikeReview(accountIdx: number, reviewIdx: number): Promise<void> {
     const review = await this.prismaService.reviewTb.findFirst({
       where: {
         idx: reviewIdx,
@@ -51,19 +51,18 @@ export class ReviewBookmarkService {
       throw new NotFoundException('Not Found Review');
     }
 
-    const existingBookmark =
-      await this.prismaService.reviewBookmarkTb.findFirst({
-        where: {
-          accountIdx: accountIdx,
-          reviewIdx: reviewIdx,
-        },
-      });
+    const existingLike = await this.prismaService.reviewLikesTb.findFirst({
+      where: {
+        accountIdx: accountIdx,
+        reviewIdx: reviewIdx,
+      },
+    });
 
-    if (!existingBookmark) {
-      throw new ConflictException('Already Not Bookmark');
+    if (!existingLike) {
+      throw new ConflictException('Already Not Review Like');
     }
 
-    await this.prismaService.reviewBookmarkTb.delete({
+    await this.prismaService.reviewLikesTb.delete({
       where: {
         accountIdx_reviewIdx: {
           accountIdx: accountIdx,

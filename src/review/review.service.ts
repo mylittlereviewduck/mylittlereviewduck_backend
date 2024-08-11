@@ -11,28 +11,50 @@ import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { LoginUser } from 'src/auth/model/login-user.model';
 import { UpdateReviewDto } from './dto/update-review.dto';
+import { ReviewSearchPagerbleDto } from './dto/review-search-pagerble.dto';
+import { ReviewPagerbleResponseDto } from './dto/response/review-pagerble-response.dto';
+import { ReviewSearchResponseDto } from './dto/response/review-search-response.dto';
+import { ReviewLikeCheckService } from './review-like-check.service';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class ReviewService {
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly prismaService: PrismaService,
+    private readonly userService: UserService,
+    private readonly reviewLikeCheckService: ReviewLikeCheckService,
   ) {}
 
   async createReview(
     loginUser: LoginUser,
     createDto: CreateReviewDto,
   ): Promise<ReviewEntity> {
-    const review = await this.prismaService.reviewTb.create({
-      data: {
-        accountIdx: loginUser.idx,
-        title: createDto.title,
-        content: createDto.content,
-        score: createDto.score,
-      },
+    let reviewData;
+
+    await this.prismaService.$transaction(async (tx) => {
+      reviewData = await tx.reviewTb.create({
+        data: {
+          accountIdx: loginUser.idx,
+          title: createDto.title,
+          content: createDto.content,
+          score: createDto.score,
+        },
+      });
+
+      await tx.tagTb.createMany({
+        data: createDto.tags.map((tag) => {
+          return {
+            reviewIdx: reviewData.idx,
+            tagName: tag,
+          };
+        }),
+      });
     });
 
-    return new ReviewEntity(review);
+    const reviewEntityData = { ...reviewData, tags: createDto.tags };
+
+    return new ReviewEntity(reviewEntityData);
   }
 
   async updateReview(
@@ -40,31 +62,84 @@ export class ReviewService {
     reviewIdx: number,
     updateReviewDto: UpdateReviewDto,
   ): Promise<ReviewEntity> {
-    const review = await this.prismaService.reviewTb.findUnique({
-      where: {
-        idx: reviewIdx,
-      },
+    let reviewData;
+    let tagData;
+
+    await this.prismaService.$transaction(async (tx) => {
+      const review = await tx.reviewTb.findUnique({
+        where: {
+          idx: reviewIdx,
+        },
+      });
+
+      if (!review) {
+        throw new NotFoundException('Not Found Review');
+      }
+
+      if (review.accountIdx !== loginUser.idx) {
+        throw new UnauthorizedException('Unauthorized User');
+      }
+      reviewData = await tx.reviewTb.update({
+        include: {
+          tagTb: {
+            select: {
+              tagName: true,
+            },
+          },
+          _count: {
+            select: {
+              reviewLikesTb: true,
+              reviewBookmarkTb: true,
+              reviewShareTb: true,
+              reviewReportTb: true,
+            },
+          },
+        },
+        data: {
+          title: updateReviewDto.title,
+          score: updateReviewDto.score,
+          content: updateReviewDto.content,
+        },
+        where: {
+          idx: reviewIdx,
+        },
+      });
+
+      await tx.tagTb.deleteMany({
+        where: {
+          reviewIdx: reviewIdx,
+        },
+      });
+
+      await tx.tagTb.createMany({
+        data: updateReviewDto.tags.map((tag) => {
+          return {
+            reviewIdx: reviewIdx,
+            tagName: tag,
+          };
+        }),
+      });
+
+      tagData = await tx.tagTb.findMany({
+        where: {
+          reviewIdx: reviewIdx,
+        },
+        select: {
+          tagName: true,
+        },
+      });
     });
 
-    if (!review) {
-      throw new NotFoundException('Not Found Review');
-    }
+    const review = {
+      ...reviewData,
+      tags: tagData.map((tag) => tag.tagName),
+      likeCount: reviewData._count.reviewLikesTb,
+      bookmarkCount: reviewData._count.reviewBookmarkTb,
+      shareCount: reviewData._count.reviewShareTb,
+      reportCount: reviewData._count.reviewReportTb,
+    };
 
-    if (review.accountIdx !== loginUser.idx) {
-      throw new UnauthorizedException('Unauthorized User');
-    }
-    const reviewData = this.prismaService.reviewTb.update({
-      data: {
-        title: updateReviewDto.title,
-        score: updateReviewDto.score,
-        content: updateReviewDto.content,
-      },
-      where: {
-        idx: reviewIdx,
-      },
-    });
-
-    return new ReviewEntity(reviewData);
+    return new ReviewEntity(review);
   }
 
   async deleteReview(
@@ -92,44 +167,302 @@ export class ReviewService {
     return new ReviewEntity(deletedReview);
   }
 
-  async getReviewAll(
-    reviewPagerbleDto: ReviewPagerbleDto,
-  ): Promise<{ review: ReviewEntity[]; totalPage: number }> {
-    const reviewData = await this.prismaService.reviewTb.findMany({
-      where: {
-        accountIdx: reviewPagerbleDto.userIdx,
-        idx: reviewPagerbleDto.reviewIdx,
-      },
-      orderBy:
-        reviewPagerbleDto.orderby === 'createdAt'
-          ? { createdAt: reviewPagerbleDto.sort }
-          : undefined,
-      include: { _count: true },
+  async getReviewWithIdx(reviewIdx: number): Promise<ReviewEntity> {
+    let reviewData;
+
+    await this.prismaService.$transaction(async (tx) => {
+      reviewData = await tx.reviewTb.findFirst({
+        include: {
+          tagTb: {
+            select: {
+              tagName: true,
+            },
+          },
+          _count: {
+            select: {
+              reviewLikesTb: true,
+              reviewBookmarkTb: true,
+              reviewReportTb: true,
+              reviewShareTb: true,
+            },
+          },
+        },
+        where: {
+          idx: reviewIdx,
+        },
+      });
+
+      await tx.reviewTb.update({
+        data: {
+          viewCount: reviewData.viewCount + 1,
+        },
+        where: {
+          idx: reviewIdx,
+        },
+      });
     });
-    reviewData.map((elem) => new ReviewEntity(elem));
-    return;
+
+    if (!reviewData) {
+      throw new NotFoundException('Not Found Review');
+    }
+
+    const review = {
+      ...reviewData,
+      tags: reviewData.tagTb.map((tag) => tag.tagName),
+      viewCount: reviewData.viewCount + 1,
+      likeCount: reviewData._count.reviewLikesTb,
+      bookmarkCount: reviewData._count.reviewBookmarkTb,
+      shareCount: reviewData._count.reviewShareTb,
+      reportCount: reviewData._count.reviewReportTb,
+    };
+
+    return new ReviewEntity(review);
   }
 
-  // 특정유저가 북마크한 리뷰 가져오기
+  async getReviews(
+    reviewPagerbleDto: ReviewPagerbleDto,
+    accountIdx?: number,
+  ): Promise<ReviewPagerbleResponseDto> {
+    if (accountIdx) {
+      const user = await this.userService.getUser({ idx: accountIdx });
+
+      if (!user) {
+        throw new NotFoundException('Not Found User');
+      }
+    }
+
+    const reviewCount = await this.prismaService.reviewTb.count({
+      where: accountIdx
+        ? {
+            accountIdx: accountIdx,
+            deletedAt: null,
+          }
+        : {},
+    });
+
+    const reviewSQLResult = await this.prismaService.reviewTb.findMany({
+      include: {
+        tagTb: {
+          select: {
+            tagName: true,
+          },
+        },
+        _count: {
+          select: {
+            reviewLikesTb: true,
+            reviewBookmarkTb: true,
+            reviewShareTb: true,
+            reviewReportTb: true,
+          },
+        },
+      },
+      where: accountIdx ? { accountIdx: accountIdx } : {},
+      orderBy: {
+        idx: 'desc',
+      },
+      take: reviewPagerbleDto.size,
+      skip: (reviewPagerbleDto.page - 1) * reviewPagerbleDto.size,
+    });
+
+    const reviewData = reviewSQLResult.map((elem) => {
+      return {
+        ...elem,
+        tags: elem.tagTb.map((elem) => elem.tagName),
+        likeCount: elem._count.reviewLikesTb,
+        bookmarkCount: elem._count.reviewBookmarkTb,
+        shareCount: elem._count.reviewShareTb,
+        reportCount: elem._count.reviewReportTb,
+      };
+    });
+
+    return {
+      totalPage: Math.ceil(reviewCount / reviewPagerbleDto.size),
+      reviews: reviewData.map((elem) => new ReviewEntity(elem)),
+    };
+  }
+
+  async getReviewWithSearch(
+    reviewSearchPagerbleDto: ReviewSearchPagerbleDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    const totalCount = await this.prismaService.reviewTb.count({
+      where: {
+        OR: [
+          {
+            title: {
+              contains: reviewSearchPagerbleDto.search,
+              mode: 'insensitive',
+            },
+          },
+          {
+            content: {
+              contains: reviewSearchPagerbleDto.search,
+              mode: 'insensitive',
+            },
+          },
+          {
+            accountTb: {
+              nickname: {
+                contains: reviewSearchPagerbleDto.search,
+                mode: 'insensitive',
+              },
+            },
+          },
+          {
+            tagTb: {
+              some: {
+                tagName: {
+                  contains: reviewSearchPagerbleDto.search,
+                  mode: 'insensitive',
+                },
+              },
+            },
+          },
+        ],
+      },
+    });
+
+    const totalPage = Math.ceil(totalCount / reviewSearchPagerbleDto.size);
+
+    if (reviewSearchPagerbleDto.page > totalPage) {
+      throw new NotFoundException('Not Found Page');
+    }
+
+    const searchSQLResult = await this.prismaService.reviewTb.findMany({
+      include: {
+        accountTb: true,
+        tagTb: {
+          select: {
+            tagName: true,
+          },
+        },
+        _count: {
+          select: {
+            reviewLikesTb: true,
+          },
+        },
+      },
+      where: {
+        OR: [
+          {
+            title: {
+              contains: reviewSearchPagerbleDto.search,
+              mode: 'insensitive',
+            },
+          },
+          {
+            content: {
+              contains: reviewSearchPagerbleDto.search,
+              mode: 'insensitive',
+            },
+          },
+          {
+            accountTb: {
+              nickname: {
+                contains: reviewSearchPagerbleDto.search,
+                mode: 'insensitive',
+              },
+            },
+          },
+          {
+            tagTb: {
+              some: {
+                tagName: {
+                  contains: reviewSearchPagerbleDto.search,
+                  mode: 'insensitive',
+                },
+              },
+            },
+          },
+        ],
+      },
+      orderBy: {
+        idx: 'desc',
+      },
+      take: reviewSearchPagerbleDto.size,
+      skip: reviewSearchPagerbleDto.size * (reviewSearchPagerbleDto.page - 1),
+    });
+
+    const reviewData = searchSQLResult.map((review) => {
+      return {
+        ...review,
+        likeCount: review._count.reviewLikesTb,
+        tags: review.tagTb.map((elem) => elem.tagName),
+      };
+    });
+
+    return {
+      reviews: reviewData.map((elem) => new ReviewEntity(elem)),
+      totalPage: Math.ceil(totalCount / reviewSearchPagerbleDto.size),
+    };
+  }
+
   async getBookmarkedReviewAll(
+    accountIdx: number,
     reviewPagerbleDto: ReviewPagerbleDto,
-  ): Promise<ReviewEntity[]> {
-    const reviewList = await this.prismaService.reviewTb.findMany({
+  ): Promise<ReviewPagerbleResponseDto> {
+    const user = await this.userService.getUser({ idx: accountIdx });
+
+    if (!user) {
+      throw new NotFoundException('Not Found User');
+    }
+
+    const totalCount = await this.prismaService.reviewTb.count({
       where: {
-        accountIdx: reviewPagerbleDto.userIdx,
-        commentTb: reviewPagerbleDto['like-user']
-          ? { some: { accountIdx: reviewPagerbleDto.userIdx } }
-          : undefined,
-        bookmarkTb: reviewPagerbleDto['bookmark-user']
-          ? { some: { accountIdx: reviewPagerbleDto.userIdx } }
-          : undefined,
+        reviewBookmarkTb: {
+          every: {
+            accountIdx: accountIdx,
+          },
+        },
       },
     });
 
-    return reviewList.map((elem) => new ReviewEntity(elem));
+    const reviewData = await this.prismaService.reviewTb.findMany({
+      include: {
+        tagTb: {
+          select: {
+            tagName: true,
+          },
+        },
+        _count: {
+          select: {
+            reviewLikesTb: true,
+            reviewBookmarkTb: true,
+            reviewShareTb: true,
+            reviewReportTb: true,
+          },
+        },
+      },
+      where: {
+        reviewBookmarkTb: {
+          every: {
+            accountIdx: accountIdx,
+          },
+        },
+      },
+      orderBy: {
+        idx: 'desc',
+      },
+      skip: (reviewPagerbleDto.page - 1) * reviewPagerbleDto.size,
+      take: reviewPagerbleDto.size,
+    });
+
+    const reviews = reviewData.map((elem) => {
+      return {
+        ...elem,
+        tags: elem.tagTb.map((elem) => elem.tagName),
+        likeCount: elem._count.reviewLikesTb,
+        bookmarkCount: elem._count.reviewBookmarkTb,
+        shareCount: elem._count.reviewShareTb,
+        reportCount: elem._count.reviewReportTb,
+      };
+    });
+
+    return {
+      totalPage: Math.ceil(totalCount / reviewPagerbleDto.size),
+      reviews: reviews.map((elem) => new ReviewEntity(elem)),
+    };
   }
 
-  // 좋아요많은 순서로 리뷰가져오기
   async getHotReviewAll(): Promise<ReviewEntity[]> {
     const mostRecentNoon = this.getMostRecentNoon();
 
@@ -147,6 +480,75 @@ export class ReviewService {
     reviewList.sort((a, b) => b.reviewLikesTb.length - a.reviewLikesTb.length);
 
     return reviewList.map((elem) => new ReviewEntity(elem));
+  }
+
+  async getReviewCommented(
+    reviewPagerbleDto: ReviewPagerbleDto,
+    accountIdx: number,
+  ): Promise<ReviewPagerbleResponseDto> {
+    const user = await this.userService.getUser({ idx: accountIdx });
+
+    if (!user) {
+      throw new NotFoundException('Not Found User');
+    }
+
+    const totalCount = await this.prismaService.reviewTb.count({
+      where: {
+        commentTb: {
+          some: {
+            accountIdx: accountIdx,
+            deletedAt: null,
+          },
+        },
+      },
+    });
+
+    const reviewData = await this.prismaService.reviewTb.findMany({
+      include: {
+        tagTb: {
+          select: {
+            tagName: true,
+          },
+        },
+        _count: {
+          select: {
+            reviewLikesTb: true,
+            reviewBookmarkTb: true,
+            reviewShareTb: true,
+            reviewReportTb: true,
+          },
+        },
+      },
+      where: {
+        commentTb: {
+          some: {
+            accountIdx: accountIdx,
+            deletedAt: null,
+          },
+        },
+      },
+      orderBy: {
+        idx: 'desc',
+      },
+      skip: (reviewPagerbleDto.page - 1) * reviewPagerbleDto.size,
+      take: reviewPagerbleDto.size,
+    });
+
+    const reviews = reviewData.map((elem) => {
+      return {
+        ...elem,
+        tags: elem.tagTb.map((elem) => elem.tagName),
+        likeCount: elem._count.reviewLikesTb,
+        bookmarkCount: elem._count.reviewBookmarkTb,
+        shareCount: elem._count.reviewShareTb,
+        reportCount: elem._count.reviewReportTb,
+      };
+    });
+
+    return {
+      totalPage: Math.ceil(totalCount / reviewPagerbleDto.size),
+      reviews: reviews.map((elem) => new ReviewEntity(elem)),
+    };
   }
 
   getMostRecentNoon(): Date {

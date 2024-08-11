@@ -1,56 +1,91 @@
-import { AccountTb } from '@prisma/client';
+import { UserService } from 'src/user/user.service';
+import { FollowCheckService } from './follow-check.service';
+import { FollowEntity } from './entity/Follow.entity';
 import { FollowListPagerble } from './dto/follow-list-pagerble';
-import { Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { UserEntity } from './entity/User.entity';
 import { PrismaService } from '../../src/prisma/prisma.service';
-import { LoginUser } from '../../src/auth/model/login-user.model';
-import { elementAt } from 'rxjs';
+import { UserPagerbleResponseDto } from './dto/response/user-pagerble-response.dto';
+import { UserPagerbleDto } from './dto/user-pagerble.dto';
 
 @Injectable()
 export class FollowService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly followCheckService: FollowCheckService,
+    private readonly userService: UserService,
+  ) {}
 
-  async getFollowStatus(userIdx: number, toUserIdx: number): Promise<boolean> {
-    const followStatus = await this.prismaService.followTb.findMany({
-      where: {
-        followerIdx: userIdx,
-        followeeIdx: toUserIdx,
+  async followUser(
+    accountIdx: number,
+    toAccountIdx: number,
+  ): Promise<FollowEntity> {
+    //존재하는 유저인지 적용
+
+    const user = await this.userService.getUser({ idx: toAccountIdx });
+
+    if (!user) {
+      throw new NotFoundException('Not Found User');
+    }
+
+    const existingFollow = await this.followCheckService.isFollow(accountIdx, [
+      user,
+    ]);
+
+    if (existingFollow) {
+      throw new ConflictException('Already Followed');
+    }
+
+    const followEntity = await this.prismaService.followTb.create({
+      data: {
+        followerIdx: accountIdx,
+        followeeIdx: toAccountIdx,
       },
     });
 
-    if (followStatus.length == 0) {
-      return false;
-    }
-
-    return true;
+    return followEntity;
   }
 
-  followUser: (userIdx: number, toUserIdx: number) => Promise<UserEntity[]>;
+  async unfollowUser(accountIdx: number, toAccountIdx: number): Promise<void> {
+    const user = await this.userService.getUser({ idx: toAccountIdx });
 
-  unfollowUser: (userIdx: number, toUserIdx: number) => Promise<UserEntity[]>;
+    if (!user) {
+      throw new NotFoundException('Not Found User');
+    }
 
-  // getFollowingList: (userIdx: number) => Promise<UserEntity[]>;
+    const existingFollow = await this.followCheckService.isFollow(accountIdx, [
+      user,
+    ]);
 
-  // getFollwersList: (userIdx: number) => Promise<UserEntity[]>;
+    if (!existingFollow) {
+      throw new ConflictException('Already Not Followed');
+    }
+
+    await this.prismaService.followTb.deleteMany({
+      where: {
+        followerIdx: accountIdx,
+        followeeIdx: toAccountIdx,
+      },
+    });
+  }
 
   async getFollowingList(
-    followListPagerble: FollowListPagerble,
-    loginUser?: LoginUser | undefined,
-  ): Promise<{ totalCount: number; followList: UserEntity[] }> {
+    userPagerbleDto: UserPagerbleDto,
+  ): Promise<UserPagerbleResponseDto> {
     const getFollowingCount = await this.prismaService.followTb.count({
       where: {
-        followerIdx: followListPagerble.userIdx,
+        followerIdx: userPagerbleDto.accountIdx,
       },
     });
 
     const followList = await this.prismaService.followTb.findMany({
       include: {
         followee: {
-          select: {
-            idx: true,
-            email: true,
-            nickname: true,
-            profile: true,
+          include: {
             profileImgTb: {
               select: {
                 imgPath: true,
@@ -60,10 +95,10 @@ export class FollowService {
         },
       },
       where: {
-        followerIdx: followListPagerble.userIdx,
+        followerIdx: userPagerbleDto.accountIdx,
       },
-      skip: (followListPagerble.page - 1) * followListPagerble.take,
-      take: followListPagerble.take,
+      skip: (userPagerbleDto.page - 1) * userPagerbleDto.size,
+      take: userPagerbleDto.size,
     });
 
     let userList = followList.map((elem) => {
@@ -73,50 +108,30 @@ export class FollowService {
         nickname: elem.followee.nickname,
         profile: elem.followee.profile,
         profileImg: elem.followee.profileImgTb[0].imgPath,
-        isFollowing: false,
+        createdAt: elem.createdAt,
       };
     });
 
-    if (loginUser) {
-      userList = await Promise.all(
-        userList.map(async (elem) => {
-          const isFollowing = await this.getFollowStatus(
-            loginUser.idx,
-            elem.idx,
-          );
-          return { ...elem, isFollowing };
-        }),
-      );
-    }
-
     return {
-      totalCount: getFollowingCount,
-      followList: userList.map((elem) => new UserEntity(elem)),
+      totalPage: Math.ceil(getFollowingCount / userPagerbleDto.size),
+      users: userList.map((elem) => new UserEntity(elem)),
     };
   }
 
   //팔로워리스트 가져오기
   async getFollowerList(
-    followListPagerble: FollowListPagerble,
-    loginUser: LoginUser,
-  ): Promise<{
-    totalCount: number;
-    followList: UserEntity[];
-  }> {
+    userPagerbleDto: UserPagerbleDto,
+  ): Promise<UserPagerbleResponseDto> {
     const getFollowerCount = await this.prismaService.followTb.count({
       where: {
-        followeeIdx: followListPagerble.userIdx,
+        followeeIdx: userPagerbleDto.accountIdx,
       },
     });
 
     const followList = await this.prismaService.followTb.findMany({
       include: {
         follower: {
-          select: {
-            idx: true,
-            email: true,
-            nickname: true,
-            profile: true,
+          include: {
             profileImgTb: {
               select: {
                 imgPath: true,
@@ -126,13 +141,11 @@ export class FollowService {
         },
       },
       where: {
-        followeeIdx: followListPagerble.userIdx,
+        followeeIdx: userPagerbleDto.accountIdx,
       },
-      skip: (followListPagerble.page - 1) * followListPagerble.take,
-      take: followListPagerble.take,
+      skip: (userPagerbleDto.page - 1) * userPagerbleDto.size,
+      take: userPagerbleDto.size,
     });
-
-    console.log('followList: ', followList);
 
     let userList = followList.map((elem) => {
       return {
@@ -141,26 +154,13 @@ export class FollowService {
         nickname: elem.follower.nickname,
         profile: elem.follower.profile,
         profileImg: elem.follower.profileImgTb[0].imgPath,
-        isFollowing: false,
+        createdAt: elem.createdAt,
       };
     });
 
-    if (loginUser) {
-      userList = await Promise.all(
-        userList.map(async (elem) => {
-          const isFollowing = await this.getFollowStatus(
-            loginUser.idx,
-            elem.idx,
-          );
-          return { ...elem, isFollowing };
-        }),
-      );
-    }
-    console.log('userList', userList);
-
     return {
-      totalCount: getFollowerCount,
-      followList: userList.map((elem) => new UserEntity(elem)),
+      totalPage: Math.ceil(getFollowerCount / userPagerbleDto.size),
+      users: userList.map((elem) => new UserEntity(elem)),
     };
   }
 }

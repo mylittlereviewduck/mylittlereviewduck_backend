@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsString, Length, Max, Min } from 'class-validator';
+import { IsArray, IsNumber, IsString, Length, Max, Min } from 'class-validator';
 
 export class CreateReviewDto {
   @ApiProperty({ example: '제목입니다', description: '리뷰 제목' })
@@ -17,4 +17,11 @@ export class CreateReviewDto {
   @Min(0)
   @Max(5)
   score: number;
+
+  @ApiProperty({
+    example: ['태그1', '태그2', '태그3'],
+    description: '태그, 리스트 형태',
+  })
+  @IsArray()
+  tags: string[];
 }

@@ -1,4 +1,5 @@
 export class UserBlockEntity {
-  blocker: number;
-  blocked: number;
+  blockerIdx: number;
+  blockedIdx: number;
+  createdAt: Date;
 }

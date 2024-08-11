@@ -1,6 +1,6 @@
 import { EmailAuthService } from './email-auth.service';
 import { PrismaService } from './../prisma/prisma.service';
-import { MailService } from '../common/Email/email.service';
+import { MailService } from '../common/email/email.service';
 import {
   Body,
   Controller,
@@ -73,11 +73,9 @@ export class AuthController {
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: LoginResponseDto })
-  async authUser(
-    @Body() loginDto: LoginDto,
-  ): Promise<{ data: LoginResponseDto }> {
+  async authUser(@Body() loginDto: LoginDto): Promise<LoginResponseDto> {
     const accessToken = await this.authService.login(loginDto);
-    return { data: { accessToken } };
+    return { accessToken };
   }
 
   @Get('/:provider')
@@ -100,14 +98,14 @@ export class AuthController {
   }
 
   @Get('/kakao/callback')
-  async googleCallback(
+  async kakaoLogin(
     @Query() query: KakaoCallbackDto,
   ): Promise<{ accessToken: string }> {
     return await this.authService.socialLogin('kakao', query);
   }
 
   @Get('/naver/callback')
-  async naverCallback(
+  async naverLogin(
     @Query() query: NaverCallbackDto,
   ): Promise<{ accessToken: string }> {
     return await this.authService.socialLogin('naver', query);

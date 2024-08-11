@@ -6,6 +6,7 @@ import { UserService } from '../../../src/user/user.service';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { GoogleCallbackDto } from '../dto/google-callback.dto';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class GoogleStrategy implements ISocialAuthStrategy {
@@ -48,7 +49,7 @@ export class GoogleStrategy implements ISocialAuthStrategy {
 
     const userInfoUrl = `https://www.googleapis.com/oauth2/v2/userinfo`;
 
-    const { data: userInfo } = await this.httpService.axiosRef.get(
+    const { data: userData } = await this.httpService.axiosRef.get(
       userInfoUrl,
       {
         headers: {
@@ -57,13 +58,13 @@ export class GoogleStrategy implements ISocialAuthStrategy {
       },
     );
 
-    let user = await this.userService.getUser({ email: userInfo.email });
-
+    let user = await this.userService.getUser({ email: userData.email });
     if (!user) {
       user = await this.userService.createUserWithOAuth({
-        email: userInfo.email,
+        email: userData.email,
+        nickname: uuidv4(),
         provider: 'google',
-        providerKey: userInfo.id,
+        providerKey: String(userData.id),
       });
     }
 

@@ -18,7 +18,7 @@ import { AccountTb, ProfileImgTb } from '@prisma/client';
 export class UserService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async getUser(getUserDto: GetUserDto): Promise<UserEntity | null> {
+  async getUser(getUserDto: GetUserDto): Promise<UserEntity | undefined> {
     const user = await this.prismaService.accountTb.findFirst({
       where: {
         idx: getUserDto.idx,
@@ -26,7 +26,18 @@ export class UserService {
         nickname: getUserDto.nickname,
       },
       include: {
-        profileImgTb: true,
+        profileImgTb: {
+          where: {
+            deletedAt: null,
+          },
+        },
+        _count: {
+          select: {
+            follower: true,
+            followee: true,
+            reviewReportTb: true,
+          },
+        },
       },
     });
 
@@ -35,12 +46,11 @@ export class UserService {
     }
 
     return new UserEntity({
-      idx: user.idx,
-      email: user.email,
-      profile: user.profile,
-      nickname: user.nickname,
+      ...user,
       profileImg: user.profileImgTb[0].imgPath,
-      isFollowing: null,
+      followingCount: user._count.follower,
+      followerCount: user._count.followee,
+      reportCount: user._count.reviewReportTb,
     });
   }
 
@@ -73,9 +83,10 @@ export class UserService {
     let userData: AccountTb, profileImgData: ProfileImgTb;
 
     await this.prismaService.$transaction(async (tx) => {
-      const userData = await tx.accountTb.create({
+      userData = await tx.accountTb.create({
         data: {
           email: createUserOAuthDto.email,
+          nickname: createUserOAuthDto.nickname,
           provider: createUserOAuthDto.provider,
           providerKey: createUserOAuthDto.providerKey,
         },
@@ -94,10 +105,10 @@ export class UserService {
       profile: userData.profile,
       profileImg: profileImgData.imgPath,
       nickname: userData.nickname,
-      isFollowing: null,
     };
 
-    return new UserEntity(userEntityData);
+    return;
+    // return new UserEntity(userEntityData);
   }
 
   async updateMyinfo(
@@ -125,22 +136,22 @@ export class UserService {
 
   async updateMyProfileImg(
     loginUser: LoginUser,
-    updateMyProfileImgDto: UpdateMyProfileImgDto,
+    imgPath: string,
   ): Promise<void> {
     await this.prismaService.$transaction([
-      this.prismaService.profileImgTb.update({
+      this.prismaService.profileImgTb.updateMany({
         data: {
           deletedAt: new Date(),
         },
         where: {
-          idx: loginUser.idx,
+          accountIdx: loginUser.idx,
         },
       }),
 
       this.prismaService.profileImgTb.create({
         data: {
           accountIdx: loginUser.idx,
-          imgPath: updateMyProfileImgDto.profileImg,
+          imgPath: imgPath,
         },
       }),
     ]);
@@ -148,12 +159,12 @@ export class UserService {
 
   async deleteMyProfileImg(loginUser: LoginUser): Promise<void> {
     await this.prismaService.$transaction([
-      this.prismaService.profileImgTb.update({
+      this.prismaService.profileImgTb.updateMany({
         data: {
           deletedAt: new Date(),
         },
         where: {
-          idx: loginUser.idx,
+          accountIdx: loginUser.idx,
         },
       }),
 

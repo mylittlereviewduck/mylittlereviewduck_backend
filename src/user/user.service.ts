@@ -18,7 +18,7 @@ import { AccountTb, ProfileImgTb } from '@prisma/client';
 export class UserService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async getUser(getUserDto: GetUserDto): Promise<UserEntity | null> {
+  async getUser(getUserDto: GetUserDto): Promise<UserEntity | undefined> {
     const user = await this.prismaService.accountTb.findFirst({
       where: {
         idx: getUserDto.idx,
@@ -26,31 +26,32 @@ export class UserService {
         nickname: getUserDto.nickname,
       },
       include: {
-        profileImgTb: true,
+        profileImgTb: {
+          where: {
+            deletedAt: null,
+          },
+        },
         _count: {
           select: {
             follower: true,
             followee: true,
+            reviewReportTb: true,
           },
         },
       },
     });
 
-    console.log('user: ', user);
-
     if (!user) {
       return;
     }
 
-    return;
-
-    // return new UserEntity({
-    //   idx: user.idx,
-    //   email: user.email,
-    //   profile: user.profile,
-    //   nickname: user.nickname,
-    //   profileImg: user.profileImgTb[0].imgPath,
-    // });
+    return new UserEntity({
+      ...user,
+      profileImg: user.profileImgTb[0].imgPath,
+      followingCount: user._count.follower,
+      followerCount: user._count.followee,
+      reportCount: user._count.reviewReportTb,
+    });
   }
 
   // 유저생성
@@ -157,8 +158,6 @@ export class UserService {
   }
 
   async deleteMyProfileImg(loginUser: LoginUser): Promise<void> {
-    console.log('accountIdx', loginUser.idx);
-
     await this.prismaService.$transaction([
       this.prismaService.profileImgTb.updateMany({
         data: {

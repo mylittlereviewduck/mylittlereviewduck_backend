@@ -2,6 +2,7 @@ import { UserBlockCheckService } from './user-block-check.service';
 import { UserBlockService } from './user-block.service';
 import {
   Body,
+  ConflictException,
   Controller,
   Delete,
   Get,
@@ -55,17 +56,25 @@ export class UserController {
     private readonly awsService: AwsService,
   ) {}
 
-  //비밀번호찾기
-  //아이디찾기 추가
-
   @Post('/check-email')
   @HttpCode(200)
-  @ApiOperation({ summary: '이메일 중복확인' })
+  @ApiOperation({ summary: '이메일 중복검사' })
   @Exception(400, '유효하지않은 요청')
   @Exception(409, '이메일 중복')
   @Exception(500, '서버 에러')
-  @ApiResponse({ status: 200, description: '사용가능한 이메일일경우 200반환' })
-  async checkEmailDulicate(@Body() checkDto: CheckEmailDuplicateDto) {}
+  @ApiResponse({
+    status: 200,
+    description: '사용가능한 이메일일경우 상태코드 200반환',
+  })
+  async checkEmailDulicate(
+    @Body() checkDto: CheckEmailDuplicateDto,
+  ): Promise<void> {
+    const user = await this.userService.getUser({ email: checkDto.email });
+
+    if (user) {
+      throw new ConflictException('Duplicated Email');
+    }
+  }
 
   @Post('/check-nickname')
   @HttpCode(200)
@@ -73,8 +82,20 @@ export class UserController {
   @Exception(400, '유효하지않은 요청')
   @Exception(409, '중복된 닉네임')
   @Exception(500, '서버 에러')
-  @ApiResponse({ status: 200, description: '사용가능한 닉네임일경우 200반환' })
-  async checkNicknameDuplicate(@Body() checkDto: CheckNicknameDuplicateDto) {}
+  @ApiResponse({
+    status: 200,
+    description: '사용가능한 닉네임일경우 상태코드 200반환',
+  })
+  async checkNicknameDuplicate(@Body() checkDto: CheckNicknameDuplicateDto) {
+    const user = await this.userService.getUser({
+      nickname: checkDto.nickname,
+    });
+    console.log('user: ', user);
+
+    if (user) {
+      throw new ConflictException('Duplicated Nickname');
+    }
+  }
 
   @Post('/signup')
   @ApiOperation({ summary: '회원가입' })
@@ -106,7 +127,7 @@ export class UserController {
   async updateMyInfo(
     @GetUser() loginUser: LoginUser,
     @Body() updateMyInfoDto: UpdateMyInfoDto,
-  ) {}
+  ): Promise<void> {}
 
   // @Post('profile-img')
   // @UseGuards(AuthGuard)
@@ -143,7 +164,7 @@ export class UserController {
   async updateMyProfileImg(
     @GetUser() loginUser: LoginUser,
     @UploadedFile() image: Express.Multer.File,
-  ) {
+  ): Promise<void> {
     const imgPath = await this.awsService.uploadImageToS3(image);
 
     await this.userService.updateMyProfileImg(loginUser, imgPath);
@@ -156,7 +177,7 @@ export class UserController {
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200 })
-  async deleteMyProfileImg(@GetUser() loginUser: LoginUser) {
+  async deleteMyProfileImg(@GetUser() loginUser: LoginUser): Promise<void> {
     await this.userService.deleteMyProfileImg(loginUser);
   }
 
@@ -328,6 +349,13 @@ export class UserController {
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '차단한 유저목록보기' })
   @ApiBearerAuth()
+  @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
+  @ApiQuery({ name: 'page', example: 1, description: '페이지, 기본값 1' })
+  @ApiQuery({
+    name: 'size',
+    example: 10,
+    description: '페이지크기, 기본값 10',
+  })
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: UserPagerbleResponseDto })

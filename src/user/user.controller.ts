@@ -129,7 +129,12 @@ export class UserController {
   async updateMyInfo(
     @GetUser() loginUser: LoginUser,
     @Body() updateMyInfoDto: UpdateMyInfoDto,
-  ): Promise<void> {}
+  ): Promise<void> {
+    await this.userService.updateMyinfo(loginUser.idx, {
+      nickname: updateMyInfoDto.nickname,
+      profile: updateMyInfoDto.profile,
+    });
+  }
 
   // @Post('profile-img')
   // @UseGuards(AuthGuard)
@@ -221,12 +226,15 @@ export class UserController {
   }
 
   @Delete('')
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: '유저 탈퇴하기' })
   @ApiBearerAuth()
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200 })
-  async deleteUser(): Promise<void> {}
+  async deleteUser(@GetUser() loginUser: LoginUser): Promise<void> {
+    await this.userService.deleteUser(loginUser.idx);
+  }
 
   @Get('/:userIdx/following/all')
   @UseGuards(OptionalAuthGuard)

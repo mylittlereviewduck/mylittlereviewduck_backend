@@ -112,26 +112,38 @@ export class UserService {
   }
 
   async updateMyinfo(
-    loginUser: LoginUser,
+    accountIdx: number,
     updateMyInfoDto: UpdateMyInfoDto,
   ): Promise<void> {
-    const duplicatedNickname = await this.getUser({
+    const user = await this.getUser({
+      idx: accountIdx,
+    });
+
+    if (!user) {
+      throw new NotFoundException('Not Found User');
+    }
+
+    const duplicatedUser = await this.getUser({
       nickname: updateMyInfoDto.nickname,
     });
 
-    if (duplicatedNickname) {
+    if (duplicatedUser) {
       throw new ConflictException('Duplicated Nickname');
     }
 
-    await this.prismaService.accountTb.update({
+    const updatedUser = await this.prismaService.accountTb.update({
       data: {
         nickname: updateMyInfoDto.nickname,
         profile: updateMyInfoDto.profile,
       },
       where: {
-        idx: loginUser.idx,
+        idx: accountIdx,
       },
     });
+
+    console.log(updatedUser);
+
+    return;
   }
 
   async updateMyProfileImg(accountIdx: number, imgPath: string): Promise<void> {
@@ -174,12 +186,12 @@ export class UserService {
   }
 
   async getUserWithProvider(
-    userIdx: number,
+    accountIdx: number,
     provider: string,
   ): Promise<UserWithProvider> {
     const userData = await this.prismaService.accountTb.findUnique({
       where: {
-        idx: userIdx,
+        idx: accountIdx,
         provider: provider,
       },
     });
@@ -191,10 +203,14 @@ export class UserService {
     return new UserWithProvider(userData);
   }
 
-  async deleteUser(userIdx: number): Promise<void> {
+  async deleteUser(accountIdx: number): Promise<void> {
     await this.prismaService.accountTb.update({
-      where: { idx: userIdx },
-      data: { deletedAt: new Date() },
+      where: {
+        idx: accountIdx,
+      },
+      data: {
+        deletedAt: new Date(),
+      },
     });
   }
 }

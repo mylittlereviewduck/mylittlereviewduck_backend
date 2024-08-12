@@ -18,4 +18,10 @@ export class FollowEntity {
     description: '팔로우시간',
   })
   createdAt: Date;
+
+  constructor(data) {
+    this.followerIdx = data.followerIdx;
+    this.followeeIdx = data.followeeIdx;
+    this.createdAt = data.createdAt;
+  }
 }

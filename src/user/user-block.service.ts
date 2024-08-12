@@ -1,48 +1,65 @@
 import { UserPagerbleDto } from './dto/user-pagerble.dto';
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { UserBlockEntity } from './entity/Block.entity';
 import { UserEntity } from './entity/User.entity';
-import { UserBlockPagerble } from './dto/user-block-pagerble';
 import { UserBlockCheckService } from './user-block-check.service';
+import { UserService } from './user.service';
+import { UserBlockEntity } from './entity/UserBlock.entity';
 
 @Injectable()
 export class UserBlockService {
   constructor(
     private readonly prismaService: PrismaService,
+    private readonly userService: UserService,
     private readonly userBlockCheckService: UserBlockCheckService,
   ) {}
 
   async blockUser(
     accountIdx: number,
-    toUserIdx: number,
+    toAccountIdx: number,
   ): Promise<UserBlockEntity> {
+    const user = await this.userService.getUser({ idx: toAccountIdx });
+
+    if (!user) {
+      throw new NotFoundException('Not Found User');
+    }
+
     const existingBlock = await this.userBlockCheckService.isBlocked(
       accountIdx,
-      toUserIdx,
+      [user],
     );
 
-    if (existingBlock) {
+    if (user.isBlocked == true) {
       throw new ConflictException('Already Conflict');
     }
 
-    const userBlockEntity = await this.prismaService.accountBlockTb.create({
+    const userBlockData = await this.prismaService.accountBlockTb.create({
       data: {
         blockerIdx: accountIdx,
-        blockedIdx: toUserIdx,
+        blockedIdx: toAccountIdx,
       },
     });
 
-    return userBlockEntity;
+    return new UserBlockEntity(userBlockData);
   }
 
   async unBlockUser(accountIdx: number, toUserIdx: number): Promise<void> {
+    const user = await this.userService.getUser({ idx: toUserIdx });
+
+    if (!user) {
+      throw new NotFoundException('Not Found User');
+    }
+
     const existingBlock = await this.userBlockCheckService.isBlocked(
       accountIdx,
-      toUserIdx,
+      [user],
     );
 
-    if (!existingBlock) {
+    if (user.isBlocked == false) {
       throw new ConflictException('Already Not Conflict');
     }
 
@@ -56,7 +73,6 @@ export class UserBlockService {
     return;
   }
 
-  // 차단기능을 결국 어떻게 적용할건지?(차단한 유저의 댓글, 차단한 유저의 리뷰 => 유저엔티티에 isBlocked를 추가해야겠지?)
   async getBlockedUserAll(
     userIdx: number,
     userPagerbleDto: UserPagerbleDto,

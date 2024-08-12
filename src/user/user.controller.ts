@@ -7,6 +7,7 @@ import {
   Delete,
   Get,
   HttpCode,
+  NotFoundException,
   Param,
   ParseIntPipe,
   Post,
@@ -42,7 +43,7 @@ import { AwsService } from 'src/common/aws/aws.service';
 import { OptionalAuthGuard } from 'src/auth/optional-auth.guard';
 import { UserPagerbleResponseDto } from './dto/response/user-pagerble-response.dto';
 import { FollowCheckService } from './follow-check.service';
-import { UserBlockEntity } from './entity/Block.entity';
+import { UserBlockEntity } from './entity/UserBlock.entity';
 
 @Controller('user')
 @ApiTags('user')
@@ -90,7 +91,6 @@ export class UserController {
     const user = await this.userService.getUser({
       nickname: checkDto.nickname,
     });
-    console.log('user: ', user);
 
     if (user) {
       throw new ConflictException('Duplicated Nickname');
@@ -169,7 +169,7 @@ export class UserController {
   ): Promise<void> {
     const imgPath = await this.awsService.uploadImageToS3(image);
 
-    await this.userService.updateMyProfileImg(loginUser, imgPath);
+    await this.userService.updateMyProfileImg(loginUser.idx, imgPath);
   }
 
   @Delete('profile-img')
@@ -180,10 +180,11 @@ export class UserController {
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200 })
   async deleteMyProfileImg(@GetUser() loginUser: LoginUser): Promise<void> {
-    await this.userService.deleteMyProfileImg(loginUser);
+    await this.userService.deleteMyProfileImg(loginUser.idx);
   }
 
-  @Get('/info/:userIdx')
+  @Get('/:userIdx/info')
+  @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '유저 정보 보기' })
   @ApiParam({
     name: 'userIdx',
@@ -193,7 +194,31 @@ export class UserController {
   @Exception(400, '유효하지않은 요청')
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: UserEntity })
-  async getUserInfo() {}
+  async getUserInfo(
+    @Param('userIdx') accountIdx: number,
+    @GetUser() loginUser: LoginUser,
+  ): Promise<UserEntity> {
+    const user = await this.userService.getUser({
+      idx: accountIdx,
+    });
+
+    if (!user) {
+      throw new NotFoundException('Not Found User');
+    }
+
+    if (!loginUser) {
+      return user;
+    }
+
+    await this.followCheckService.isFollow(loginUser.idx, [user]);
+
+    await this.userBlockCheckService.isBlocked(loginUser.idx, [user]);
+
+    //유저신고, 유저신고여부확인기능은 논의하고 추가
+    // await this.userReportCheckService.isReported(loginUser.idx, [user]);
+
+    return user;
+  }
 
   @Delete('')
   @ApiOperation({ summary: '유저 탈퇴하기' })
@@ -323,7 +348,11 @@ export class UserController {
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
-  @ApiResponse({ status: 200, description: '차단 성공 200 반환' })
+  @ApiResponse({
+    status: 200,
+    type: UserBlockEntity,
+    description: '차단 성공 200 반환',
+  })
   async blockUser(
     @GetUser() loginUser: LoginUser,
     @Param('userIdx') accountIdx: number,

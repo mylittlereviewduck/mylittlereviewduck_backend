@@ -134,43 +134,40 @@ export class UserService {
     });
   }
 
-  async updateMyProfileImg(
-    loginUser: LoginUser,
-    imgPath: string,
-  ): Promise<void> {
+  async updateMyProfileImg(accountIdx: number, imgPath: string): Promise<void> {
     await this.prismaService.$transaction([
       this.prismaService.profileImgTb.updateMany({
         data: {
           deletedAt: new Date(),
         },
         where: {
-          accountIdx: loginUser.idx,
+          accountIdx: accountIdx,
         },
       }),
 
       this.prismaService.profileImgTb.create({
         data: {
-          accountIdx: loginUser.idx,
+          accountIdx: accountIdx,
           imgPath: imgPath,
         },
       }),
     ]);
   }
 
-  async deleteMyProfileImg(loginUser: LoginUser): Promise<void> {
+  async deleteMyProfileImg(accountIdx: number): Promise<void> {
     await this.prismaService.$transaction([
       this.prismaService.profileImgTb.updateMany({
         data: {
           deletedAt: new Date(),
         },
         where: {
-          accountIdx: loginUser.idx,
+          accountIdx: accountIdx,
         },
       }),
 
       this.prismaService.profileImgTb.create({
         data: {
-          accountIdx: loginUser.idx,
+          accountIdx: accountIdx,
         },
       }),
     ]);

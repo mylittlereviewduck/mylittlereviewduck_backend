@@ -1,4 +1,4 @@
 export class ReviewLikeEntity {
-  userIdx: number;
+  accountIdx: number;
   reviewIdx: number;
 }

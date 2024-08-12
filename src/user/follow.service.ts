@@ -24,8 +24,6 @@ export class FollowService {
     accountIdx: number,
     toAccountIdx: number,
   ): Promise<FollowEntity> {
-    //존재하는 유저인지 적용
-
     const user = await this.userService.getUser({ idx: toAccountIdx });
 
     if (!user) {
@@ -118,7 +116,6 @@ export class FollowService {
     };
   }
 
-  //팔로워리스트 가져오기
   async getFollowerList(
     userPagerbleDto: UserPagerbleDto,
   ): Promise<UserPagerbleResponseDto> {

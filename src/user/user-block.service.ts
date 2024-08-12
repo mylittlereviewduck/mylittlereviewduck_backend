@@ -9,6 +9,7 @@ import { UserEntity } from './entity/User.entity';
 import { UserBlockCheckService } from './user-block-check.service';
 import { UserService } from './user.service';
 import { UserBlockEntity } from './entity/UserBlock.entity';
+import { UserPagerbleResponseDto } from './dto/response/user-pagerble-response.dto';
 
 @Injectable()
 export class UserBlockService {
@@ -47,8 +48,8 @@ export class UserBlockService {
     return new UserBlockEntity(userBlockData);
   }
 
-  async unBlockUser(accountIdx: number, toUserIdx: number): Promise<void> {
-    const user = await this.userService.getUser({ idx: toUserIdx });
+  async unBlockUser(accountIdx: number, toAccountIdxdx: number): Promise<void> {
+    const user = await this.userService.getUser({ idx: toAccountIdxdx });
 
     if (!user) {
       throw new NotFoundException('Not Found User');
@@ -66,7 +67,7 @@ export class UserBlockService {
     await this.prismaService.accountBlockTb.deleteMany({
       where: {
         blockerIdx: accountIdx,
-        blockedIdx: toUserIdx,
+        blockedIdx: toAccountIdxdx,
       },
     });
 
@@ -74,28 +75,36 @@ export class UserBlockService {
   }
 
   async getBlockedUserAll(
-    userIdx: number,
+    accountIdx: number,
     userPagerbleDto: UserPagerbleDto,
-  ): Promise<UserEntity[]> {
+  ): Promise<UserPagerbleResponseDto> {
+    const totalCount = await this.prismaService.accountBlockTb.count({
+      where: {
+        blockerIdx: accountIdx,
+      },
+    });
+
     const blockedList = await this.prismaService.accountBlockTb.findMany({
       include: {
         blocked: {
-          select: {
-            idx: true,
-            email: true,
-            nickname: true,
-            profile: true,
-
+          include: {
             profileImgTb: {
               select: {
                 imgPath: true,
+              },
+            },
+            _count: {
+              select: {
+                follower: true,
+                followee: true,
+                reviewReportTb: true,
               },
             },
           },
         },
       },
       where: {
-        blockerIdx: userIdx,
+        blockerIdx: accountIdx,
       },
       skip: (userPagerbleDto.page - 1) * userPagerbleDto.size,
       take: userPagerbleDto.size,
@@ -103,16 +112,18 @@ export class UserBlockService {
 
     let blockedUserList = blockedList.map((elem) => {
       return {
-        idx: elem.blocked.idx,
-        email: elem.blocked.email,
-        nickname: elem.blocked.nickname,
-        profile: elem.blocked.profile,
+        ...elem.blocked,
         profileImg: elem.blocked.profileImgTb[0].imgPath,
-        isFollowing: false,
+        followingCount: elem.blocked._count.follower,
+        followerCount: elem.blocked._count.followee,
+        reportCount: elem.blocked._count.reviewReportTb,
+        isBlocked: true,
       };
     });
 
-    return;
-    // return blockedUserList.map((elem) => new UserEntity(elem));
+    return {
+      totalPage: Math.ceil(totalCount / userPagerbleDto.size),
+      users: blockedUserList.map((elem) => new UserEntity(elem)),
+    };
   }
 }

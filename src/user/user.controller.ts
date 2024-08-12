@@ -87,7 +87,9 @@ export class UserController {
     status: 200,
     description: '사용가능한 닉네임일경우 상태코드 200반환',
   })
-  async checkNicknameDuplicate(@Body() checkDto: CheckNicknameDuplicateDto) {
+  async checkNicknameDuplicate(
+    @Body() checkDto: CheckNicknameDuplicateDto,
+  ): Promise<void> {
     const user = await this.userService.getUser({
       nickname: checkDto.nickname,
     });
@@ -114,7 +116,7 @@ export class UserController {
   @Exception(401, '권한 없음')
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: UserEntity })
-  async GetMyInfo(@GetUser() loginUser: LoginUser) {
+  async GetMyInfo(@GetUser() loginUser: LoginUser): Promise<UserEntity> {
     return await this.userService.getUser({ idx: loginUser.idx });
   }
 
@@ -403,10 +405,9 @@ export class UserController {
     @Query('size') size: number,
     @Query('page') page: number,
   ): Promise<UserPagerbleResponseDto> {
-    await this.userBlockService.getBlockedUserAll(loginUser.idx, {
+    return await this.userBlockService.getBlockedUserAll(loginUser.idx, {
       page: page || 1,
-      size: size || 20,
+      size: size || 10,
     });
-    return;
   }
 }

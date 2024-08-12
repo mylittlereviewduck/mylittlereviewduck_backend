@@ -405,9 +405,19 @@ export class UserController {
     @Query('size') size: number,
     @Query('page') page: number,
   ): Promise<UserPagerbleResponseDto> {
-    return await this.userBlockService.getBlockedUserAll(loginUser.idx, {
-      page: page || 1,
-      size: size || 10,
-    });
+    const userPagerbleResponseDto =
+      await this.userBlockService.getBlockedUserAll(loginUser.idx, {
+        page: page || 1,
+        size: size || 10,
+      });
+
+    await this.followCheckService.isFollow(
+      loginUser.idx,
+      userPagerbleResponseDto.users,
+    );
+
+    //신고여부 신고기능 논의후 추가
+
+    return userPagerbleResponseDto;
   }
 }

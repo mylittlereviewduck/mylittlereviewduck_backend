@@ -8,7 +8,7 @@ export class FollowCheckService {
   constructor(private readonly prismaService: PrismaService) {}
 
   async isFollow(
-    userIdx: number,
+    accountIdx: number,
     toUsers: UserEntity[],
   ): Promise<UserEntity[]> {
     const sqlResult = await this.prismaService.followTb.findMany({
@@ -16,7 +16,7 @@ export class FollowCheckService {
         followee: true,
       },
       where: {
-        followerIdx: userIdx,
+        followerIdx: accountIdx,
         followeeIdx: {
           in: toUsers.map((elem) => elem.idx),
         },

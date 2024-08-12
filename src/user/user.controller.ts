@@ -102,8 +102,8 @@ export class UserController {
   @Exception(400, '유효하지않은 요청')
   @Exception(409, '유효하지않은 닉네임/이메일이거나 이미가입된 회원입니다')
   @Exception(500, '서버에러')
-  @ApiResponse({ status: 201 })
-  async signUp(@Body() createUserDto: CreateUserDto) {
+  @ApiResponse({ status: 201, type: UserEntity })
+  async signUp(@Body() createUserDto: CreateUserDto): Promise<UserEntity> {
     return await this.userService.createUser(createUserDto);
   }
 

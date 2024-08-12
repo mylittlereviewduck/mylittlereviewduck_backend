@@ -54,12 +54,10 @@ export class UserService {
     });
   }
 
-  // 유저생성
-  // 인증된이메일인지 확인
-  // 이메일 중복인지확인
-  // 유저추가
   //이메일인증 확인 로직추가
-  async createUser(createUserDto: CreateUserDto): Promise<void> {
+  async createUser(createUserDto: CreateUserDto): Promise<UserEntity> {
+    let newUser;
+    let newProfileImg;
     await this.prismaService.$transaction(async (tx) => {
       const emailDuplicatedUser = await tx.accountTb.findFirst({
         where: {
@@ -71,10 +69,29 @@ export class UserService {
         throw new ConflictException('Email Duplicated');
       }
 
-      await tx.accountTb.create({
-        data: { email: createUserDto.email, pw: createUserDto.pw },
+      newUser = await tx.accountTb.create({
+        data: {
+          email: createUserDto.email,
+          pw: createUserDto.pw,
+        },
+      });
+
+      newProfileImg = await tx.profileImgTb.create({
+        data: {
+          accountIdx: newUser.idx,
+        },
       });
     });
+
+    const userData = {
+      ...newUser,
+      profileImg: newProfileImg.imgPath,
+      followingCount: 0,
+      followerCount: 0,
+      reportCount: 0,
+    };
+
+    return new UserEntity(userData);
   }
 
   async createUserWithOAuth(
@@ -100,15 +117,14 @@ export class UserService {
     });
 
     const userEntityData = {
-      idx: userData.idx,
-      email: userData.email,
-      profile: userData.profile,
+      ...userData,
       profileImg: profileImgData.imgPath,
-      nickname: userData.nickname,
+      followingCount: 0,
+      followerCount: 0,
+      reportCount: 0,
     };
 
-    return;
-    // return new UserEntity(userEntityData);
+    return new UserEntity(userEntityData);
   }
 
   async updateMyinfo(

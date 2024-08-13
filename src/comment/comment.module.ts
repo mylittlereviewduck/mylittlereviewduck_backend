@@ -4,6 +4,7 @@ import { CommentController } from './comment.controller';
 import { CommentLikeService } from './comment-like.service';
 import { CommentLikeCheckService } from './comment-like-check.service';
 import { PrismaModule } from 'src/prisma/prisma.module';
+import { ReviewModule } from 'src/review/review.module';
 
 @Module({
   imports: [PrismaModule],

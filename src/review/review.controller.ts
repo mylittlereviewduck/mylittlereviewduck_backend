@@ -162,6 +162,8 @@ export class ReviewController {
     type: UploadReviewImageResponseDto,
   })
   async uploadReviewImage(): Promise<{ imgPath: string }> {
+    //리뷰당 이미지 6개 제한
+
     // await this.awsService.uploadImageToS3(, )
 
     return;

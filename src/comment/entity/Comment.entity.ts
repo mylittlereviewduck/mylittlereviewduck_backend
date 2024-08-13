@@ -14,7 +14,7 @@ export class CommentEntity {
     example: 1,
     description: '대댓글일 경우 존재, 대댓글이 달린 댓글 idx',
   })
-  commentIdx?: number | null;
+  commentIdx?: number | undefined;
 
   @ApiProperty({ example: '댓글내용입니다', description: '댓글 내용' })
   content: string;

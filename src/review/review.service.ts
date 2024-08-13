@@ -142,12 +142,16 @@ export class ReviewService {
     return new ReviewEntity(review);
   }
 
+  //나의 리뷰인지 확인하는 로직
+  //리뷰 식별자 난독화, 토큰화
   async deleteReview(
     loginUser: LoginUser,
     reviewIdx: number,
   ): Promise<ReviewEntity> {
     const review = await this.prismaService.reviewTb.findUnique({
-      where: { idx: reviewIdx },
+      where: {
+        idx: reviewIdx,
+      },
     });
 
     if (!review) {

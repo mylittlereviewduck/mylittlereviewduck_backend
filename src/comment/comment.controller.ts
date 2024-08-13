@@ -1,9 +1,11 @@
+import { CommentLikeService } from './comment-like.service';
 import { CommentService } from './comment.service';
 import {
   Body,
   Controller,
   Delete,
   Get,
+  NotFoundException,
   Param,
   Post,
   Put,
@@ -23,12 +25,21 @@ import { UpdateCommentDto } from './dto/update-comment.dto';
 import { GetUser } from 'src/auth/get-user.decorator';
 import { LoginUser } from 'src/auth/model/login-user.model';
 import { AuthGuard } from 'src/auth/auth.guard';
+import { CommentLikeCheckService } from './comment-like-check.service';
+import { ReviewService } from 'src/review/review.service';
+import { CommentLikeEntity } from './entity/CommentLike.entity';
 
 @ApiTags('comment')
 @Controller()
 export class CommentController {
-  constructor(private readonly commentService: CommentService) {}
+  constructor(
+    private readonly reviewService: ReviewService,
+    private readonly commentService: CommentService,
+    private readonly commentLikeService: CommentLikeService,
+    private readonly commentLikeCheckService: CommentLikeCheckService,
+  ) {}
 
+  //댓글 uri에서 reviewIdx뺄지 검토
   @Get('/review/:reviewIdx/comment/all')
   @ApiOperation({ summary: '댓글 목록보기' })
   @ApiParam({ name: 'reviewIdx', type: 'number' })
@@ -39,9 +50,7 @@ export class CommentController {
   async getCommemtAllByReviewIdx(
     @Param('reviewIdx') reviewIdx: number,
   ): Promise<CommentEntity[]> {
-    const commentList = await this.commentService.getCommentAll(reviewIdx);
-
-    return commentList;
+    return await this.commentService.getCommentAll(reviewIdx);
   }
 
   @Post('/review/:reviewIdx/comment')
@@ -60,7 +69,7 @@ export class CommentController {
     @GetUser() loginUser: LoginUser,
   ): Promise<CommentEntity> {
     return await this.commentService.createComment(
-      loginUser,
+      loginUser.idx,
       reviewIdx,
       createCommentDto,
     );
@@ -80,13 +89,11 @@ export class CommentController {
   async updateComment(
     @Body() updateCommentDto: UpdateCommentDto,
     @GetUser() loginUser: LoginUser,
-  ): Promise<{ data: CommentEntity }> {
-    const commentEntity = await this.commentService.updateComment(
+  ): Promise<CommentEntity> {
+    return await this.commentService.updateComment(
+      loginUser.idx,
       updateCommentDto,
-      loginUser,
     );
-
-    return { data: commentEntity };
   }
 
   @Delete('/review/:reviewIdx/comment/:commentIdx')
@@ -103,13 +110,8 @@ export class CommentController {
   async deleteComment(
     @Param('commentIdx') commentIdx: number,
     @GetUser() loginUser: LoginUser,
-  ): Promise<{ data: CommentEntity }> {
-    const comment = await this.commentService.deleteComment(
-      commentIdx,
-      loginUser,
-    );
-
-    return { data: comment };
+  ): Promise<void> {
+    await this.commentService.deleteComment(loginUser.idx, commentIdx);
   }
 
   @Post('/review/:reviewIdx/comment/:commentIdx/like')
@@ -125,7 +127,17 @@ export class CommentController {
   @Exception(409, '현재상태와 요청 충돌')
   @Exception(500, '서버에러')
   @ApiResponse({ status: 200, description: '댓글 좋아요 성공시 200 반환' })
-  async likeComment() {}
+  async likeComment(
+    @GetUser() loginUser: LoginUser,
+    @Param('reviewIdx') reviewIdx: number,
+    @Param('commentIdx') commentIdx: number,
+  ): Promise<CommentLikeEntity> {
+    return await this.commentLikeService.likeComment(
+      loginUser.idx,
+      reviewIdx,
+      commentIdx,
+    );
+  }
 
   @Delete('/review/:reviewIdx/comment/:commentIdx/like')
   @UseGuards(AuthGuard)
@@ -139,5 +151,9 @@ export class CommentController {
   @Exception(409, '현재상태와 요청 충돌')
   @Exception(500, '서버에러')
   @ApiResponse({ status: 200, description: '댓글 좋아요 해제 성공시 200 반환' })
-  async unlikeComment() {}
+  async unlikeComment(
+    @GetUser() loginUser: LoginUser,
+    @Param('reviewIdx') reviewIdx: number,
+    @Param('commentIdx') commentIdx: number,
+  ): Promise<void> {}
 }

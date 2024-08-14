@@ -123,7 +123,6 @@ export class ReviewController {
     example: 1,
     description: '가져올 페이지, 기본값 1',
   })
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
   async getReviewPopular() {}
 
@@ -451,7 +450,6 @@ export class ReviewController {
     description: '가져올 페이지, 기본값 1',
   })
   @Exception(400, '유효하지않은 요청')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
   async getBookmarkedReviewByuserIdx(
     @GetUser() loginUser: LoginUser,

@@ -6,6 +6,7 @@ import { ReviewBlockCheckService } from './review-block-check.service';
 import { ReviewBookmarkCheckService } from './review-bookmark-check.service';
 import { ReviewLikeService } from './review-like.service';
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -13,6 +14,7 @@ import {
   Inject,
   Param,
   ParseIntPipe,
+  ParseUUIDPipe,
   Post,
   Put,
   Query,
@@ -260,10 +262,14 @@ export class ReviewController {
   @Exception(404, 'Not Found Page')
   @ApiResponse({ status: 200, type: ReviewSearchResponseDto })
   async getReviewWithSearch(
-    @Query('search', ParseStringPipe) search: string,
+    @Query('search') search: string,
     @Query('page') page: number,
     @Query('size') size: number,
   ): Promise<ReviewSearchResponseDto> {
+    if (search.length < 2) {
+      throw new BadRequestException('Bad Request: 검색어는 2글자이상');
+    }
+
     return await this.reviewService.getReviewWithSearch({
       search: search,
       size: size || 10,
@@ -283,7 +289,7 @@ export class ReviewController {
   @ApiResponse({ status: 201 })
   async likeReview(
     @GetUser() loginUser: LoginUser,
-    @Param('reviewIdx') reviewIdx: number,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
   ): Promise<void> {
     await this.reviewLikeService.likeReview(loginUser.idx, reviewIdx);
   }
@@ -300,7 +306,7 @@ export class ReviewController {
   @ApiResponse({ status: 200 })
   async unlikeReview(
     @GetUser() loginUser: LoginUser,
-    @Param('reviewIdx') reviewIdx: number,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
   ): Promise<void> {
     await this.reviewLikeService.unlikeReview(loginUser.idx, reviewIdx);
   }
@@ -317,7 +323,7 @@ export class ReviewController {
   @ApiResponse({ status: 201 })
   async bookmarkReview(
     @GetUser() loginUser: LoginUser,
-    @Param('reviewIdx') reviewIdx: number,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
   ): Promise<void> {
     await this.reviewBookmarkService.bookmarkReview(loginUser.idx, reviewIdx);
   }
@@ -334,7 +340,7 @@ export class ReviewController {
   @ApiResponse({ status: 200 })
   async unbookmarkReview(
     @GetUser() loginUser: LoginUser,
-    @Param('reviewIdx') reviewIdx: number,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
   ): Promise<void> {
     await this.reviewBookmarkService.unbookmarkReview(loginUser.idx, reviewIdx);
   }
@@ -351,7 +357,7 @@ export class ReviewController {
   @ApiResponse({ status: 201 })
   async shareReview(
     @GetUser() loginUser: LoginUser,
-    @Param('reviewIdx') reviewIdx: number,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
   ): Promise<void> {
     await this.reviewShareService.shareReview(loginUser.idx, reviewIdx);
   }
@@ -368,7 +374,7 @@ export class ReviewController {
   @ApiResponse({ status: 200 })
   async blockReview(
     @GetUser() loginUser: LoginUser,
-    @Param('reviewIdx') reviewIdx: number,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
   ): Promise<void> {
     await this.reviewBlockService.blockReview(loginUser.idx, reviewIdx);
   }
@@ -385,7 +391,7 @@ export class ReviewController {
   @ApiResponse({ status: 200 })
   async unblockReview(
     @GetUser() loginUser: LoginUser,
-    @Param('reviewIdx') reviewIdx: number,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
   ): Promise<void> {
     await this.reviewBlockService.unblockReview(loginUser.idx, reviewIdx);
   }
@@ -403,7 +409,7 @@ export class ReviewController {
   @ApiResponse({ status: 200 })
   async reportReview(
     @GetUser() loginUser: LoginUser,
-    @Param('reviewIdx') reviewIdx: number,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
   ): Promise<void> {
     await this.reviewReportService.reportReview(loginUser.idx, reviewIdx);
   }
@@ -424,7 +430,7 @@ export class ReviewController {
   @Exception(400, '유효하지않은 요청')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
   async getReviewAllByuserIdx(
-    @Param('userIdx') userIdx: string,
+    @Param('userIdx', ParseUUIDPipe) userIdx: string,
     @Query('page') page: number,
     @Query('size') size: number,
   ): Promise<ReviewPagerbleResponseDto> {
@@ -455,7 +461,7 @@ export class ReviewController {
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
   async getBookmarkedReviewByuserIdx(
     @GetUser() loginUser: LoginUser,
-    @Param('userIdx') userIdx: string,
+    @Param('userIdx', ParseUUIDPipe) userIdx: string,
     @Query('size') size: number,
     @Query('page') page: number,
   ): Promise<ReviewPagerbleResponseDto> {
@@ -508,7 +514,7 @@ export class ReviewController {
   @Exception(400, '유효하지않은 요청')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
   async getReviewCommented(
-    @Param('userIdx') userIdx: string,
+    @Param('userIdx', ParseUUIDPipe) userIdx: string,
     @Query('page') page: number,
     @Query('size') size: number,
   ): Promise<ReviewPagerbleResponseDto> {

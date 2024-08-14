@@ -23,13 +23,16 @@ export class CommentLikeService {
     reviewIdx: number,
     commentIdx: number,
   ): Promise<CommentLikeEntity> {
-    const review = await this.reviewService.getReviewWithIdx(reviewIdx);
+    const review = await this.reviewService.getReviewByIdx(reviewIdx);
 
     if (!review) {
       throw new NotFoundException('Not Found Review');
     }
 
-    const comment = await this.commentService.getComment(reviewIdx, commentIdx);
+    const comment = await this.commentService.getCommentByIdx(
+      reviewIdx,
+      commentIdx,
+    );
 
     if (!comment) {
       throw new NotFoundException('Not Found Comment');
@@ -59,13 +62,16 @@ export class CommentLikeService {
     reviewIdx: number,
     commentIdx: number,
   ): Promise<void> {
-    const review = await this.reviewService.getReviewWithIdx(reviewIdx);
+    const review = await this.reviewService.getReviewByIdx(reviewIdx);
 
     if (!review) {
       throw new NotFoundException('Not Found Review');
     }
 
-    const comment = await this.commentService.getComment(reviewIdx, commentIdx);
+    const comment = await this.commentService.getCommentByIdx(
+      reviewIdx,
+      commentIdx,
+    );
 
     if (!comment) {
       throw new NotFoundException('Not Found Comment');

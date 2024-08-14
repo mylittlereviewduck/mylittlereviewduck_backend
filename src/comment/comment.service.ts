@@ -16,7 +16,6 @@ export class CommentService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly reviewService: ReviewService,
-    private readonly commentService: CommentService,
     private readonly commentLikeCheckService: CommentLikeCheckService,
   ) {}
 
@@ -103,10 +102,7 @@ export class CommentService {
     commentIdx: number,
     updateCommentDto: UpdateCommentDto,
   ): Promise<CommentEntity> {
-    const comment = await this.commentService.getCommentByIdx(
-      reviewIdx,
-      commentIdx,
-    );
+    const comment = await this.getCommentByIdx(reviewIdx, commentIdx);
 
     if (!comment) {
       throw new NotFoundException('Not Found Comment');
@@ -122,7 +118,7 @@ export class CommentService {
         updatedAt: new Date(),
       },
       where: {
-        idx: updateCommentDto.commentIdx,
+        idx: commentIdx,
       },
     });
 
@@ -134,10 +130,7 @@ export class CommentService {
     reviewIdx: number,
     commentIdx: number,
   ): Promise<CommentEntity> {
-    const comment = await this.commentService.getCommentByIdx(
-      reviewIdx,
-      commentIdx,
-    );
+    const comment = await this.getCommentByIdx(reviewIdx, commentIdx);
 
     if (!comment) {
       throw new NotFoundException('Not Found Comment');

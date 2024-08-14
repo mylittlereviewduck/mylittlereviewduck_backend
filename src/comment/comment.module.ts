@@ -10,5 +10,6 @@ import { ReviewModule } from 'src/review/review.module';
   imports: [PrismaModule, ReviewModule],
   controllers: [CommentController],
   providers: [CommentService, CommentLikeService, CommentLikeCheckService],
+  exports: [CommentService],
 })
 export class CommentModule {}

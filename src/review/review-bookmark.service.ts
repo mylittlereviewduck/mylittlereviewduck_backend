@@ -14,7 +14,7 @@ export class ReviewBookmarkService {
   ) {}
 
   async bookmarkReview(userIdx: string, reviewIdx: number): Promise<void> {
-    const review = await this.reviewService.getReviewWithIdx(reviewIdx);
+    const review = await this.reviewService.getReviewByIdx(reviewIdx);
 
     if (!review) {
       throw new NotFoundException('Not Found Review');
@@ -41,7 +41,7 @@ export class ReviewBookmarkService {
   }
 
   async unbookmarkReview(userIdx: string, reviewIdx: number): Promise<void> {
-    const review = await this.reviewService.getReviewWithIdx(reviewIdx);
+    const review = await this.reviewService.getReviewByIdx(reviewIdx);
 
     if (!review) {
       throw new NotFoundException('Not Found Review');

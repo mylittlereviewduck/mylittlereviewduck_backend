@@ -10,6 +10,7 @@ import {
   NotFoundException,
   Param,
   ParseIntPipe,
+  ParseUUIDPipe,
   Post,
   Put,
   Query,
@@ -193,7 +194,7 @@ export class UserController {
   @Exception(400, '유효하지않은 요청')
   @ApiResponse({ status: 200, type: UserEntity })
   async getUserInfo(
-    @Param('userIdx') userIdx: string,
+    @Param('userIdx', ParseUUIDPipe) userIdx: string,
     @GetUser() loginUser: LoginUser,
   ): Promise<UserEntity> {
     const user = await this.userService.getUser({
@@ -241,7 +242,7 @@ export class UserController {
   @Exception(400, '유효하지않은 요청')
   @ApiResponse({ status: 200, type: UserPagerbleResponseDto })
   async getFollowingAll(
-    @Param('userIdx') userIdx: string,
+    @Param('userIdx', ParseUUIDPipe) userIdx: string,
     @Query('page') page: number,
     @Query('size') size: number,
     @GetUser() loginUser: LoginUser,
@@ -277,7 +278,7 @@ export class UserController {
   @Exception(400, '유효하지않은 요청')
   @ApiResponse({ status: 200, type: UserPagerbleResponseDto })
   async getFollowerAll(
-    @Param('userIdx') userIdx: string,
+    @Param('userIdx', ParseUUIDPipe) userIdx: string,
     @Query('page') page: number,
     @Query('size') size: number,
     @GetUser() loginUser: LoginUser,
@@ -350,7 +351,7 @@ export class UserController {
   })
   async blockUser(
     @GetUser() loginUser: LoginUser,
-    @Param('userIdx') userIdx: string,
+    @Param('userIdx', ParseUUIDPipe) userIdx: string,
   ): Promise<UserBlockEntity> {
     return await this.userBlockService.blockUser(loginUser.idx, userIdx);
   }
@@ -365,7 +366,7 @@ export class UserController {
   @ApiResponse({ status: 200, description: '차단해제 성공 200 반환' })
   async UnblockUser(
     @GetUser() loginUser: LoginUser,
-    @Param('userIdx') userIdx: string,
+    @Param('userIdx', ParseUUIDPipe) userIdx: string,
   ): Promise<void> {
     await this.userBlockService.unBlockUser(loginUser.idx, userIdx);
   }
@@ -374,7 +375,6 @@ export class UserController {
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '차단한 유저목록보기' })
   @ApiBearerAuth()
-  @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
   @ApiQuery({ name: 'page', example: 1, description: '페이지, 기본값 1' })
   @ApiQuery({
     name: 'size',

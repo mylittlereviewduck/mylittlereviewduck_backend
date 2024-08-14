@@ -5,7 +5,7 @@ export class CommentEntity {
   idx: number;
 
   @ApiProperty({ example: 1, description: '유저 idx' })
-  userIdx: number;
+  userIdx: string;
 
   @ApiProperty({ example: 1, description: '리뷰 idx' })
   reviewIdx: number;
@@ -14,7 +14,7 @@ export class CommentEntity {
     example: 1,
     description: '대댓글일 경우 존재, 대댓글이 달린 댓글 idx',
   })
-  commentIdx?: number | null;
+  commentIdx?: number | undefined;
 
   @ApiProperty({ example: '댓글내용입니다', description: '댓글 내용' })
   content: string;
@@ -28,6 +28,9 @@ export class CommentEntity {
   @ApiProperty({ example: true, description: '차단여부' })
   isMyBlock: boolean = false;
 
+  @ApiProperty({ example: true, description: '좋아요여부' })
+  isMyLike: boolean = false;
+
   constructor(data) {
     this.idx = data.idx;
     this.userIdx = data.userIdx;
@@ -36,5 +39,6 @@ export class CommentEntity {
     this.content = data.content;
     this.createdAt = data.createdAt;
     this.isMyBlock = data.isMyBlock || false;
+    this.isMyLike = data.isMyLike || false;
   }
 }

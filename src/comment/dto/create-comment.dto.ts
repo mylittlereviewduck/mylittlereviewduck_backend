@@ -4,7 +4,7 @@ import { IsNumber } from 'class-validator';
 export class CreateCommentDto {
   @ApiProperty({
     example: 1,
-    description: '대댓글일경우 댓글idx',
+    description: '대댓글일경우존재, 댓글idx',
     required: false,
     nullable: true,
   })

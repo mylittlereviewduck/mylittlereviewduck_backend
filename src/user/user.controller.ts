@@ -7,8 +7,10 @@ import {
   Delete,
   Get,
   HttpCode,
+  NotFoundException,
   Param,
   ParseIntPipe,
+  ParseUUIDPipe,
   Post,
   Put,
   Query,
@@ -42,7 +44,7 @@ import { AwsService } from 'src/common/aws/aws.service';
 import { OptionalAuthGuard } from 'src/auth/optional-auth.guard';
 import { UserPagerbleResponseDto } from './dto/response/user-pagerble-response.dto';
 import { FollowCheckService } from './follow-check.service';
-import { UserBlockEntity } from './entity/Block.entity';
+import { UserBlockEntity } from './entity/UserBlock.entity';
 
 @Controller('user')
 @ApiTags('user')
@@ -61,7 +63,6 @@ export class UserController {
   @ApiOperation({ summary: '이메일 중복검사' })
   @Exception(400, '유효하지않은 요청')
   @Exception(409, '이메일 중복')
-  @Exception(500, '서버 에러')
   @ApiResponse({
     status: 200,
     description: '사용가능한 이메일일경우 상태코드 200반환',
@@ -81,16 +82,16 @@ export class UserController {
   @ApiOperation({ summary: '닉네임 중복검사' })
   @Exception(400, '유효하지않은 요청')
   @Exception(409, '중복된 닉네임')
-  @Exception(500, '서버 에러')
   @ApiResponse({
     status: 200,
     description: '사용가능한 닉네임일경우 상태코드 200반환',
   })
-  async checkNicknameDuplicate(@Body() checkDto: CheckNicknameDuplicateDto) {
+  async checkNicknameDuplicate(
+    @Body() checkDto: CheckNicknameDuplicateDto,
+  ): Promise<void> {
     const user = await this.userService.getUser({
       nickname: checkDto.nickname,
     });
-    console.log('user: ', user);
 
     if (user) {
       throw new ConflictException('Duplicated Nickname');
@@ -101,9 +102,8 @@ export class UserController {
   @ApiOperation({ summary: '회원가입' })
   @Exception(400, '유효하지않은 요청')
   @Exception(409, '유효하지않은 닉네임/이메일이거나 이미가입된 회원입니다')
-  @Exception(500, '서버에러')
-  @ApiResponse({ status: 201 })
-  async signUp(@Body() createUserDto: CreateUserDto) {
+  @ApiResponse({ status: 201, type: UserEntity })
+  async signUp(@Body() createUserDto: CreateUserDto): Promise<UserEntity> {
     return await this.userService.createUser(createUserDto);
   }
 
@@ -112,9 +112,8 @@ export class UserController {
   @ApiOperation({ summary: '내정보보기' })
   @ApiBearerAuth()
   @Exception(401, '권한 없음')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: UserEntity })
-  async GetMyInfo(@GetUser() loginUser: LoginUser) {
+  async GetMyInfo(@GetUser() loginUser: LoginUser): Promise<UserEntity> {
     return await this.userService.getUser({ idx: loginUser.idx });
   }
 
@@ -124,12 +123,16 @@ export class UserController {
   @ApiBearerAuth()
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200 })
   async updateMyInfo(
     @GetUser() loginUser: LoginUser,
     @Body() updateMyInfoDto: UpdateMyInfoDto,
-  ): Promise<void> {}
+  ): Promise<void> {
+    await this.userService.updateMyinfo(loginUser.idx, {
+      nickname: updateMyInfoDto.nickname,
+      profile: updateMyInfoDto.profile,
+    });
+  }
 
   // @Post('profile-img')
   // @UseGuards(AuthGuard)
@@ -137,7 +140,6 @@ export class UserController {
   // @ApiBearerAuth()
   // @Exception(400, '유효하지않은 요청')
   // @Exception(401, '권한 없음')
-  // @Exception(500, '서버 에러')
   // async uploadProfileImg(@GetUser() loginUser: LoginUser) {}
 
   @Put('profile-img')
@@ -161,7 +163,6 @@ export class UserController {
   })
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200 })
   async updateMyProfileImg(
     @GetUser() loginUser: LoginUser,
@@ -169,7 +170,7 @@ export class UserController {
   ): Promise<void> {
     const imgPath = await this.awsService.uploadImageToS3(image);
 
-    await this.userService.updateMyProfileImg(loginUser, imgPath);
+    await this.userService.updateMyProfileImg(loginUser.idx, imgPath);
   }
 
   @Delete('profile-img')
@@ -177,13 +178,13 @@ export class UserController {
   @ApiOperation({ summary: '프로필 이미지 삭제' })
   @ApiBearerAuth()
   @Exception(401, '권한 없음')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200 })
   async deleteMyProfileImg(@GetUser() loginUser: LoginUser): Promise<void> {
-    await this.userService.deleteMyProfileImg(loginUser);
+    await this.userService.deleteMyProfileImg(loginUser.idx);
   }
 
-  @Get('/info/:userIdx')
+  @Get('/:userIdx/info')
+  @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '유저 정보 보기' })
   @ApiParam({
     name: 'userIdx',
@@ -191,17 +192,42 @@ export class UserController {
     example: 1,
   })
   @Exception(400, '유효하지않은 요청')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: UserEntity })
-  async getUserInfo() {}
+  async getUserInfo(
+    @Param('userIdx', ParseUUIDPipe) userIdx: string,
+    @GetUser() loginUser: LoginUser,
+  ): Promise<UserEntity> {
+    const user = await this.userService.getUser({
+      idx: userIdx,
+    });
+
+    if (!user) {
+      throw new NotFoundException('Not Found User');
+    }
+
+    if (!loginUser) {
+      return user;
+    }
+
+    await this.followCheckService.isFollow(loginUser.idx, [user]);
+
+    await this.userBlockCheckService.isBlocked(loginUser.idx, [user]);
+
+    //유저신고, 유저신고여부확인기능은 논의하고 추가
+    // await this.userReportCheckService.isReported(loginUser.idx, [user]);
+
+    return user;
+  }
 
   @Delete('')
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: '유저 탈퇴하기' })
   @ApiBearerAuth()
   @Exception(401, '권한 없음')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200 })
-  async deleteUser(): Promise<void> {}
+  async deleteUser(@GetUser() loginUser: LoginUser): Promise<void> {
+    await this.userService.deleteUser(loginUser.idx);
+  }
 
   @Get('/:userIdx/following/all')
   @UseGuards(OptionalAuthGuard)
@@ -214,16 +240,15 @@ export class UserController {
     description: '페이지크기, 기본값 10',
   })
   @Exception(400, '유효하지않은 요청')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: UserPagerbleResponseDto })
   async getFollowingAll(
-    @Param('userIdx') accountIdx: number,
+    @Param('userIdx', ParseUUIDPipe) userIdx: string,
     @Query('page') page: number,
     @Query('size') size: number,
     @GetUser() loginUser: LoginUser,
   ): Promise<UserPagerbleResponseDto> {
     const userPagerbleResponseDto = await this.followService.getFollowingList({
-      accountIdx: accountIdx,
+      userIdx: userIdx,
       page: page || 1,
       size: size || 20,
     });
@@ -251,16 +276,15 @@ export class UserController {
     description: '페이지크기, 기본값 10',
   })
   @Exception(400, '유효하지않은 요청')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: UserPagerbleResponseDto })
   async getFollowerAll(
-    @Param('userIdx') accountIdx: number,
+    @Param('userIdx', ParseUUIDPipe) userIdx: string,
     @Query('page') page: number,
     @Query('size') size: number,
     @GetUser() loginUser: LoginUser,
   ): Promise<UserPagerbleResponseDto> {
     const userPagerbleResponseDto = await this.followService.getFollowerList({
-      accountIdx: accountIdx,
+      userIdx: userIdx,
       page: page || 1,
       size: size || 20,
     });
@@ -285,7 +309,6 @@ export class UserController {
   @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
-  @Exception(500, '서버 에러')
   @ApiResponse({
     status: 200,
     description: '팔로우 성공 200 반환',
@@ -293,9 +316,9 @@ export class UserController {
   })
   async followUser(
     @GetUser() loginUser: LoginUser,
-    @Param('userIdx', ParseIntPipe) accountIdx: number,
+    @Param('userIdx', ParseIntPipe) userIdx: string,
   ): Promise<FollowEntity> {
-    return await this.followService.followUser(loginUser.idx, accountIdx);
+    return await this.followService.followUser(loginUser.idx, userIdx);
   }
 
   @Delete('/:userIdx/follow')
@@ -305,13 +328,12 @@ export class UserController {
   @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, description: '언팔로우 성공 200 반환' })
   async UnfollowUser(
     @GetUser() loginUser: LoginUser,
-    @Param('userIdx', ParseIntPipe) accountIdx: number,
+    @Param('userIdx', ParseIntPipe) userIdx: string,
   ): Promise<void> {
-    await this.followService.unfollowUser(loginUser.idx, accountIdx);
+    await this.followService.unfollowUser(loginUser.idx, userIdx);
   }
 
   @Post(':userIdx/block')
@@ -322,13 +344,16 @@ export class UserController {
   @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
-  @Exception(500, '서버 에러')
-  @ApiResponse({ status: 200, description: '차단 성공 200 반환' })
+  @ApiResponse({
+    status: 200,
+    type: UserBlockEntity,
+    description: '차단 성공 200 반환',
+  })
   async blockUser(
     @GetUser() loginUser: LoginUser,
-    @Param('userIdx') accountIdx: number,
+    @Param('userIdx', ParseUUIDPipe) userIdx: string,
   ): Promise<UserBlockEntity> {
-    return await this.userBlockService.blockUser(loginUser.idx, accountIdx);
+    return await this.userBlockService.blockUser(loginUser.idx, userIdx);
   }
 
   @Delete(':userIdx/block')
@@ -338,20 +363,18 @@ export class UserController {
   @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, description: '차단해제 성공 200 반환' })
   async UnblockUser(
     @GetUser() loginUser: LoginUser,
-    @Param('userIdx') accountIdx: number,
+    @Param('userIdx', ParseUUIDPipe) userIdx: string,
   ): Promise<void> {
-    await this.userBlockService.unBlockUser(loginUser.idx, accountIdx);
+    await this.userBlockService.unBlockUser(loginUser.idx, userIdx);
   }
 
   @Get('blocked-user/all')
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '차단한 유저목록보기' })
   @ApiBearerAuth()
-  @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
   @ApiQuery({ name: 'page', example: 1, description: '페이지, 기본값 1' })
   @ApiQuery({
     name: 'size',
@@ -359,17 +382,25 @@ export class UserController {
     description: '페이지크기, 기본값 10',
   })
   @Exception(401, '권한 없음')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: UserPagerbleResponseDto })
   async getBlockedUserAll(
     @GetUser() loginUser: LoginUser,
     @Query('size') size: number,
     @Query('page') page: number,
   ): Promise<UserPagerbleResponseDto> {
-    await this.userBlockService.getBlockedUserAll(loginUser.idx, {
-      page: page || 1,
-      size: size || 20,
-    });
-    return;
+    const userPagerbleResponseDto =
+      await this.userBlockService.getBlockedUserAll(loginUser.idx, {
+        page: page || 1,
+        size: size || 10,
+      });
+
+    await this.followCheckService.isFollow(
+      loginUser.idx,
+      userPagerbleResponseDto.users,
+    );
+
+    //신고여부 신고기능 논의후 추가
+
+    return userPagerbleResponseDto;
   }
 }

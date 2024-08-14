@@ -1,10 +1,13 @@
+import { CommentLikeService } from './comment-like.service';
 import { CommentService } from './comment.service';
 import {
   Body,
   Controller,
   Delete,
   Get,
+  NotFoundException,
   Param,
+  ParseIntPipe,
   Post,
   Put,
   UseGuards,
@@ -23,25 +26,29 @@ import { UpdateCommentDto } from './dto/update-comment.dto';
 import { GetUser } from 'src/auth/get-user.decorator';
 import { LoginUser } from 'src/auth/model/login-user.model';
 import { AuthGuard } from 'src/auth/auth.guard';
+import { CommentLikeCheckService } from './comment-like-check.service';
+import { CommentLikeEntity } from './entity/CommentLike.entity';
 
 @ApiTags('comment')
 @Controller()
 export class CommentController {
-  constructor(private readonly commentService: CommentService) {}
+  constructor(
+    private readonly commentService: CommentService,
+    private readonly commentLikeService: CommentLikeService,
+    private readonly commentLikeCheckService: CommentLikeCheckService,
+  ) {}
 
+  //댓글 uri에서 reviewIdx뺄지 검토
   @Get('/review/:reviewIdx/comment/all')
   @ApiOperation({ summary: '댓글 목록보기' })
   @ApiParam({ name: 'reviewIdx', type: 'number' })
   @Exception(400, '유효하지않은 요청')
   @Exception(404, '해당 리소스 없음')
-  @Exception(500, '서버에러')
   @ApiResponse({ status: 200, type: CommentEntity, isArray: true })
   async getCommemtAllByReviewIdx(
-    @Param('reviewIdx') reviewIdx: number,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
   ): Promise<CommentEntity[]> {
-    const commentList = await this.commentService.getCommentAll(reviewIdx);
-
-    return commentList;
+    return await this.commentService.getCommentAll(reviewIdx);
   }
 
   @Post('/review/:reviewIdx/comment')
@@ -52,15 +59,14 @@ export class CommentController {
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 없음')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 201, type: CommentEntity })
   async createComment(
     @Body() createCommentDto: CreateCommentDto,
-    @Param('reviewIdx') reviewIdx: number,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
     @GetUser() loginUser: LoginUser,
   ): Promise<CommentEntity> {
     return await this.commentService.createComment(
-      loginUser,
+      loginUser.idx,
       reviewIdx,
       createCommentDto,
     );
@@ -75,18 +81,19 @@ export class CommentController {
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 없음')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200 })
   async updateComment(
-    @Body() updateCommentDto: UpdateCommentDto,
     @GetUser() loginUser: LoginUser,
-  ): Promise<{ data: CommentEntity }> {
-    const commentEntity = await this.commentService.updateComment(
+    @Body() updateCommentDto: UpdateCommentDto,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
+    @Param('commentIdx', ParseIntPipe) commentIdx: number,
+  ): Promise<CommentEntity> {
+    return await this.commentService.updateComment(
+      loginUser.idx,
+      reviewIdx,
+      commentIdx,
       updateCommentDto,
-      loginUser,
     );
-
-    return { data: commentEntity };
   }
 
   @Delete('/review/:reviewIdx/comment/:commentIdx')
@@ -98,18 +105,17 @@ export class CommentController {
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 없음')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200 })
   async deleteComment(
-    @Param('commentIdx') commentIdx: number,
     @GetUser() loginUser: LoginUser,
-  ): Promise<{ data: CommentEntity }> {
-    const comment = await this.commentService.deleteComment(
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
+    @Param('commentIdx', ParseIntPipe) commentIdx: number,
+  ): Promise<void> {
+    await this.commentService.deleteComment(
+      loginUser.idx,
+      reviewIdx,
       commentIdx,
-      loginUser,
     );
-
-    return { data: comment };
   }
 
   @Post('/review/:reviewIdx/comment/:commentIdx/like')
@@ -123,9 +129,18 @@ export class CommentController {
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 없음')
   @Exception(409, '현재상태와 요청 충돌')
-  @Exception(500, '서버에러')
   @ApiResponse({ status: 200, description: '댓글 좋아요 성공시 200 반환' })
-  async likeComment() {}
+  async likeComment(
+    @GetUser() loginUser: LoginUser,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
+    @Param('commentIdx', ParseIntPipe) commentIdx: number,
+  ): Promise<CommentLikeEntity> {
+    return await this.commentLikeService.likeComment(
+      loginUser.idx,
+      reviewIdx,
+      commentIdx,
+    );
+  }
 
   @Delete('/review/:reviewIdx/comment/:commentIdx/like')
   @UseGuards(AuthGuard)
@@ -137,7 +152,16 @@ export class CommentController {
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 없음')
   @Exception(409, '현재상태와 요청 충돌')
-  @Exception(500, '서버에러')
   @ApiResponse({ status: 200, description: '댓글 좋아요 해제 성공시 200 반환' })
-  async unlikeComment() {}
+  async unlikeComment(
+    @GetUser() loginUser: LoginUser,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
+    @Param('commentIdx', ParseIntPipe) commentIdx: number,
+  ): Promise<void> {
+    return await this.commentLikeService.unlikeComment(
+      loginUser.idx,
+      reviewIdx,
+      commentIdx,
+    );
+  }
 }

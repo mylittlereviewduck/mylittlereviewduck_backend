@@ -7,12 +7,12 @@ export class ReviewShareCheckService {
   constructor(private readonly prismaService: PrismaService) {}
 
   async isReviewShared(
-    accountIdx: number,
+    userIdx: string,
     reviews: ReviewEntity[],
   ): Promise<ReviewEntity[]> {
     const sqlResult = await this.prismaService.reviewShareTb.findMany({
       where: {
-        accountIdx: accountIdx,
+        accountIdx: userIdx,
         reviewIdx: {
           in: reviews.map((review) => review.idx),
         },

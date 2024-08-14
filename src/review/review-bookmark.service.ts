@@ -4,17 +4,17 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { ReviewService } from './review.service';
 
 @Injectable()
 export class ReviewBookmarkService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly reviewService: ReviewService,
+  ) {}
 
-  async bookmarkReview(accountIdx: number, reviewIdx: number): Promise<void> {
-    const review = await this.prismaService.reviewTb.findFirst({
-      where: {
-        idx: reviewIdx,
-      },
-    });
+  async bookmarkReview(userIdx: string, reviewIdx: number): Promise<void> {
+    const review = await this.reviewService.getReviewByIdx(reviewIdx);
 
     if (!review) {
       throw new NotFoundException('Not Found Review');
@@ -23,7 +23,7 @@ export class ReviewBookmarkService {
     const existingBookmark =
       await this.prismaService.reviewBookmarkTb.findFirst({
         where: {
-          accountIdx: accountIdx,
+          accountIdx: userIdx,
           reviewIdx: reviewIdx,
         },
       });
@@ -34,18 +34,14 @@ export class ReviewBookmarkService {
 
     await this.prismaService.reviewBookmarkTb.create({
       data: {
-        accountIdx: accountIdx,
+        accountIdx: userIdx,
         reviewIdx: reviewIdx,
       },
     });
   }
 
-  async unbookmarkReview(accountIdx: number, reviewIdx: number): Promise<void> {
-    const review = await this.prismaService.reviewTb.findFirst({
-      where: {
-        idx: reviewIdx,
-      },
-    });
+  async unbookmarkReview(userIdx: string, reviewIdx: number): Promise<void> {
+    const review = await this.reviewService.getReviewByIdx(reviewIdx);
 
     if (!review) {
       throw new NotFoundException('Not Found Review');
@@ -54,7 +50,7 @@ export class ReviewBookmarkService {
     const existingBookmark =
       await this.prismaService.reviewBookmarkTb.findFirst({
         where: {
-          accountIdx: accountIdx,
+          accountIdx: userIdx,
           reviewIdx: reviewIdx,
         },
       });
@@ -65,8 +61,8 @@ export class ReviewBookmarkService {
 
     await this.prismaService.reviewBookmarkTb.delete({
       where: {
-        accountIdx_reviewIdx: {
-          accountIdx: accountIdx,
+        reviewIdx_accountIdx: {
+          accountIdx: userIdx,
           reviewIdx: reviewIdx,
         },
       },

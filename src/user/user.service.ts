@@ -8,10 +8,8 @@ import { PrismaService } from '../../src/prisma/prisma.service';
 import { CreateUserOAtuhDto } from './dto/create-user-oauth.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateMyInfoDto } from './dto/update-my-info.dto';
-import { UpdateMyProfileImgDto } from './dto/update-my-profile-img.dto';
 import { GetUserDto } from './dto/get-user.dto';
 import { UserWithProvider } from './model/user-with-provider.model';
-import { LoginUser } from 'src/auth/model/login-user.model';
 import { AccountTb, ProfileImgTb } from '@prisma/client';
 
 @Injectable()
@@ -54,12 +52,10 @@ export class UserService {
     });
   }
 
-  // 유저생성
-  // 인증된이메일인지 확인
-  // 이메일 중복인지확인
-  // 유저추가
   //이메일인증 확인 로직추가
-  async createUser(createUserDto: CreateUserDto): Promise<void> {
+  async createUser(createUserDto: CreateUserDto): Promise<UserEntity> {
+    let newUser;
+    let newProfileImg;
     await this.prismaService.$transaction(async (tx) => {
       const emailDuplicatedUser = await tx.accountTb.findFirst({
         where: {
@@ -71,10 +67,38 @@ export class UserService {
         throw new ConflictException('Email Duplicated');
       }
 
-      await tx.accountTb.create({
-        data: { email: createUserDto.email, pw: createUserDto.pw },
+      newUser = await tx.accountTb.create({
+        data: {
+          email: createUserDto.email,
+          pw: createUserDto.pw,
+        },
+      });
+
+      newUser = await tx.accountTb.update({
+        data: {
+          nickname: newUser.serialNumber + '번째 오리',
+        },
+        where: {
+          idx: newUser.idx,
+        },
+      });
+
+      newProfileImg = await tx.profileImgTb.create({
+        data: {
+          accountIdx: newUser.idx,
+        },
       });
     });
+
+    const userData = {
+      ...newUser,
+      profileImg: newProfileImg.imgPath,
+      followingCount: 0,
+      followerCount: 0,
+      reportCount: 0,
+    };
+
+    return new UserEntity(userData);
   }
 
   async createUserWithOAuth(
@@ -100,84 +124,92 @@ export class UserService {
     });
 
     const userEntityData = {
-      idx: userData.idx,
-      email: userData.email,
-      profile: userData.profile,
+      ...userData,
       profileImg: profileImgData.imgPath,
-      nickname: userData.nickname,
+      followingCount: 0,
+      followerCount: 0,
+      reportCount: 0,
     };
 
-    return;
-    // return new UserEntity(userEntityData);
+    return new UserEntity(userEntityData);
   }
 
   async updateMyinfo(
-    loginUser: LoginUser,
+    userIdx: string,
     updateMyInfoDto: UpdateMyInfoDto,
   ): Promise<void> {
-    const duplicatedNickname = await this.getUser({
+    const user = await this.getUser({
+      idx: userIdx,
+    });
+
+    if (!user) {
+      throw new NotFoundException('Not Found User');
+    }
+
+    const duplicatedUser = await this.getUser({
       nickname: updateMyInfoDto.nickname,
     });
 
-    if (duplicatedNickname) {
+    if (duplicatedUser) {
       throw new ConflictException('Duplicated Nickname');
     }
 
-    await this.prismaService.accountTb.update({
+    const updatedUser = await this.prismaService.accountTb.update({
       data: {
         nickname: updateMyInfoDto.nickname,
         profile: updateMyInfoDto.profile,
       },
       where: {
-        idx: loginUser.idx,
+        idx: userIdx,
       },
     });
+
+    console.log(updatedUser);
+
+    return;
   }
 
-  async updateMyProfileImg(
-    loginUser: LoginUser,
-    imgPath: string,
-  ): Promise<void> {
+  async updateMyProfileImg(userIdx: string, imgPath: string): Promise<void> {
     await this.prismaService.$transaction([
       this.prismaService.profileImgTb.updateMany({
         data: {
           deletedAt: new Date(),
         },
         where: {
-          accountIdx: loginUser.idx,
+          accountIdx: userIdx,
         },
       }),
 
       this.prismaService.profileImgTb.create({
         data: {
-          accountIdx: loginUser.idx,
+          accountIdx: userIdx,
           imgPath: imgPath,
         },
       }),
     ]);
   }
 
-  async deleteMyProfileImg(loginUser: LoginUser): Promise<void> {
+  async deleteMyProfileImg(userIdx: string): Promise<void> {
     await this.prismaService.$transaction([
       this.prismaService.profileImgTb.updateMany({
         data: {
           deletedAt: new Date(),
         },
         where: {
-          accountIdx: loginUser.idx,
+          accountIdx: userIdx,
         },
       }),
 
       this.prismaService.profileImgTb.create({
         data: {
-          accountIdx: loginUser.idx,
+          accountIdx: userIdx,
         },
       }),
     ]);
   }
 
   async getUserWithProvider(
-    userIdx: number,
+    userIdx: string,
     provider: string,
   ): Promise<UserWithProvider> {
     const userData = await this.prismaService.accountTb.findUnique({
@@ -194,10 +226,14 @@ export class UserService {
     return new UserWithProvider(userData);
   }
 
-  async deleteUser(userIdx: number): Promise<void> {
+  async deleteUser(userIdx: string): Promise<void> {
     await this.prismaService.accountTb.update({
-      where: { idx: userIdx },
-      data: { deletedAt: new Date() },
+      where: {
+        idx: userIdx,
+      },
+      data: {
+        deletedAt: new Date(),
+      },
     });
   }
 }

@@ -6,12 +6,15 @@ import { ReviewBlockCheckService } from './review-block-check.service';
 import { ReviewBookmarkCheckService } from './review-bookmark-check.service';
 import { ReviewLikeService } from './review-like.service';
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
   Get,
   Inject,
   Param,
+  ParseIntPipe,
+  ParseUUIDPipe,
   Post,
   Put,
   Query,
@@ -41,6 +44,7 @@ import { ReviewPagerbleResponseDto } from './dto/response/review-pagerble-respon
 import { ReviewLikeCheckService } from './review-like-check.service';
 import { ReviewBookmarkService } from './review-bookmark.service';
 import { ReviewReportService } from './review-report.service';
+import { ParseStringPipe } from '../common/parseString.pipe';
 
 @Controller('')
 @ApiTags('review')
@@ -73,12 +77,11 @@ export class ReviewController {
     example: 1,
     description: '가져올 페이지, 기본값 1',
   })
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
   async getReviewAll(
     @GetUser() loginUser: LoginUser,
-    @Query('page') page: number,
-    @Query('size') size: number,
+    @Query('page', ParseIntPipe) page: number,
+    @Query('size', ParseIntPipe) size: number,
   ): Promise<ReviewPagerbleResponseDto> {
     const reviewPagerbleResponseDto = await this.reviewService.getReviews({
       size: size || 10,
@@ -124,7 +127,6 @@ export class ReviewController {
     example: 1,
     description: '가져올 페이지, 기본값 1',
   })
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
   async getReviewPopular() {}
 
@@ -134,7 +136,6 @@ export class ReviewController {
   @ApiBearerAuth()
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
-  @Exception(500, '서버 에러')
   @ApiResponse({
     status: 201,
     type: ReviewEntity,
@@ -155,13 +156,14 @@ export class ReviewController {
   @ApiBearerAuth()
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한없음')
-  @Exception(500, '서버 에러')
   @ApiResponse({
     status: 201,
     description: '리뷰 이미지 업로드 성공시 201반환',
     type: UploadReviewImageResponseDto,
   })
   async uploadReviewImage(): Promise<{ imgPath: string }> {
+    //리뷰당 이미지 6개 제한
+
     // await this.awsService.uploadImageToS3(, )
 
     return;
@@ -174,13 +176,12 @@ export class ReviewController {
   @ApiParam({ name: 'reviewIdx', type: 'number', example: 1 })
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: ReviewEntity })
   async getReviewWithIdx(
     @GetUser() loginUser: LoginUser,
-    @Param('reviewIdx') reviewIdx: number,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
   ): Promise<ReviewEntity> {
-    const reviewEntity = await this.reviewService.getReviewWithIdx(reviewIdx);
+    const reviewEntity = await this.reviewService.getReviewByIdx(reviewIdx);
 
     if (!loginUser) {
       return reviewEntity;
@@ -213,11 +214,10 @@ export class ReviewController {
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 없음')
-  @Exception(500, '서버에러')
   @ApiResponse({ status: 200, type: ReviewEntity })
   async updateReview(
     @GetUser() loginUser: LoginUser,
-    @Param('reviewIdx') reviewIdx: number,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
     @Body() updateReviewDto: UpdateReviewDto,
   ): Promise<ReviewEntity> {
     return await this.reviewService.updateReview(
@@ -234,11 +234,10 @@ export class ReviewController {
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 없음')
-  @Exception(500, '서버에러')
   @ApiResponse({ status: 200 })
   async deleteReview(
     @GetUser() loginUser: LoginUser,
-    @Param('reviewIdx') reviewIdx: number,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
   ): Promise<ReviewEntity> {
     const reviewEntity = await this.reviewService.deleteReview(
       loginUser,
@@ -261,13 +260,16 @@ export class ReviewController {
     description: '가져올 페이지, 기본값 1',
   })
   @Exception(404, 'Not Found Page')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: ReviewSearchResponseDto })
   async getReviewWithSearch(
     @Query('search') search: string,
     @Query('page') page: number,
     @Query('size') size: number,
   ): Promise<ReviewSearchResponseDto> {
+    if (search.length < 2) {
+      throw new BadRequestException('Bad Request: 검색어는 2글자이상');
+    }
+
     return await this.reviewService.getReviewWithSearch({
       search: search,
       size: size || 10,
@@ -284,11 +286,10 @@ export class ReviewController {
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 찾을수 없음')
   @Exception(409, '현재상태와 요청 충돌')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 201 })
   async likeReview(
     @GetUser() loginUser: LoginUser,
-    @Param('reviewIdx') reviewIdx: number,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
   ): Promise<void> {
     await this.reviewLikeService.likeReview(loginUser.idx, reviewIdx);
   }
@@ -302,11 +303,10 @@ export class ReviewController {
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 찾을수 없음')
   @Exception(409, '현재상태와 요청 충돌')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200 })
   async unlikeReview(
     @GetUser() loginUser: LoginUser,
-    @Param('reviewIdx') reviewIdx: number,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
   ): Promise<void> {
     await this.reviewLikeService.unlikeReview(loginUser.idx, reviewIdx);
   }
@@ -320,11 +320,10 @@ export class ReviewController {
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 찾을수 없음')
   @Exception(409, '현재상태와 요청 충돌')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 201 })
   async bookmarkReview(
     @GetUser() loginUser: LoginUser,
-    @Param('reviewIdx') reviewIdx: number,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
   ): Promise<void> {
     await this.reviewBookmarkService.bookmarkReview(loginUser.idx, reviewIdx);
   }
@@ -338,11 +337,10 @@ export class ReviewController {
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 찾을수 없음')
   @Exception(409, '현재상태와 요청 충돌')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200 })
   async unbookmarkReview(
     @GetUser() loginUser: LoginUser,
-    @Param('reviewIdx') reviewIdx: number,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
   ): Promise<void> {
     await this.reviewBookmarkService.unbookmarkReview(loginUser.idx, reviewIdx);
   }
@@ -356,11 +354,10 @@ export class ReviewController {
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 찾을수 없음')
   @Exception(409, '현재상태와 요청 충돌')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 201 })
   async shareReview(
     @GetUser() loginUser: LoginUser,
-    @Param('reviewIdx') reviewIdx: number,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
   ): Promise<void> {
     await this.reviewShareService.shareReview(loginUser.idx, reviewIdx);
   }
@@ -374,11 +371,10 @@ export class ReviewController {
   @Exception(401, '권한없음')
   @Exception(404, '해당리소스 찾을 수 없음')
   @Exception(409, '현재상태와 요청 충돌')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200 })
   async blockReview(
     @GetUser() loginUser: LoginUser,
-    @Param('reviewIdx') reviewIdx: number,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
   ): Promise<void> {
     await this.reviewBlockService.blockReview(loginUser.idx, reviewIdx);
   }
@@ -392,11 +388,10 @@ export class ReviewController {
   @Exception(401, '권한없음')
   @Exception(404, '해당리소스 찾을 수 없음')
   @Exception(409, '현재상태와 요청 충돌')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200 })
   async unblockReview(
     @GetUser() loginUser: LoginUser,
-    @Param('reviewIdx') reviewIdx: number,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
   ): Promise<void> {
     await this.reviewBlockService.unblockReview(loginUser.idx, reviewIdx);
   }
@@ -411,11 +406,10 @@ export class ReviewController {
   @Exception(401, '권한없음')
   @Exception(404, '해당리소스 찾을 수 없음')
   @Exception(409, '현재상태와 요청 충돌')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200 })
   async reportReview(
     @GetUser() loginUser: LoginUser,
-    @Param('reviewIdx') reviewIdx: number,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
   ): Promise<void> {
     await this.reviewReportService.reportReview(loginUser.idx, reviewIdx);
   }
@@ -434,10 +428,9 @@ export class ReviewController {
     description: '가져올 페이지, 기본값 1',
   })
   @Exception(400, '유효하지않은 요청')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
   async getReviewAllByuserIdx(
-    @Param('userIdx') accountIdx: number,
+    @Param('userIdx', ParseUUIDPipe) userIdx: string,
     @Query('page') page: number,
     @Query('size') size: number,
   ): Promise<ReviewPagerbleResponseDto> {
@@ -446,7 +439,7 @@ export class ReviewController {
         page: page || 1,
         size: size || 10,
       },
-      accountIdx,
+      userIdx,
     );
   }
 
@@ -465,16 +458,15 @@ export class ReviewController {
     description: '가져올 페이지, 기본값 1',
   })
   @Exception(400, '유효하지않은 요청')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
   async getBookmarkedReviewByuserIdx(
     @GetUser() loginUser: LoginUser,
-    @Param('userIdx') accountIdx: number,
+    @Param('userIdx', ParseUUIDPipe) userIdx: string,
     @Query('size') size: number,
     @Query('page') page: number,
   ): Promise<ReviewPagerbleResponseDto> {
     const reviewPagerbleResponseDto =
-      await this.reviewService.getBookmarkedReviewAll(accountIdx, {
+      await this.reviewService.getBookmarkedReviewAll(userIdx, {
         size: size || 10,
         page: page || 1,
       });
@@ -520,10 +512,9 @@ export class ReviewController {
     description: '가져올 페이지, 기본값 1',
   })
   @Exception(400, '유효하지않은 요청')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
   async getReviewCommented(
-    @Param('userIdx') accountIdx: number,
+    @Param('userIdx', ParseUUIDPipe) userIdx: string,
     @Query('page') page: number,
     @Query('size') size: number,
   ): Promise<ReviewPagerbleResponseDto> {
@@ -532,7 +523,7 @@ export class ReviewController {
         size: size || 10,
         page: page || 1,
       },
-      accountIdx,
+      userIdx,
     );
   }
 }

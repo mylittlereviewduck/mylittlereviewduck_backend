@@ -1,4 +1,4 @@
 export class BookmarkEntity {
-  userIdx: number;
+  accountIdx: number;
   reviewIdx: number;
 }

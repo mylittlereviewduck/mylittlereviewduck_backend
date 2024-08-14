@@ -44,7 +44,6 @@ export class AuthController {
   @Post('/email/send-verification')
   @ApiOperation({ summary: '이메일 인증 전송' })
   @Exception(400, '유효하지않은 요청')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: SendEmailVerificationResponseDto })
   async sendEmailWithVerification(
     @Body() sendEmailVerificationDto: SendEmailVerificationDto,
@@ -59,7 +58,6 @@ export class AuthController {
   @HttpCode(200)
   @Exception(400, '유효하지않은 요청')
   @Exception(409, '이미 인증된 이메일')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: VerifyEmailResponseDto })
   async verifyEmail(@Body() verifyEmailDto: VerifyEmailDto): Promise<boolean> {
     //true면 이메일 db저장
@@ -71,7 +69,6 @@ export class AuthController {
   @HttpCode(200)
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: LoginResponseDto })
   async authUser(@Body() loginDto: LoginDto): Promise<LoginResponseDto> {
     const accessToken = await this.authService.login(loginDto);
@@ -81,7 +78,6 @@ export class AuthController {
   @Get('/:provider')
   @ApiOperation({ summary: '소셜로그인' })
   @Exception(404, '지원하지않는 서비스')
-  @Exception(500, '서버에러')
   async socialAuth(
     @Req() req: Request,
     @Res() res: Response,

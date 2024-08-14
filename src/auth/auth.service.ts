@@ -83,9 +83,13 @@ export class AuthService {
       where: {
         email: verifyEmailDto.email,
         code: verifyEmailDto.code,
-        createdAt: { gte: new Date(Date.now() - 5 * 60 * 1000) },
+        createdAt: {
+          gte: new Date(Date.now() - 5 * 60 * 1000),
+        },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
 
     if (!verifiedEmail) {

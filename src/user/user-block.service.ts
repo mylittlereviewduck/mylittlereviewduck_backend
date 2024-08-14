@@ -1,54 +1,70 @@
 import { UserPagerbleDto } from './dto/user-pagerble.dto';
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { UserBlockEntity } from './entity/Block.entity';
 import { UserEntity } from './entity/User.entity';
-import { UserBlockPagerble } from './dto/user-block-pagerble';
 import { UserBlockCheckService } from './user-block-check.service';
+import { UserService } from './user.service';
+import { UserBlockEntity } from './entity/UserBlock.entity';
+import { UserPagerbleResponseDto } from './dto/response/user-pagerble-response.dto';
 
 @Injectable()
 export class UserBlockService {
   constructor(
     private readonly prismaService: PrismaService,
+    private readonly userService: UserService,
     private readonly userBlockCheckService: UserBlockCheckService,
   ) {}
 
   async blockUser(
-    accountIdx: number,
-    toUserIdx: number,
+    userIdx: string,
+    toUserIdx: string,
   ): Promise<UserBlockEntity> {
-    const existingBlock = await this.userBlockCheckService.isBlocked(
-      accountIdx,
-      toUserIdx,
-    );
+    const user = await this.userService.getUser({ idx: toUserIdx });
 
-    if (existingBlock) {
+    if (!user) {
+      throw new NotFoundException('Not Found User');
+    }
+
+    const existingBlock = await this.userBlockCheckService.isBlocked(userIdx, [
+      user,
+    ]);
+
+    if (user.isBlocked == true) {
       throw new ConflictException('Already Conflict');
     }
 
-    const userBlockEntity = await this.prismaService.accountBlockTb.create({
+    const userBlockData = await this.prismaService.accountBlockTb.create({
       data: {
-        blockerIdx: accountIdx,
+        blockerIdx: userIdx,
         blockedIdx: toUserIdx,
       },
     });
 
-    return userBlockEntity;
+    return new UserBlockEntity(userBlockData);
   }
 
-  async unBlockUser(accountIdx: number, toUserIdx: number): Promise<void> {
-    const existingBlock = await this.userBlockCheckService.isBlocked(
-      accountIdx,
-      toUserIdx,
-    );
+  async unBlockUser(userIdx: string, toUserIdx: string): Promise<void> {
+    const user = await this.userService.getUser({ idx: toUserIdx });
 
-    if (!existingBlock) {
+    if (!user) {
+      throw new NotFoundException('Not Found User');
+    }
+
+    const existingBlock = await this.userBlockCheckService.isBlocked(userIdx, [
+      user,
+    ]);
+
+    if (user.isBlocked == false) {
       throw new ConflictException('Already Not Conflict');
     }
 
     await this.prismaService.accountBlockTb.deleteMany({
       where: {
-        blockerIdx: accountIdx,
+        blockerIdx: userIdx,
         blockedIdx: toUserIdx,
       },
     });
@@ -56,23 +72,30 @@ export class UserBlockService {
     return;
   }
 
-  // 차단기능을 결국 어떻게 적용할건지?(차단한 유저의 댓글, 차단한 유저의 리뷰 => 유저엔티티에 isBlocked를 추가해야겠지?)
   async getBlockedUserAll(
-    userIdx: number,
+    userIdx: string,
     userPagerbleDto: UserPagerbleDto,
-  ): Promise<UserEntity[]> {
+  ): Promise<UserPagerbleResponseDto> {
+    const totalCount = await this.prismaService.accountBlockTb.count({
+      where: {
+        blockerIdx: userIdx,
+      },
+    });
+
     const blockedList = await this.prismaService.accountBlockTb.findMany({
       include: {
         blocked: {
-          select: {
-            idx: true,
-            email: true,
-            nickname: true,
-            profile: true,
-
+          include: {
             profileImgTb: {
               select: {
                 imgPath: true,
+              },
+            },
+            _count: {
+              select: {
+                follower: true,
+                followee: true,
+                reviewReportTb: true,
               },
             },
           },
@@ -87,16 +110,18 @@ export class UserBlockService {
 
     let blockedUserList = blockedList.map((elem) => {
       return {
-        idx: elem.blocked.idx,
-        email: elem.blocked.email,
-        nickname: elem.blocked.nickname,
-        profile: elem.blocked.profile,
+        ...elem.blocked,
         profileImg: elem.blocked.profileImgTb[0].imgPath,
-        isFollowing: false,
+        followingCount: elem.blocked._count.follower,
+        followerCount: elem.blocked._count.followee,
+        reportCount: elem.blocked._count.reviewReportTb,
+        isBlocked: true,
       };
     });
 
-    return;
-    // return blockedUserList.map((elem) => new UserEntity(elem));
+    return {
+      totalPage: Math.ceil(totalCount / userPagerbleDto.size),
+      users: blockedUserList.map((elem) => new UserEntity(elem)),
+    };
   }
 }

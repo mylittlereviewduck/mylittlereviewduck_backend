@@ -4,29 +4,29 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { ReviewService } from './review.service';
 
 @Injectable()
 export class ReviewBlockService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly reviewService: ReviewService,
+  ) {}
 
-  async blockReview(accountIdx: number, reviewIdx: number): Promise<void> {
-    const review = await this.prismaService.reviewTb.findFirst({
-      where: {
-        idx: reviewIdx,
-      },
-    });
+  async blockReview(userIdx: string, reviewIdx: number): Promise<void> {
+    const review = await this.reviewService.getReviewByIdx(reviewIdx);
 
     if (!review) {
       throw new NotFoundException('Not Found Review');
     }
 
-    if (review.accountIdx == accountIdx) {
+    if (review.accountIdx == userIdx) {
       throw new ConflictException("Can't block my review");
     }
 
     const existingBlock = await this.prismaService.reviewBlockTb.findFirst({
       where: {
-        accountIdx: accountIdx,
+        accountIdx: userIdx,
         reviewIdx: reviewIdx,
       },
     });
@@ -37,30 +37,26 @@ export class ReviewBlockService {
 
     await this.prismaService.reviewBlockTb.create({
       data: {
-        accountIdx: accountIdx,
+        accountIdx: userIdx,
         reviewIdx: reviewIdx,
       },
     });
   }
 
-  async unblockReview(accountIdx: number, reviewIdx: number): Promise<void> {
-    const review = await this.prismaService.reviewTb.findFirst({
-      where: {
-        idx: reviewIdx,
-      },
-    });
+  async unblockReview(userIdx: string, reviewIdx: number): Promise<void> {
+    const review = await this.reviewService.getReviewByIdx(reviewIdx);
 
     if (!review) {
       throw new NotFoundException('Not Found Review');
     }
 
-    if (review.accountIdx == accountIdx) {
+    if (review.accountIdx == userIdx) {
       throw new ConflictException("Can't block my review");
     }
 
     const existingBlock = await this.prismaService.reviewBlockTb.findFirst({
       where: {
-        accountIdx: accountIdx,
+        accountIdx: userIdx,
         reviewIdx: reviewIdx,
       },
     });
@@ -71,8 +67,8 @@ export class ReviewBlockService {
 
     await this.prismaService.reviewBlockTb.delete({
       where: {
-        accountIdx_reviewIdx: {
-          accountIdx: accountIdx,
+        reviewIdx_accountIdx: {
+          accountIdx: userIdx,
           reviewIdx: reviewIdx,
         },
       },

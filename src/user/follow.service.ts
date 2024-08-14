@@ -20,19 +20,14 @@ export class FollowService {
     private readonly userService: UserService,
   ) {}
 
-  async followUser(
-    accountIdx: number,
-    toAccountIdx: number,
-  ): Promise<FollowEntity> {
-    //존재하는 유저인지 적용
-
-    const user = await this.userService.getUser({ idx: toAccountIdx });
+  async followUser(userIdx: string, toUserIdx: string): Promise<FollowEntity> {
+    const user = await this.userService.getUser({ idx: toUserIdx });
 
     if (!user) {
       throw new NotFoundException('Not Found User');
     }
 
-    const existingFollow = await this.followCheckService.isFollow(accountIdx, [
+    const existingFollow = await this.followCheckService.isFollow(userIdx, [
       user,
     ]);
 
@@ -42,22 +37,22 @@ export class FollowService {
 
     const followEntity = await this.prismaService.followTb.create({
       data: {
-        followerIdx: accountIdx,
-        followeeIdx: toAccountIdx,
+        followerIdx: userIdx,
+        followeeIdx: toUserIdx,
       },
     });
 
     return followEntity;
   }
 
-  async unfollowUser(accountIdx: number, toAccountIdx: number): Promise<void> {
-    const user = await this.userService.getUser({ idx: toAccountIdx });
+  async unfollowUser(userIdx: string, toUserIdx: string): Promise<void> {
+    const user = await this.userService.getUser({ idx: toUserIdx });
 
     if (!user) {
       throw new NotFoundException('Not Found User');
     }
 
-    const existingFollow = await this.followCheckService.isFollow(accountIdx, [
+    const existingFollow = await this.followCheckService.isFollow(userIdx, [
       user,
     ]);
 
@@ -67,8 +62,8 @@ export class FollowService {
 
     await this.prismaService.followTb.deleteMany({
       where: {
-        followerIdx: accountIdx,
-        followeeIdx: toAccountIdx,
+        followerIdx: userIdx,
+        followeeIdx: toUserIdx,
       },
     });
   }
@@ -78,7 +73,7 @@ export class FollowService {
   ): Promise<UserPagerbleResponseDto> {
     const getFollowingCount = await this.prismaService.followTb.count({
       where: {
-        followerIdx: userPagerbleDto.accountIdx,
+        followerIdx: userPagerbleDto.userIdx,
       },
     });
 
@@ -95,7 +90,7 @@ export class FollowService {
         },
       },
       where: {
-        followerIdx: userPagerbleDto.accountIdx,
+        followerIdx: userPagerbleDto.userIdx,
       },
       skip: (userPagerbleDto.page - 1) * userPagerbleDto.size,
       take: userPagerbleDto.size,
@@ -118,13 +113,12 @@ export class FollowService {
     };
   }
 
-  //팔로워리스트 가져오기
   async getFollowerList(
     userPagerbleDto: UserPagerbleDto,
   ): Promise<UserPagerbleResponseDto> {
     const getFollowerCount = await this.prismaService.followTb.count({
       where: {
-        followeeIdx: userPagerbleDto.accountIdx,
+        followeeIdx: userPagerbleDto.userIdx,
       },
     });
 
@@ -141,7 +135,7 @@ export class FollowService {
         },
       },
       where: {
-        followeeIdx: userPagerbleDto.accountIdx,
+        followeeIdx: userPagerbleDto.userIdx,
       },
       skip: (userPagerbleDto.page - 1) * userPagerbleDto.size,
       take: userPagerbleDto.size,

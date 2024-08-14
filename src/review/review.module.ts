@@ -37,6 +37,6 @@ import { AwsModule } from 'src/common/aws/aws.module';
     ReviewBlockCheckService,
     ReviewReportService,
   ],
-  exports: [],
+  exports: [ReviewService],
 })
 export class ReviewModule {}

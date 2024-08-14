@@ -7,12 +7,12 @@ export class ReviewBlockCheckService {
   constructor(private readonly prismaService: PrismaService) {}
 
   async isReviewBlocked(
-    accountIdx: number,
+    userIdx: string,
     reviews: ReviewEntity[],
   ): Promise<ReviewEntity[]> {
     const sqlResult = await this.prismaService.reviewBlockTb.findMany({
       where: {
-        accountIdx: accountIdx,
+        accountIdx: userIdx,
         reviewIdx: {
           in: reviews.map((review) => review.idx),
         },

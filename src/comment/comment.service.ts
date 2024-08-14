@@ -9,11 +9,14 @@ import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { LoginUser } from 'src/auth/model/login-user.model';
+import { ReviewService } from 'src/review/review.service';
 
 @Injectable()
 export class CommentService {
   constructor(
     private readonly prismaService: PrismaService,
+    private readonly reviewService: ReviewService,
+    private readonly commentService: CommentService,
     private readonly commentLikeCheckService: CommentLikeCheckService,
   ) {}
 
@@ -21,6 +24,12 @@ export class CommentService {
     reviewIdx: number,
     commentIdx: number,
   ): Promise<CommentEntity> {
+    const review = await this.reviewService.getReviewWithIdx(reviewIdx);
+
+    if (!review) {
+      throw new NotFoundException('Not Found Review');
+    }
+
     const comment = await this.prismaService.commentTb.findUnique({
       where: {
         idx: commentIdx,
@@ -37,11 +46,16 @@ export class CommentService {
       userIdx: comment.accountIdx,
     };
 
-    // return;
     return new CommentEntity(commentData);
   }
 
   async getCommentAll(reviewIdx: number): Promise<CommentEntity[]> {
+    const review = await this.reviewService.getReviewWithIdx(reviewIdx);
+
+    if (!review) {
+      throw new NotFoundException('Not Found Review');
+    }
+
     const commentData = await this.prismaService.commentTb.findMany({
       include: {
         accountTb: true,
@@ -65,9 +79,7 @@ export class CommentService {
     reviewIdx: number,
     createCommentDto: CreateCommentDto,
   ): Promise<CommentEntity> {
-    const review = await this.prismaService.reviewTb.findUnique({
-      where: { idx: reviewIdx },
-    });
+    const review = await this.reviewService.getReviewWithIdx(reviewIdx);
 
     if (!review) {
       throw new NotFoundException('Not Found Review');
@@ -87,19 +99,17 @@ export class CommentService {
 
   async updateComment(
     userIdx: string,
+    reviewIdx: number,
+    commentIdx: number,
     updateCommentDto: UpdateCommentDto,
   ): Promise<CommentEntity> {
-    const comment = await this.prismaService.commentTb.findUnique({
-      where: {
-        idx: updateCommentDto.commentIdx,
-      },
-    });
+    const comment = await this.commentService.getComment(reviewIdx, commentIdx);
 
     if (!comment) {
       throw new NotFoundException('Not Found Comment');
     }
 
-    if (comment.accountIdx !== userIdx) {
+    if (comment.userIdx !== userIdx) {
       throw new UnauthorizedException('Unauthorized User');
     }
 
@@ -117,20 +127,17 @@ export class CommentService {
   }
 
   async deleteComment(
-    commentIdx: number,
     userIdx: string,
+    reviewIdx: number,
+    commentIdx: number,
   ): Promise<CommentEntity> {
-    const comment = await this.prismaService.commentTb.findUnique({
-      where: {
-        idx: commentIdx,
-      },
-    });
+    const comment = await this.commentService.getComment(reviewIdx, commentIdx);
 
     if (!comment) {
       throw new NotFoundException('Not Found Comment');
     }
 
-    if (comment.accountIdx !== userIdx) {
+    if (comment.userIdx !== userIdx) {
       throw new UnauthorizedException('Unauthorized');
     }
 

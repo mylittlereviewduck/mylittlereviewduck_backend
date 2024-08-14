@@ -5,7 +5,7 @@ export class CommentEntity {
   idx: number;
 
   @ApiProperty({ example: 1, description: '유저 idx' })
-  userIdx: number;
+  userIdx: string;
 
   @ApiProperty({ example: 1, description: '리뷰 idx' })
   reviewIdx: number;

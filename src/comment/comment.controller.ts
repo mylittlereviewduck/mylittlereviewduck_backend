@@ -7,6 +7,7 @@ import {
   Get,
   NotFoundException,
   Param,
+  ParseIntPipe,
   Post,
   Put,
   UseGuards,
@@ -45,7 +46,7 @@ export class CommentController {
   @Exception(404, '해당 리소스 없음')
   @ApiResponse({ status: 200, type: CommentEntity, isArray: true })
   async getCommemtAllByReviewIdx(
-    @Param('reviewIdx') reviewIdx: number,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
   ): Promise<CommentEntity[]> {
     return await this.commentService.getCommentAll(reviewIdx);
   }
@@ -61,7 +62,7 @@ export class CommentController {
   @ApiResponse({ status: 201, type: CommentEntity })
   async createComment(
     @Body() createCommentDto: CreateCommentDto,
-    @Param('reviewIdx') reviewIdx: number,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
     @GetUser() loginUser: LoginUser,
   ): Promise<CommentEntity> {
     return await this.commentService.createComment(
@@ -82,11 +83,15 @@ export class CommentController {
   @Exception(404, '해당 리소스 없음')
   @ApiResponse({ status: 200 })
   async updateComment(
-    @Body() updateCommentDto: UpdateCommentDto,
     @GetUser() loginUser: LoginUser,
+    @Body() updateCommentDto: UpdateCommentDto,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
+    @Param('commentIdx', ParseIntPipe) commentIdx: number,
   ): Promise<CommentEntity> {
     return await this.commentService.updateComment(
       loginUser.idx,
+      reviewIdx,
+      commentIdx,
       updateCommentDto,
     );
   }
@@ -102,10 +107,15 @@ export class CommentController {
   @Exception(404, '해당 리소스 없음')
   @ApiResponse({ status: 200 })
   async deleteComment(
-    @Param('commentIdx') commentIdx: number,
     @GetUser() loginUser: LoginUser,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
+    @Param('commentIdx', ParseIntPipe) commentIdx: number,
   ): Promise<void> {
-    await this.commentService.deleteComment(commentIdx, loginUser.idx);
+    await this.commentService.deleteComment(
+      loginUser.idx,
+      reviewIdx,
+      commentIdx,
+    );
   }
 
   @Post('/review/:reviewIdx/comment/:commentIdx/like')
@@ -122,8 +132,8 @@ export class CommentController {
   @ApiResponse({ status: 200, description: '댓글 좋아요 성공시 200 반환' })
   async likeComment(
     @GetUser() loginUser: LoginUser,
-    @Param('reviewIdx') reviewIdx: number,
-    @Param('commentIdx') commentIdx: number,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
+    @Param('commentIdx', ParseIntPipe) commentIdx: number,
   ): Promise<CommentLikeEntity> {
     return await this.commentLikeService.likeComment(
       loginUser.idx,
@@ -145,8 +155,8 @@ export class CommentController {
   @ApiResponse({ status: 200, description: '댓글 좋아요 해제 성공시 200 반환' })
   async unlikeComment(
     @GetUser() loginUser: LoginUser,
-    @Param('reviewIdx') reviewIdx: number,
-    @Param('commentIdx') commentIdx: number,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
+    @Param('commentIdx', ParseIntPipe) commentIdx: number,
   ): Promise<void> {
     return await this.commentLikeService.unlikeComment(
       loginUser.idx,

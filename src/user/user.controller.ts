@@ -62,7 +62,6 @@ export class UserController {
   @ApiOperation({ summary: '이메일 중복검사' })
   @Exception(400, '유효하지않은 요청')
   @Exception(409, '이메일 중복')
-  @Exception(500, '서버 에러')
   @ApiResponse({
     status: 200,
     description: '사용가능한 이메일일경우 상태코드 200반환',
@@ -82,7 +81,6 @@ export class UserController {
   @ApiOperation({ summary: '닉네임 중복검사' })
   @Exception(400, '유효하지않은 요청')
   @Exception(409, '중복된 닉네임')
-  @Exception(500, '서버 에러')
   @ApiResponse({
     status: 200,
     description: '사용가능한 닉네임일경우 상태코드 200반환',
@@ -103,7 +101,6 @@ export class UserController {
   @ApiOperation({ summary: '회원가입' })
   @Exception(400, '유효하지않은 요청')
   @Exception(409, '유효하지않은 닉네임/이메일이거나 이미가입된 회원입니다')
-  @Exception(500, '서버에러')
   @ApiResponse({ status: 201, type: UserEntity })
   async signUp(@Body() createUserDto: CreateUserDto): Promise<UserEntity> {
     return await this.userService.createUser(createUserDto);
@@ -114,7 +111,6 @@ export class UserController {
   @ApiOperation({ summary: '내정보보기' })
   @ApiBearerAuth()
   @Exception(401, '권한 없음')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: UserEntity })
   async GetMyInfo(@GetUser() loginUser: LoginUser): Promise<UserEntity> {
     return await this.userService.getUser({ idx: loginUser.idx });
@@ -126,7 +122,6 @@ export class UserController {
   @ApiBearerAuth()
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200 })
   async updateMyInfo(
     @GetUser() loginUser: LoginUser,
@@ -144,7 +139,6 @@ export class UserController {
   // @ApiBearerAuth()
   // @Exception(400, '유효하지않은 요청')
   // @Exception(401, '권한 없음')
-  // @Exception(500, '서버 에러')
   // async uploadProfileImg(@GetUser() loginUser: LoginUser) {}
 
   @Put('profile-img')
@@ -168,7 +162,6 @@ export class UserController {
   })
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200 })
   async updateMyProfileImg(
     @GetUser() loginUser: LoginUser,
@@ -184,7 +177,6 @@ export class UserController {
   @ApiOperation({ summary: '프로필 이미지 삭제' })
   @ApiBearerAuth()
   @Exception(401, '권한 없음')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200 })
   async deleteMyProfileImg(@GetUser() loginUser: LoginUser): Promise<void> {
     await this.userService.deleteMyProfileImg(loginUser.idx);
@@ -199,7 +191,6 @@ export class UserController {
     example: 1,
   })
   @Exception(400, '유효하지않은 요청')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: UserEntity })
   async getUserInfo(
     @Param('userIdx') userIdx: string,
@@ -232,7 +223,6 @@ export class UserController {
   @ApiOperation({ summary: '유저 탈퇴하기' })
   @ApiBearerAuth()
   @Exception(401, '권한 없음')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200 })
   async deleteUser(@GetUser() loginUser: LoginUser): Promise<void> {
     await this.userService.deleteUser(loginUser.idx);
@@ -249,7 +239,6 @@ export class UserController {
     description: '페이지크기, 기본값 10',
   })
   @Exception(400, '유효하지않은 요청')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: UserPagerbleResponseDto })
   async getFollowingAll(
     @Param('userIdx') userIdx: string,
@@ -286,7 +275,6 @@ export class UserController {
     description: '페이지크기, 기본값 10',
   })
   @Exception(400, '유효하지않은 요청')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: UserPagerbleResponseDto })
   async getFollowerAll(
     @Param('userIdx') userIdx: string,
@@ -320,7 +308,6 @@ export class UserController {
   @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
-  @Exception(500, '서버 에러')
   @ApiResponse({
     status: 200,
     description: '팔로우 성공 200 반환',
@@ -340,7 +327,6 @@ export class UserController {
   @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, description: '언팔로우 성공 200 반환' })
   async UnfollowUser(
     @GetUser() loginUser: LoginUser,
@@ -357,7 +343,6 @@ export class UserController {
   @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
-  @Exception(500, '서버 에러')
   @ApiResponse({
     status: 200,
     type: UserBlockEntity,
@@ -377,7 +362,6 @@ export class UserController {
   @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, description: '차단해제 성공 200 반환' })
   async UnblockUser(
     @GetUser() loginUser: LoginUser,
@@ -398,7 +382,6 @@ export class UserController {
     description: '페이지크기, 기본값 10',
   })
   @Exception(401, '권한 없음')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: UserPagerbleResponseDto })
   async getBlockedUserAll(
     @GetUser() loginUser: LoginUser,

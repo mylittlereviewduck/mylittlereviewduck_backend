@@ -11,7 +11,7 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .addBearerAuth()
     .setTitle('today-review')
-    .setDescription('today-review api description')
+    .setDescription('모든 서버 에러는 상태코드 500으로 반환됩니다.')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

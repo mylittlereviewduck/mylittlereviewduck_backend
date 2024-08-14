@@ -43,7 +43,6 @@ export class CommentController {
   @ApiParam({ name: 'reviewIdx', type: 'number' })
   @Exception(400, '유효하지않은 요청')
   @Exception(404, '해당 리소스 없음')
-  @Exception(500, '서버에러')
   @ApiResponse({ status: 200, type: CommentEntity, isArray: true })
   async getCommemtAllByReviewIdx(
     @Param('reviewIdx') reviewIdx: number,
@@ -59,7 +58,6 @@ export class CommentController {
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 없음')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 201, type: CommentEntity })
   async createComment(
     @Body() createCommentDto: CreateCommentDto,
@@ -82,7 +80,6 @@ export class CommentController {
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 없음')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200 })
   async updateComment(
     @Body() updateCommentDto: UpdateCommentDto,
@@ -103,7 +100,6 @@ export class CommentController {
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 없음')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200 })
   async deleteComment(
     @Param('commentIdx') commentIdx: number,
@@ -123,7 +119,6 @@ export class CommentController {
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 없음')
   @Exception(409, '현재상태와 요청 충돌')
-  @Exception(500, '서버에러')
   @ApiResponse({ status: 200, description: '댓글 좋아요 성공시 200 반환' })
   async likeComment(
     @GetUser() loginUser: LoginUser,
@@ -147,7 +142,6 @@ export class CommentController {
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 없음')
   @Exception(409, '현재상태와 요청 충돌')
-  @Exception(500, '서버에러')
   @ApiResponse({ status: 200, description: '댓글 좋아요 해제 성공시 200 반환' })
   async unlikeComment(
     @GetUser() loginUser: LoginUser,

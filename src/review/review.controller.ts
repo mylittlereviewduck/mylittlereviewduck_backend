@@ -73,7 +73,6 @@ export class ReviewController {
     example: 1,
     description: '가져올 페이지, 기본값 1',
   })
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
   async getReviewAll(
     @GetUser() loginUser: LoginUser,
@@ -134,7 +133,6 @@ export class ReviewController {
   @ApiBearerAuth()
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
-  @Exception(500, '서버 에러')
   @ApiResponse({
     status: 201,
     type: ReviewEntity,
@@ -155,7 +153,6 @@ export class ReviewController {
   @ApiBearerAuth()
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한없음')
-  @Exception(500, '서버 에러')
   @ApiResponse({
     status: 201,
     description: '리뷰 이미지 업로드 성공시 201반환',
@@ -176,7 +173,6 @@ export class ReviewController {
   @ApiParam({ name: 'reviewIdx', type: 'number', example: 1 })
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: ReviewEntity })
   async getReviewWithIdx(
     @GetUser() loginUser: LoginUser,
@@ -215,7 +211,6 @@ export class ReviewController {
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 없음')
-  @Exception(500, '서버에러')
   @ApiResponse({ status: 200, type: ReviewEntity })
   async updateReview(
     @GetUser() loginUser: LoginUser,
@@ -236,7 +231,6 @@ export class ReviewController {
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 없음')
-  @Exception(500, '서버에러')
   @ApiResponse({ status: 200 })
   async deleteReview(
     @GetUser() loginUser: LoginUser,
@@ -263,7 +257,6 @@ export class ReviewController {
     description: '가져올 페이지, 기본값 1',
   })
   @Exception(404, 'Not Found Page')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: ReviewSearchResponseDto })
   async getReviewWithSearch(
     @Query('search') search: string,
@@ -286,7 +279,6 @@ export class ReviewController {
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 찾을수 없음')
   @Exception(409, '현재상태와 요청 충돌')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 201 })
   async likeReview(
     @GetUser() loginUser: LoginUser,
@@ -304,7 +296,6 @@ export class ReviewController {
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 찾을수 없음')
   @Exception(409, '현재상태와 요청 충돌')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200 })
   async unlikeReview(
     @GetUser() loginUser: LoginUser,
@@ -322,7 +313,6 @@ export class ReviewController {
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 찾을수 없음')
   @Exception(409, '현재상태와 요청 충돌')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 201 })
   async bookmarkReview(
     @GetUser() loginUser: LoginUser,
@@ -340,7 +330,6 @@ export class ReviewController {
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 찾을수 없음')
   @Exception(409, '현재상태와 요청 충돌')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200 })
   async unbookmarkReview(
     @GetUser() loginUser: LoginUser,
@@ -358,7 +347,6 @@ export class ReviewController {
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 찾을수 없음')
   @Exception(409, '현재상태와 요청 충돌')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 201 })
   async shareReview(
     @GetUser() loginUser: LoginUser,
@@ -376,7 +364,6 @@ export class ReviewController {
   @Exception(401, '권한없음')
   @Exception(404, '해당리소스 찾을 수 없음')
   @Exception(409, '현재상태와 요청 충돌')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200 })
   async blockReview(
     @GetUser() loginUser: LoginUser,
@@ -394,7 +381,6 @@ export class ReviewController {
   @Exception(401, '권한없음')
   @Exception(404, '해당리소스 찾을 수 없음')
   @Exception(409, '현재상태와 요청 충돌')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200 })
   async unblockReview(
     @GetUser() loginUser: LoginUser,
@@ -413,7 +399,6 @@ export class ReviewController {
   @Exception(401, '권한없음')
   @Exception(404, '해당리소스 찾을 수 없음')
   @Exception(409, '현재상태와 요청 충돌')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200 })
   async reportReview(
     @GetUser() loginUser: LoginUser,
@@ -436,7 +421,6 @@ export class ReviewController {
     description: '가져올 페이지, 기본값 1',
   })
   @Exception(400, '유효하지않은 요청')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
   async getReviewAllByuserIdx(
     @Param('userIdx') userIdx: string,
@@ -522,7 +506,6 @@ export class ReviewController {
     description: '가져올 페이지, 기본값 1',
   })
   @Exception(400, '유효하지않은 요청')
-  @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
   async getReviewCommented(
     @Param('userIdx') userIdx: string,

@@ -23,5 +23,6 @@ export class CreateReviewDto {
     description: '태그, 리스트 형태',
   })
   @IsArray()
+  @IsString({ each: true })
   tags: string[];
 }

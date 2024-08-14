@@ -12,6 +12,7 @@ import {
   Get,
   Inject,
   Param,
+  ParseIntPipe,
   Post,
   Put,
   Query,
@@ -41,6 +42,7 @@ import { ReviewPagerbleResponseDto } from './dto/response/review-pagerble-respon
 import { ReviewLikeCheckService } from './review-like-check.service';
 import { ReviewBookmarkService } from './review-bookmark.service';
 import { ReviewReportService } from './review-report.service';
+import { ParseStringPipe } from '../common/parseString.pipe';
 
 @Controller('')
 @ApiTags('review')
@@ -76,8 +78,8 @@ export class ReviewController {
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
   async getReviewAll(
     @GetUser() loginUser: LoginUser,
-    @Query('page') page: number,
-    @Query('size') size: number,
+    @Query('page', ParseIntPipe) page: number,
+    @Query('size', ParseIntPipe) size: number,
   ): Promise<ReviewPagerbleResponseDto> {
     const reviewPagerbleResponseDto = await this.reviewService.getReviews({
       size: size || 10,
@@ -175,9 +177,9 @@ export class ReviewController {
   @ApiResponse({ status: 200, type: ReviewEntity })
   async getReviewWithIdx(
     @GetUser() loginUser: LoginUser,
-    @Param('reviewIdx') reviewIdx: number,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
   ): Promise<ReviewEntity> {
-    const reviewEntity = await this.reviewService.getReviewWithIdx(reviewIdx);
+    const reviewEntity = await this.reviewService.getReviewByIdx(reviewIdx);
 
     if (!loginUser) {
       return reviewEntity;
@@ -213,7 +215,7 @@ export class ReviewController {
   @ApiResponse({ status: 200, type: ReviewEntity })
   async updateReview(
     @GetUser() loginUser: LoginUser,
-    @Param('reviewIdx') reviewIdx: number,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
     @Body() updateReviewDto: UpdateReviewDto,
   ): Promise<ReviewEntity> {
     return await this.reviewService.updateReview(
@@ -233,7 +235,7 @@ export class ReviewController {
   @ApiResponse({ status: 200 })
   async deleteReview(
     @GetUser() loginUser: LoginUser,
-    @Param('reviewIdx') reviewIdx: number,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
   ): Promise<ReviewEntity> {
     const reviewEntity = await this.reviewService.deleteReview(
       loginUser,
@@ -258,7 +260,7 @@ export class ReviewController {
   @Exception(404, 'Not Found Page')
   @ApiResponse({ status: 200, type: ReviewSearchResponseDto })
   async getReviewWithSearch(
-    @Query('search') search: string,
+    @Query('search', ParseStringPipe) search: string,
     @Query('page') page: number,
     @Query('size') size: number,
   ): Promise<ReviewSearchResponseDto> {

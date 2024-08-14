@@ -168,7 +168,7 @@ export class ReviewService {
     return new ReviewEntity(deletedReview);
   }
 
-  async getReviewWithIdx(reviewIdx: number): Promise<ReviewEntity> {
+  async getReviewByIdx(reviewIdx: number): Promise<ReviewEntity> {
     let reviewData;
 
     await this.prismaService.$transaction(async (tx) => {

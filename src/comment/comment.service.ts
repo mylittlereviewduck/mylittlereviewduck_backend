@@ -20,11 +20,11 @@ export class CommentService {
     private readonly commentLikeCheckService: CommentLikeCheckService,
   ) {}
 
-  async getComment(
+  async getCommentByIdx(
     reviewIdx: number,
     commentIdx: number,
   ): Promise<CommentEntity> {
-    const review = await this.reviewService.getReviewWithIdx(reviewIdx);
+    const review = await this.reviewService.getReviewByIdx(reviewIdx);
 
     if (!review) {
       throw new NotFoundException('Not Found Review');
@@ -50,7 +50,7 @@ export class CommentService {
   }
 
   async getCommentAll(reviewIdx: number): Promise<CommentEntity[]> {
-    const review = await this.reviewService.getReviewWithIdx(reviewIdx);
+    const review = await this.reviewService.getReviewByIdx(reviewIdx);
 
     if (!review) {
       throw new NotFoundException('Not Found Review');
@@ -79,7 +79,7 @@ export class CommentService {
     reviewIdx: number,
     createCommentDto: CreateCommentDto,
   ): Promise<CommentEntity> {
-    const review = await this.reviewService.getReviewWithIdx(reviewIdx);
+    const review = await this.reviewService.getReviewByIdx(reviewIdx);
 
     if (!review) {
       throw new NotFoundException('Not Found Review');
@@ -103,7 +103,10 @@ export class CommentService {
     commentIdx: number,
     updateCommentDto: UpdateCommentDto,
   ): Promise<CommentEntity> {
-    const comment = await this.commentService.getComment(reviewIdx, commentIdx);
+    const comment = await this.commentService.getCommentByIdx(
+      reviewIdx,
+      commentIdx,
+    );
 
     if (!comment) {
       throw new NotFoundException('Not Found Comment');
@@ -131,7 +134,10 @@ export class CommentService {
     reviewIdx: number,
     commentIdx: number,
   ): Promise<CommentEntity> {
-    const comment = await this.commentService.getComment(reviewIdx, commentIdx);
+    const comment = await this.commentService.getCommentByIdx(
+      reviewIdx,
+      commentIdx,
+    );
 
     if (!comment) {
       throw new NotFoundException('Not Found Comment');

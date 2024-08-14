@@ -4,29 +4,29 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { ReviewService } from './review.service';
 
 @Injectable()
 export class ReviewReportService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly reviewService: ReviewService,
+  ) {}
 
-  async reportReview(accountIdx: number, reviewIdx: number): Promise<void> {
-    const review = await this.prismaService.reviewTb.findFirst({
-      where: {
-        idx: reviewIdx,
-      },
-    });
+  async reportReview(userIdx: string, reviewIdx: number): Promise<void> {
+    const review = await this.reviewService.getReviewWithIdx(reviewIdx);
 
     if (!review) {
       throw new NotFoundException('Not Found Review');
     }
 
-    if (review.accountIdx == accountIdx) {
+    if (review.accountIdx == userIdx) {
       throw new ConflictException("Can't Report My Review");
     }
 
     const existingReport = await this.prismaService.reviewReportTb.findFirst({
       where: {
-        accountIdx: accountIdx,
+        accountIdx: userIdx,
         reviewIdx: reviewIdx,
       },
     });
@@ -37,31 +37,26 @@ export class ReviewReportService {
 
     await this.prismaService.reviewReportTb.create({
       data: {
-        accountIdx: accountIdx,
+        accountIdx: userIdx,
         reviewIdx: reviewIdx,
       },
     });
   }
 
-  async unreportReview(accountIdx: number, reviewIdx: number): Promise<void> {
-    console.log('삭제시작');
-    const review = await this.prismaService.reviewTb.findFirst({
-      where: {
-        idx: reviewIdx,
-      },
-    });
+  async unreportReview(userIdx: string, reviewIdx: number): Promise<void> {
+    const review = await this.reviewService.getReviewWithIdx(reviewIdx);
 
     if (!review) {
       throw new NotFoundException('Not Found Review');
     }
 
-    if (review.accountIdx == accountIdx) {
+    if (review.accountIdx == userIdx) {
       throw new ConflictException("Can't Report My Review");
     }
 
     const existingReport = await this.prismaService.reviewReportTb.findFirst({
       where: {
-        accountIdx: accountIdx,
+        accountIdx: userIdx,
         reviewIdx: reviewIdx,
       },
     });
@@ -72,8 +67,8 @@ export class ReviewReportService {
 
     await this.prismaService.reviewReportTb.delete({
       where: {
-        accountIdx_reviewIdx: {
-          accountIdx: accountIdx,
+        reviewIdx_accountIdx: {
+          accountIdx: userIdx,
           reviewIdx: reviewIdx,
         },
       },

@@ -13,8 +13,6 @@ import { LoginUser } from 'src/auth/model/login-user.model';
 import { UpdateReviewDto } from './dto/update-review.dto';
 import { ReviewSearchPagerbleDto } from './dto/review-search-pagerble.dto';
 import { ReviewPagerbleResponseDto } from './dto/response/review-pagerble-response.dto';
-import { ReviewSearchResponseDto } from './dto/response/review-search-response.dto';
-import { ReviewLikeCheckService } from './review-like-check.service';
 import { UserService } from 'src/user/user.service';
 
 @Injectable()
@@ -23,7 +21,6 @@ export class ReviewService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly prismaService: PrismaService,
     private readonly userService: UserService,
-    private readonly reviewLikeCheckService: ReviewLikeCheckService,
   ) {}
 
   async createReview(
@@ -225,10 +222,10 @@ export class ReviewService {
 
   async getReviews(
     reviewPagerbleDto: ReviewPagerbleDto,
-    accountIdx?: number,
+    userIdx?: string,
   ): Promise<ReviewPagerbleResponseDto> {
-    if (accountIdx) {
-      const user = await this.userService.getUser({ idx: accountIdx });
+    if (userIdx) {
+      const user = await this.userService.getUser({ idx: userIdx });
 
       if (!user) {
         throw new NotFoundException('Not Found User');
@@ -236,9 +233,9 @@ export class ReviewService {
     }
 
     const reviewCount = await this.prismaService.reviewTb.count({
-      where: accountIdx
+      where: userIdx
         ? {
-            accountIdx: accountIdx,
+            accountIdx: userIdx,
             deletedAt: null,
           }
         : {},
@@ -260,7 +257,7 @@ export class ReviewService {
           },
         },
       },
-      where: accountIdx ? { accountIdx: accountIdx } : {},
+      where: userIdx ? { accountIdx: userIdx } : {},
       orderBy: {
         idx: 'desc',
       },
@@ -401,10 +398,10 @@ export class ReviewService {
   }
 
   async getBookmarkedReviewAll(
-    accountIdx: number,
+    userIdx: string,
     reviewPagerbleDto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    const user = await this.userService.getUser({ idx: accountIdx });
+    const user = await this.userService.getUser({ idx: userIdx });
 
     if (!user) {
       throw new NotFoundException('Not Found User');
@@ -414,7 +411,7 @@ export class ReviewService {
       where: {
         reviewBookmarkTb: {
           every: {
-            accountIdx: accountIdx,
+            accountIdx: userIdx,
           },
         },
       },
@@ -439,7 +436,7 @@ export class ReviewService {
       where: {
         reviewBookmarkTb: {
           every: {
-            accountIdx: accountIdx,
+            accountIdx: userIdx,
           },
         },
       },
@@ -488,9 +485,9 @@ export class ReviewService {
 
   async getReviewCommented(
     reviewPagerbleDto: ReviewPagerbleDto,
-    accountIdx: number,
+    userIdx: string,
   ): Promise<ReviewPagerbleResponseDto> {
-    const user = await this.userService.getUser({ idx: accountIdx });
+    const user = await this.userService.getUser({ idx: userIdx });
 
     if (!user) {
       throw new NotFoundException('Not Found User');
@@ -500,7 +497,7 @@ export class ReviewService {
       where: {
         commentTb: {
           some: {
-            accountIdx: accountIdx,
+            accountIdx: userIdx,
             deletedAt: null,
           },
         },
@@ -526,7 +523,7 @@ export class ReviewService {
       where: {
         commentTb: {
           some: {
-            accountIdx: accountIdx,
+            accountIdx: userIdx,
             deletedAt: null,
           },
         },

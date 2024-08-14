@@ -37,8 +37,6 @@ export class CommentService {
       userIdx: comment.accountIdx,
     };
 
-    console.log('comment: ', comment);
-
     // return;
     return new CommentEntity(commentData);
   }
@@ -63,7 +61,7 @@ export class CommentService {
   }
 
   async createComment(
-    accountIdx: number,
+    userIdx: string,
     reviewIdx: number,
     createCommentDto: CreateCommentDto,
   ): Promise<CommentEntity> {
@@ -78,7 +76,7 @@ export class CommentService {
     const commentData = await this.prismaService.commentTb.create({
       data: {
         reviewIdx: reviewIdx,
-        accountIdx: accountIdx,
+        accountIdx: userIdx,
         content: createCommentDto.content,
         commentIdx: createCommentDto.commentIdx,
       },
@@ -88,7 +86,7 @@ export class CommentService {
   }
 
   async updateComment(
-    accountIdx: number,
+    userIdx: string,
     updateCommentDto: UpdateCommentDto,
   ): Promise<CommentEntity> {
     const comment = await this.prismaService.commentTb.findUnique({
@@ -101,7 +99,7 @@ export class CommentService {
       throw new NotFoundException('Not Found Comment');
     }
 
-    if (comment.accountIdx !== accountIdx) {
+    if (comment.accountIdx !== userIdx) {
       throw new UnauthorizedException('Unauthorized User');
     }
 
@@ -120,7 +118,7 @@ export class CommentService {
 
   async deleteComment(
     commentIdx: number,
-    accountIdx: number,
+    userIdx: string,
   ): Promise<CommentEntity> {
     const comment = await this.prismaService.commentTb.findUnique({
       where: {
@@ -132,7 +130,7 @@ export class CommentService {
       throw new NotFoundException('Not Found Comment');
     }
 
-    if (comment.accountIdx !== accountIdx) {
+    if (comment.accountIdx !== userIdx) {
       throw new UnauthorizedException('Unauthorized');
     }
 
@@ -142,7 +140,7 @@ export class CommentService {
       },
       where: {
         idx: commentIdx,
-        accountIdx: accountIdx,
+        accountIdx: userIdx,
       },
     });
     return new CommentEntity(deletedCommentData);

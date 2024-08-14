@@ -26,14 +26,12 @@ import { GetUser } from 'src/auth/get-user.decorator';
 import { LoginUser } from 'src/auth/model/login-user.model';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { CommentLikeCheckService } from './comment-like-check.service';
-import { ReviewService } from 'src/review/review.service';
 import { CommentLikeEntity } from './entity/CommentLike.entity';
 
 @ApiTags('comment')
 @Controller()
 export class CommentController {
   constructor(
-    private readonly reviewService: ReviewService,
     private readonly commentService: CommentService,
     private readonly commentLikeService: CommentLikeService,
     private readonly commentLikeCheckService: CommentLikeCheckService,
@@ -111,7 +109,7 @@ export class CommentController {
     @Param('commentIdx') commentIdx: number,
     @GetUser() loginUser: LoginUser,
   ): Promise<void> {
-    await this.commentService.deleteComment(loginUser.idx, commentIdx);
+    await this.commentService.deleteComment(commentIdx, loginUser.idx);
   }
 
   @Post('/review/:reviewIdx/comment/:commentIdx/like')
@@ -155,5 +153,11 @@ export class CommentController {
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx') reviewIdx: number,
     @Param('commentIdx') commentIdx: number,
-  ): Promise<void> {}
+  ): Promise<void> {
+    return await this.commentLikeService.unlikeComment(
+      loginUser.idx,
+      reviewIdx,
+      commentIdx,
+    );
+  }
 }

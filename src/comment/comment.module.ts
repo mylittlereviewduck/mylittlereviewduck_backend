@@ -7,7 +7,7 @@ import { PrismaModule } from 'src/prisma/prisma.module';
 import { ReviewModule } from 'src/review/review.module';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, ReviewModule],
   controllers: [CommentController],
   providers: [CommentService, CommentLikeService, CommentLikeCheckService],
 })

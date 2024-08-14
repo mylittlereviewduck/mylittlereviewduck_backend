@@ -28,6 +28,9 @@ export class CommentEntity {
   @ApiProperty({ example: true, description: '차단여부' })
   isMyBlock: boolean = false;
 
+  @ApiProperty({ example: true, description: '좋아요여부' })
+  isMyLike: boolean = false;
+
   constructor(data) {
     this.idx = data.idx;
     this.userIdx = data.userIdx;
@@ -36,5 +39,6 @@ export class CommentEntity {
     this.content = data.content;
     this.createdAt = data.createdAt;
     this.isMyBlock = data.isMyBlock || false;
+    this.isMyLike = data.isMyLike || false;
   }
 }

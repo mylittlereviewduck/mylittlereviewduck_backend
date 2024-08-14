@@ -8,10 +8,8 @@ import { PrismaService } from '../../src/prisma/prisma.service';
 import { CreateUserOAtuhDto } from './dto/create-user-oauth.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateMyInfoDto } from './dto/update-my-info.dto';
-import { UpdateMyProfileImgDto } from './dto/update-my-profile-img.dto';
 import { GetUserDto } from './dto/get-user.dto';
 import { UserWithProvider } from './model/user-with-provider.model';
-import { LoginUser } from 'src/auth/model/login-user.model';
 import { AccountTb, ProfileImgTb } from '@prisma/client';
 
 @Injectable()
@@ -76,6 +74,15 @@ export class UserService {
         },
       });
 
+      newUser = await tx.accountTb.update({
+        data: {
+          nickname: newUser.serialNumber + '번째 오리',
+        },
+        where: {
+          idx: newUser.idx,
+        },
+      });
+
       newProfileImg = await tx.profileImgTb.create({
         data: {
           accountIdx: newUser.idx,
@@ -128,11 +135,11 @@ export class UserService {
   }
 
   async updateMyinfo(
-    accountIdx: number,
+    userIdx: string,
     updateMyInfoDto: UpdateMyInfoDto,
   ): Promise<void> {
     const user = await this.getUser({
-      idx: accountIdx,
+      idx: userIdx,
     });
 
     if (!user) {
@@ -153,7 +160,7 @@ export class UserService {
         profile: updateMyInfoDto.profile,
       },
       where: {
-        idx: accountIdx,
+        idx: userIdx,
       },
     });
 
@@ -162,52 +169,52 @@ export class UserService {
     return;
   }
 
-  async updateMyProfileImg(accountIdx: number, imgPath: string): Promise<void> {
+  async updateMyProfileImg(userIdx: string, imgPath: string): Promise<void> {
     await this.prismaService.$transaction([
       this.prismaService.profileImgTb.updateMany({
         data: {
           deletedAt: new Date(),
         },
         where: {
-          accountIdx: accountIdx,
+          accountIdx: userIdx,
         },
       }),
 
       this.prismaService.profileImgTb.create({
         data: {
-          accountIdx: accountIdx,
+          accountIdx: userIdx,
           imgPath: imgPath,
         },
       }),
     ]);
   }
 
-  async deleteMyProfileImg(accountIdx: number): Promise<void> {
+  async deleteMyProfileImg(userIdx: string): Promise<void> {
     await this.prismaService.$transaction([
       this.prismaService.profileImgTb.updateMany({
         data: {
           deletedAt: new Date(),
         },
         where: {
-          accountIdx: accountIdx,
+          accountIdx: userIdx,
         },
       }),
 
       this.prismaService.profileImgTb.create({
         data: {
-          accountIdx: accountIdx,
+          accountIdx: userIdx,
         },
       }),
     ]);
   }
 
   async getUserWithProvider(
-    accountIdx: number,
+    userIdx: string,
     provider: string,
   ): Promise<UserWithProvider> {
     const userData = await this.prismaService.accountTb.findUnique({
       where: {
-        idx: accountIdx,
+        idx: userIdx,
         provider: provider,
       },
     });
@@ -219,10 +226,10 @@ export class UserService {
     return new UserWithProvider(userData);
   }
 
-  async deleteUser(accountIdx: number): Promise<void> {
+  async deleteUser(userIdx: string): Promise<void> {
     await this.prismaService.accountTb.update({
       where: {
-        idx: accountIdx,
+        idx: userIdx,
       },
       data: {
         deletedAt: new Date(),

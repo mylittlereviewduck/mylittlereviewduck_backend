@@ -20,19 +20,18 @@ export class UserBlockService {
   ) {}
 
   async blockUser(
-    accountIdx: number,
-    toAccountIdx: number,
+    userIdx: string,
+    toUserIdx: string,
   ): Promise<UserBlockEntity> {
-    const user = await this.userService.getUser({ idx: toAccountIdx });
+    const user = await this.userService.getUser({ idx: toUserIdx });
 
     if (!user) {
       throw new NotFoundException('Not Found User');
     }
 
-    const existingBlock = await this.userBlockCheckService.isBlocked(
-      accountIdx,
-      [user],
-    );
+    const existingBlock = await this.userBlockCheckService.isBlocked(userIdx, [
+      user,
+    ]);
 
     if (user.isBlocked == true) {
       throw new ConflictException('Already Conflict');
@@ -40,25 +39,24 @@ export class UserBlockService {
 
     const userBlockData = await this.prismaService.accountBlockTb.create({
       data: {
-        blockerIdx: accountIdx,
-        blockedIdx: toAccountIdx,
+        blockerIdx: userIdx,
+        blockedIdx: toUserIdx,
       },
     });
 
     return new UserBlockEntity(userBlockData);
   }
 
-  async unBlockUser(accountIdx: number, toAccountIdxdx: number): Promise<void> {
-    const user = await this.userService.getUser({ idx: toAccountIdxdx });
+  async unBlockUser(userIdx: string, toUserIdx: string): Promise<void> {
+    const user = await this.userService.getUser({ idx: toUserIdx });
 
     if (!user) {
       throw new NotFoundException('Not Found User');
     }
 
-    const existingBlock = await this.userBlockCheckService.isBlocked(
-      accountIdx,
-      [user],
-    );
+    const existingBlock = await this.userBlockCheckService.isBlocked(userIdx, [
+      user,
+    ]);
 
     if (user.isBlocked == false) {
       throw new ConflictException('Already Not Conflict');
@@ -66,8 +64,8 @@ export class UserBlockService {
 
     await this.prismaService.accountBlockTb.deleteMany({
       where: {
-        blockerIdx: accountIdx,
-        blockedIdx: toAccountIdxdx,
+        blockerIdx: userIdx,
+        blockedIdx: toUserIdx,
       },
     });
 
@@ -75,12 +73,12 @@ export class UserBlockService {
   }
 
   async getBlockedUserAll(
-    accountIdx: number,
+    userIdx: string,
     userPagerbleDto: UserPagerbleDto,
   ): Promise<UserPagerbleResponseDto> {
     const totalCount = await this.prismaService.accountBlockTb.count({
       where: {
-        blockerIdx: accountIdx,
+        blockerIdx: userIdx,
       },
     });
 
@@ -104,7 +102,7 @@ export class UserBlockService {
         },
       },
       where: {
-        blockerIdx: accountIdx,
+        blockerIdx: userIdx,
       },
       skip: (userPagerbleDto.page - 1) * userPagerbleDto.size,
       take: userPagerbleDto.size,

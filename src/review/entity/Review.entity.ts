@@ -5,7 +5,7 @@ export class ReviewEntity {
   idx: number;
 
   @ApiProperty({ example: 1, description: '작성자 idx' })
-  accountIdx: number;
+  accountIdx: string;
 
   @ApiProperty({ example: '제목입니다', description: '제목 255자' })
   title: string;

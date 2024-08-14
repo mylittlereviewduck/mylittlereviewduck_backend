@@ -7,7 +7,7 @@ export class UserBlockCheckService {
   constructor(private readonly prismaService: PrismaService) {}
 
   async isBlocked(
-    userIdx: number,
+    userIdx: string,
     toUsers: UserEntity[],
   ): Promise<UserEntity[]> {
     const sqlResult = await this.prismaService.accountBlockTb.findMany({

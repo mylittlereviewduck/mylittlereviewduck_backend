@@ -202,11 +202,11 @@ export class UserController {
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: UserEntity })
   async getUserInfo(
-    @Param('userIdx') accountIdx: number,
+    @Param('userIdx') userIdx: string,
     @GetUser() loginUser: LoginUser,
   ): Promise<UserEntity> {
     const user = await this.userService.getUser({
-      idx: accountIdx,
+      idx: userIdx,
     });
 
     if (!user) {
@@ -252,13 +252,13 @@ export class UserController {
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: UserPagerbleResponseDto })
   async getFollowingAll(
-    @Param('userIdx') accountIdx: number,
+    @Param('userIdx') userIdx: string,
     @Query('page') page: number,
     @Query('size') size: number,
     @GetUser() loginUser: LoginUser,
   ): Promise<UserPagerbleResponseDto> {
     const userPagerbleResponseDto = await this.followService.getFollowingList({
-      accountIdx: accountIdx,
+      userIdx: userIdx,
       page: page || 1,
       size: size || 20,
     });
@@ -289,13 +289,13 @@ export class UserController {
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: UserPagerbleResponseDto })
   async getFollowerAll(
-    @Param('userIdx') accountIdx: number,
+    @Param('userIdx') userIdx: string,
     @Query('page') page: number,
     @Query('size') size: number,
     @GetUser() loginUser: LoginUser,
   ): Promise<UserPagerbleResponseDto> {
     const userPagerbleResponseDto = await this.followService.getFollowerList({
-      accountIdx: accountIdx,
+      userIdx: userIdx,
       page: page || 1,
       size: size || 20,
     });
@@ -328,9 +328,9 @@ export class UserController {
   })
   async followUser(
     @GetUser() loginUser: LoginUser,
-    @Param('userIdx', ParseIntPipe) accountIdx: number,
+    @Param('userIdx', ParseIntPipe) userIdx: string,
   ): Promise<FollowEntity> {
-    return await this.followService.followUser(loginUser.idx, accountIdx);
+    return await this.followService.followUser(loginUser.idx, userIdx);
   }
 
   @Delete('/:userIdx/follow')
@@ -344,9 +344,9 @@ export class UserController {
   @ApiResponse({ status: 200, description: '언팔로우 성공 200 반환' })
   async UnfollowUser(
     @GetUser() loginUser: LoginUser,
-    @Param('userIdx', ParseIntPipe) accountIdx: number,
+    @Param('userIdx', ParseIntPipe) userIdx: string,
   ): Promise<void> {
-    await this.followService.unfollowUser(loginUser.idx, accountIdx);
+    await this.followService.unfollowUser(loginUser.idx, userIdx);
   }
 
   @Post(':userIdx/block')
@@ -365,9 +365,9 @@ export class UserController {
   })
   async blockUser(
     @GetUser() loginUser: LoginUser,
-    @Param('userIdx') accountIdx: number,
+    @Param('userIdx') userIdx: string,
   ): Promise<UserBlockEntity> {
-    return await this.userBlockService.blockUser(loginUser.idx, accountIdx);
+    return await this.userBlockService.blockUser(loginUser.idx, userIdx);
   }
 
   @Delete(':userIdx/block')
@@ -381,9 +381,9 @@ export class UserController {
   @ApiResponse({ status: 200, description: '차단해제 성공 200 반환' })
   async UnblockUser(
     @GetUser() loginUser: LoginUser,
-    @Param('userIdx') accountIdx: number,
+    @Param('userIdx') userIdx: string,
   ): Promise<void> {
-    await this.userBlockService.unBlockUser(loginUser.idx, accountIdx);
+    await this.userBlockService.unBlockUser(loginUser.idx, userIdx);
   }
 
   @Get('blocked-user/all')

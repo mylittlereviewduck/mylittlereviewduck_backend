@@ -439,7 +439,7 @@ export class ReviewController {
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
   async getReviewAllByuserIdx(
-    @Param('userIdx') accountIdx: number,
+    @Param('userIdx') userIdx: string,
     @Query('page') page: number,
     @Query('size') size: number,
   ): Promise<ReviewPagerbleResponseDto> {
@@ -448,7 +448,7 @@ export class ReviewController {
         page: page || 1,
         size: size || 10,
       },
-      accountIdx,
+      userIdx,
     );
   }
 
@@ -471,12 +471,12 @@ export class ReviewController {
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
   async getBookmarkedReviewByuserIdx(
     @GetUser() loginUser: LoginUser,
-    @Param('userIdx') accountIdx: number,
+    @Param('userIdx') userIdx: string,
     @Query('size') size: number,
     @Query('page') page: number,
   ): Promise<ReviewPagerbleResponseDto> {
     const reviewPagerbleResponseDto =
-      await this.reviewService.getBookmarkedReviewAll(accountIdx, {
+      await this.reviewService.getBookmarkedReviewAll(userIdx, {
         size: size || 10,
         page: page || 1,
       });
@@ -525,7 +525,7 @@ export class ReviewController {
   @Exception(500, '서버 에러')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
   async getReviewCommented(
-    @Param('userIdx') accountIdx: number,
+    @Param('userIdx') userIdx: string,
     @Query('page') page: number,
     @Query('size') size: number,
   ): Promise<ReviewPagerbleResponseDto> {
@@ -534,7 +534,7 @@ export class ReviewController {
         size: size || 10,
         page: page || 1,
       },
-      accountIdx,
+      userIdx,
     );
   }
 }

@@ -71,6 +71,7 @@ export class UserService {
         data: {
           email: createUserDto.email,
           pw: createUserDto.pw,
+          provider: 'local',
         },
       });
 

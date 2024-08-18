@@ -19,7 +19,6 @@ import {
   Put,
   Query,
   UploadedFile,
-  UploadedFiles,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -47,7 +46,6 @@ import { ReviewPagerbleResponseDto } from './dto/response/review-pagerble-respon
 import { ReviewLikeCheckService } from './review-like-check.service';
 import { ReviewBookmarkService } from './review-bookmark.service';
 import { ReviewReportService } from './review-report.service';
-import { ParseStringPipe } from '../common/parseString.pipe';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileValidationPipe } from 'src/common/fileValidation.pipe';
 
@@ -85,8 +83,8 @@ export class ReviewController {
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
   async getReviewAll(
     @GetUser() loginUser: LoginUser,
-    @Query('page', ParseIntPipe) page: number,
-    @Query('size', ParseIntPipe) size: number,
+    @Query('page') page: number,
+    @Query('size') size: number,
   ): Promise<ReviewPagerbleResponseDto> {
     const reviewPagerbleResponseDto = await this.reviewService.getReviews({
       size: size || 10,

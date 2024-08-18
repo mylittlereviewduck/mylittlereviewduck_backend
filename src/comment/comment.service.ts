@@ -1,4 +1,4 @@
-import { CommentLikeCheckService } from './comment-like-check.service';
+import { CommentPagerbleResponseDto } from './dto/response/comment-pagerble-response.dto';
 import {
   Injectable,
   NotFoundException,
@@ -8,15 +8,14 @@ import { CommentEntity } from './entity/Comment.entity';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { LoginUser } from 'src/auth/model/login-user.model';
 import { ReviewService } from 'src/review/review.service';
+import { CommentPagerbleDto } from './dto/comment-pagerble.dto';
 
 @Injectable()
 export class CommentService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly reviewService: ReviewService,
-    private readonly commentLikeCheckService: CommentLikeCheckService,
   ) {}
 
   async getCommentByIdx(
@@ -48,19 +47,29 @@ export class CommentService {
     return new CommentEntity(commentData);
   }
 
-  async getCommentAll(reviewIdx: number): Promise<CommentEntity[]> {
-    const review = await this.reviewService.getReviewByIdx(reviewIdx);
+  async getCommentAll(
+    commentPagerbleDto: CommentPagerbleDto,
+  ): Promise<CommentPagerbleResponseDto> {
+    const review = await this.reviewService.getReviewByIdx(
+      commentPagerbleDto.reviewIdx,
+    );
 
     if (!review) {
       throw new NotFoundException('Not Found Review');
     }
+
+    const totalCount = await this.prismaService.commentTb.count({
+      where: {
+        reviewIdx: commentPagerbleDto.reviewIdx,
+      },
+    });
 
     const commentData = await this.prismaService.commentTb.findMany({
       include: {
         accountTb: true,
       },
       where: {
-        reviewIdx: reviewIdx,
+        reviewIdx: commentPagerbleDto.reviewIdx,
         deletedAt: {
           equals: null,
         },
@@ -70,7 +79,10 @@ export class CommentService {
       },
     });
 
-    return commentData.map((elem) => new CommentEntity(elem));
+    return {
+      totalPage: Math.ceil(totalCount / commentPagerbleDto.size),
+      comments: commentData.map((elem) => new CommentEntity(elem)),
+    };
   }
 
   async createComment(

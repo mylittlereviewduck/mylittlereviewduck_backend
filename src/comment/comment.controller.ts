@@ -5,17 +5,18 @@ import {
   Controller,
   Delete,
   Get,
-  NotFoundException,
   Param,
   ParseIntPipe,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -28,6 +29,8 @@ import { LoginUser } from 'src/auth/model/login-user.model';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { CommentLikeCheckService } from './comment-like-check.service';
 import { CommentLikeEntity } from './entity/CommentLike.entity';
+import { OptionalAuthGuard } from 'src/auth/optional-auth.guard';
+import { CommentPagerbleResponseDto } from './dto/response/comment-pagerble-response.dto';
 
 @ApiTags('comment')
 @Controller()
@@ -38,17 +41,45 @@ export class CommentController {
     private readonly commentLikeCheckService: CommentLikeCheckService,
   ) {}
 
-  //댓글 uri에서 reviewIdx뺄지 검토
   @Get('/review/:reviewIdx/comment/all')
+  @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '댓글 목록보기' })
   @ApiParam({ name: 'reviewIdx', type: 'number' })
+  @ApiQuery({
+    name: 'size',
+    example: 10,
+    description: '한 페이지에 담긴 리뷰수, 기본값 10',
+  })
+  @ApiQuery({
+    name: 'page',
+    example: 1,
+    description: '가져올 페이지, 기본값 1',
+  })
   @Exception(400, '유효하지않은 요청')
   @Exception(404, '해당 리소스 없음')
   @ApiResponse({ status: 200, type: CommentEntity, isArray: true })
   async getCommemtAllByReviewIdx(
+    @GetUser() loginUser: LoginUser,
     @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
-  ): Promise<CommentEntity[]> {
-    return await this.commentService.getCommentAll(reviewIdx);
+    @Query('page') page: number,
+    @Query('size') size: number,
+  ): Promise<CommentPagerbleResponseDto> {
+    const commentPagerbleResponseDto = await this.commentService.getCommentAll({
+      reviewIdx: reviewIdx,
+      size: size || 10,
+      page: page || 1,
+    });
+
+    if (!loginUser) {
+      return commentPagerbleResponseDto;
+    }
+
+    await this.commentLikeCheckService.isCommentLiked(
+      loginUser.idx,
+      commentPagerbleResponseDto.comments,
+    );
+
+    return commentPagerbleResponseDto;
   }
 
   @Post('/review/:reviewIdx/comment')

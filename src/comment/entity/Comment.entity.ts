@@ -33,7 +33,7 @@ export class CommentEntity {
 
   constructor(data) {
     this.idx = data.idx;
-    this.userIdx = data.userIdx;
+    this.userIdx = data.accountIdx;
     this.reviewIdx = data.reviewIdx;
     this.commentIdx = data.commentIdx;
     this.content = data.content;

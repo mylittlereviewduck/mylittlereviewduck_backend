@@ -11,7 +11,7 @@ export class CommentLikeEntity {
   createdAt: Date;
 
   constructor(data) {
-    this.userIdx = data.userIdx;
+    this.userIdx = data.accountIdx;
     this.commentIdx = data.commentIdx;
     this.createdAt = data.createAt;
   }

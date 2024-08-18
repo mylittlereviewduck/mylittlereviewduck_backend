@@ -5,7 +5,7 @@ export class ReviewEntity {
   idx: number;
 
   @ApiProperty({ example: 1, description: '작성자 idx' })
-  accountIdx: string;
+  userIdx: string;
 
   @ApiProperty({ example: '제목입니다', description: '제목 255자' })
   title: string;
@@ -13,11 +13,26 @@ export class ReviewEntity {
   @ApiProperty({ example: '내용입니다', description: '내용 글자제한X' })
   content: string;
 
+  @ApiProperty({ example: '3.5', description: '평점 1.0-5.0점' })
+  score: number;
+
   @ApiProperty({
     example: ['태그1', '태그2', '태그3'],
     description: '태그 개수 제한x',
+    nullable: true,
   })
   tags: string[];
+
+  @ApiProperty({
+    example: [
+      'https://s3.ap-northeast-2.amazonaws.com/todayreview/1723962576545',
+      'https://s3.ap-northeast-2.amazonaws.com/todayreview/1723962576545',
+      'https://s3.ap-northeast-2.amazonaws.com/todayreview/1723962576545',
+    ],
+    description: '리뷰이미지 0-6개',
+    nullable: true,
+  })
+  images: string[];
 
   @ApiProperty({
     example: '2024-08-01T07:58:57.844Z',
@@ -26,22 +41,22 @@ export class ReviewEntity {
   createdAt: Date;
 
   @ApiProperty({ example: 10, description: '조회수' })
-  viewCount: number;
+  viewCount: number = 0;
 
   @ApiProperty({ example: 10, description: '좋아요수' })
-  likeCount: number;
+  likeCount: number = 0;
 
   @ApiProperty({ example: 10, description: '북마크수' })
-  bookmarkCount: number;
+  bookmarkCount: number = 0;
 
   @ApiProperty({ example: 10, description: '공유수' })
-  shareCount: number;
+  shareCount: number = 0;
 
   @ApiProperty({
     example: '3',
     description: '신고횟수',
   })
-  reportCount: number;
+  reportCount: number = 0;
 
   @ApiProperty({
     example: 'true',
@@ -69,16 +84,18 @@ export class ReviewEntity {
 
   constructor(data) {
     this.idx = data.idx;
-    this.accountIdx = data.accountIdx;
+    this.userIdx = data.accountIdx;
     this.title = data.title;
     this.content = data.content;
+    this.score = data.score;
     this.tags = data.tags;
+    this.images = data.images;
     this.createdAt = data.createdAt;
-    this.viewCount = data.viewCount;
-    this.likeCount = data.likeCount;
-    this.bookmarkCount = data.bookmarkCount;
-    this.shareCount = data.shareCount;
-    this.reportCount = data.reportCount;
+    this.viewCount = data.viewCount ?? 0;
+    this.likeCount = data.likeCount ?? 0;
+    this.bookmarkCount = data.bookmarkCount ?? 0;
+    this.shareCount = data.shareCount ?? 0;
+    this.reportCount = data.reportCount ?? 0;
     this.isMyLike = data.isMyLike ?? false;
     this.isMyBookmark = data.isMyBookmark ?? false;
     this.isMyShare = data.isMyShare ?? false;

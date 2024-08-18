@@ -174,7 +174,6 @@ export class ReviewController {
     return { imgPath: await this.awsService.uploadImageToS3(image) };
   }
 
-  //getReview생성하기
   @Get('/review/:reviewIdx')
   @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '리뷰 자세히보기' })

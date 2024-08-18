@@ -1,5 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsNumber, IsString, Length, Max, Min } from 'class-validator';
+import {
+  ArrayMaxSize,
+  IsArray,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Length,
+  Max,
+  Min,
+} from 'class-validator';
 
 export class CreateReviewDto {
   @ApiProperty({ example: '제목입니다', description: '리뷰 제목' })
@@ -24,5 +33,19 @@ export class CreateReviewDto {
   })
   @IsArray()
   @IsString({ each: true })
+  @IsOptional()
   tags: string[];
+
+  @ApiProperty({
+    example: [
+      'https://s3.ap-northeast-2.amazonaws.com/todayreview/1723963141509',
+      'https://s3.ap-northeast-2.amazonaws.com/todayreview/1723963141509',
+    ],
+    description: '이미지 주소 리스트, 6개 제한',
+  })
+  @IsArray()
+  @IsString({ each: true })
+  @ArrayMaxSize(6)
+  @IsOptional()
+  images: string[];
 }

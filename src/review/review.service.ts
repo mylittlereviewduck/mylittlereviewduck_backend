@@ -47,9 +47,22 @@ export class ReviewService {
           };
         }),
       });
+
+      await tx.reviewImgTb.createMany({
+        data: createDto.images.map((image) => {
+          return {
+            imgPath: image,
+            reviewIdx: reviewData.idx,
+          };
+        }),
+      });
     });
 
-    const reviewEntityData = { ...reviewData, tags: createDto.tags };
+    const reviewEntityData = {
+      ...reviewData,
+      tags: createDto.tags,
+      images: createDto.images,
+    };
 
     return new ReviewEntity(reviewEntityData);
   }

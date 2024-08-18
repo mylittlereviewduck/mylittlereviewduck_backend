@@ -45,6 +45,7 @@ import { OptionalAuthGuard } from 'src/auth/optional-auth.guard';
 import { UserPagerbleResponseDto } from './dto/response/user-pagerble-response.dto';
 import { FollowCheckService } from './follow-check.service';
 import { UserBlockEntity } from './entity/UserBlock.entity';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Controller('user')
 @ApiTags('user')
@@ -105,6 +106,16 @@ export class UserController {
   @ApiResponse({ status: 201, type: UserEntity })
   async signUp(@Body() createUserDto: CreateUserDto): Promise<UserEntity> {
     return await this.userService.createUser(createUserDto);
+  }
+
+  @Post('/pw/reset')
+  @ApiOperation({ summary: ' 비밀번호 초기화 / 이메일 전송' })
+  @Exception(400, '유효하지않은 요청')
+  @ApiResponse({ status: 200 })
+  async resetPassword(
+    @Body() resetPasswordDto: ResetPasswordDto,
+  ): Promise<void> {
+    return;
   }
 
   @Get('myinfo')

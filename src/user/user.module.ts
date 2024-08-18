@@ -7,7 +7,7 @@ import { PrismaModule } from '../../src/prisma/prisma.module';
 import { AuthModule } from '../../src/auth/auth.module';
 import { FollowCheckService } from './follow-check.service';
 import { UserBlockCheckService } from './user-block-check.service';
-import { AwsModule } from 'src/common/aws/aws.module';
+import { AwsModule } from 'src/aws/aws.module';
 
 @Module({
   imports: [PrismaModule, forwardRef(() => AuthModule), AwsModule],

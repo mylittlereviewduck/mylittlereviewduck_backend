@@ -40,12 +40,13 @@ import { LoginUser } from '../../src/auth/model/login-user.model';
 import { FollowService } from './follow.service';
 import { FollowEntity } from './entity/Follow.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { AwsService } from 'src/common/aws/aws.service';
 import { OptionalAuthGuard } from 'src/auth/optional-auth.guard';
 import { UserPagerbleResponseDto } from './dto/response/user-pagerble-response.dto';
 import { FollowCheckService } from './follow-check.service';
 import { UserBlockEntity } from './entity/UserBlock.entity';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { AwsService } from 'src/aws/aws.service';
+import { FileValidationPipe } from 'src/common/fileValidation.pipe';
 
 @Controller('user')
 @ApiTags('user')
@@ -108,6 +109,7 @@ export class UserController {
     return await this.userService.createUser(createUserDto);
   }
 
+  //논의후에 서비스로직 추가
   @Post('/pw/reset')
   @ApiOperation({ summary: ' 비밀번호 초기화 / 이메일 전송' })
   @Exception(400, '유효하지않은 요청')
@@ -145,14 +147,6 @@ export class UserController {
     });
   }
 
-  // @Post('profile-img')
-  // @UseGuards(AuthGuard)
-  // @ApiOperation({ summary: '프로필 이미지 업로드' })
-  // @ApiBearerAuth()
-  // @Exception(400, '유효하지않은 요청')
-  // @Exception(401, '권한 없음')
-  // async uploadProfileImg(@GetUser() loginUser: LoginUser) {}
-
   @Put('profile-img')
   @UseGuards(AuthGuard)
   @UseInterceptors(FileInterceptor('image'))
@@ -177,11 +171,13 @@ export class UserController {
   @ApiResponse({ status: 200 })
   async updateMyProfileImg(
     @GetUser() loginUser: LoginUser,
-    @UploadedFile() image: Express.Multer.File,
-  ): Promise<void> {
+    @UploadedFile(FileValidationPipe) image: Express.Multer.File,
+  ): Promise<{ imgPath: string }> {
     const imgPath = await this.awsService.uploadImageToS3(image);
 
     await this.userService.updateMyProfileImg(loginUser.idx, imgPath);
+
+    return { imgPath: imgPath };
   }
 
   @Delete('profile-img')

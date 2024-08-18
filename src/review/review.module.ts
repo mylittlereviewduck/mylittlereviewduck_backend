@@ -14,7 +14,7 @@ import { ReviewReportService } from './review-report.service';
 import { ReviewShareService } from './review-share.service';
 import { ReviewShareCheckService } from './review-share-check.service';
 import { UserModule } from 'src/user/user.module';
-import { AwsModule } from 'src/common/aws/aws.module';
+import { AwsModule } from 'src/aws/aws.module';
 
 @Module({
   imports: [

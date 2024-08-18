@@ -5,7 +5,6 @@ import { UserModule } from '../../src/user/user.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtModule } from '@nestjs/jwt';
-import { MailModule } from '../common/email/email.module';
 import { GoogleStrategy } from './strategy/google.strategy';
 import { HttpModule } from '@nestjs/axios';
 import { UserService } from '../../src/user/user.service';
@@ -13,6 +12,7 @@ import { NaverStrategy } from './strategy/naver.strategy';
 import { KakaoStrategy } from './strategy/kakao.strategy';
 import { EmailAuthService } from './email-auth.service';
 import { ConfigService } from '@nestjs/config';
+import { MailModule } from 'src/email/Email.module';
 
 @Module({
   imports: [

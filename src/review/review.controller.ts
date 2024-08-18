@@ -1,4 +1,4 @@
-import { AwsService } from './../common/aws/aws.service';
+import { AwsService } from '../aws/aws.service';
 import { ReviewShareCheckService } from './review-share-check.service';
 import { ReviewShareService } from './review-share.service';
 import { ReviewBlockService } from './review-block.service';
@@ -18,7 +18,10 @@ import {
   Post,
   Put,
   Query,
+  UploadedFile,
+  UploadedFiles,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -45,6 +48,8 @@ import { ReviewLikeCheckService } from './review-like-check.service';
 import { ReviewBookmarkService } from './review-bookmark.service';
 import { ReviewReportService } from './review-report.service';
 import { ParseStringPipe } from '../common/parseString.pipe';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { FileValidationPipe } from 'src/common/fileValidation.pipe';
 
 @Controller('')
 @ApiTags('review')
@@ -148,25 +153,25 @@ export class ReviewController {
     return await this.reviewService.createReview(loginUser, createReviewDto);
   }
 
-  //멀터생성하기
-  //멀터 정리하기
   @Post('/review/img')
   @UseGuards(AuthGuard)
+  @UseInterceptors(FileInterceptor('image'))
   @ApiOperation({ summary: '리뷰 이미지업로드' })
   @ApiBearerAuth()
-  @Exception(400, '유효하지않은 요청')
+  @Exception(
+    400,
+    '유효하지않은 요청(파일 없는경우, 파일크기 초과한경우(10MB), 허용되는 확장자(jpg, jpeg, png, gif)가 아닌경우)',
+  )
   @Exception(401, '권한없음')
   @ApiResponse({
     status: 201,
     description: '리뷰 이미지 업로드 성공시 201반환',
     type: UploadReviewImageResponseDto,
   })
-  async uploadReviewImage(): Promise<{ imgPath: string }> {
-    //리뷰당 이미지 6개 제한
-
-    // await this.awsService.uploadImageToS3(, )
-
-    return;
+  async uploadReviewImage(
+    @UploadedFile(FileValidationPipe) image: Express.Multer.File,
+  ): Promise<{ imgPath: string }> {
+    return { imgPath: await this.awsService.uploadImageToS3(image) };
   }
 
   //getReview생성하기

@@ -1,6 +1,5 @@
 import { EmailAuthService } from './email-auth.service';
 import { PrismaService } from './../prisma/prisma.service';
-import { MailService } from '../common/email/email.service';
 import {
   Body,
   Controller,
@@ -22,7 +21,6 @@ import { VerifyEmailDto } from './dto/verify-email.dto';
 import { SendEmailVerificationDto } from './dto/send-email-verification.dto';
 import { AuthService } from './auth.service';
 import { Request, Response } from 'express';
-import { ConfigService } from '@nestjs/config';
 import { SocialLoginProvider } from './model/social-login-provider.model';
 import { GoogleCallbackDto } from './dto/google-callback.dto';
 import { LoginResponseDto } from './dto/response/Login-Response.dto';
@@ -35,9 +33,6 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly emailAuthService: EmailAuthService,
-    private readonly mailService: MailService,
-    private readonly configService: ConfigService,
-    private readonly prismaService: PrismaService,
   ) {}
 
   //이메일 인증번호전송

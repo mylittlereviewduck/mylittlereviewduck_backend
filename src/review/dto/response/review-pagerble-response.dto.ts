@@ -8,6 +8,7 @@ export class ReviewPagerbleResponseDto {
   @ApiProperty({
     description: '리뷰리스트',
     isArray: true,
+    type: ReviewEntity,
     example: [
       {
         isMyLike: true,

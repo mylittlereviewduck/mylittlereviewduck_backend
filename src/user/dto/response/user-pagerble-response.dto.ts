@@ -8,6 +8,7 @@ export class UserPagerbleResponseDto {
   @ApiProperty({
     description: '유저리스트',
     isArray: true,
+    type: UserEntity,
     example: [
       {
         isFollowing: false,

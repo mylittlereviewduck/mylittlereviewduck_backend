@@ -8,40 +8,41 @@ datasource db {
 }
 
 model AccountBlockTb {
-  createdAt                                    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  blockerIdx                                   String    @map("blocker_idx") @db.VarChar
-  blockedIdx                                   String    @map("blocked_idx") @db.VarChar
-  blocker                                      AccountTb @relation("account_block_tb_blocker_idxToaccount_tb", fields: [blockerIdx], references: [idx], onDelete: Cascade, map: "fk_account_tb_to_account_block_tb")
-  blocked                                      AccountTb @relation("account_block_tb_blocked_idxToaccount_tb", fields: [blockedIdx], references: [idx], onDelete: Cascade, map: "fk_account_tb_to_account_block_tb1")
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  blockerIdx String    @map("blocker_idx") @db.VarChar
+  blockedIdx String    @map("blocked_idx") @db.VarChar
+  blocker    AccountTb @relation("account_block_tb_blocker_idxToaccount_tb", fields: [blockerIdx], references: [idx], onDelete: Cascade, map: "fk_account_tb_to_account_block_tb")
+  blocked    AccountTb @relation("account_block_tb_blocked_idxToaccount_tb", fields: [blockedIdx], references: [idx], onDelete: Cascade, map: "fk_account_tb_to_account_block_tb1")
 
   @@id([blockerIdx, blockedIdx], map: "account_block_tb_pk")
   @@map("account_block_tb")
 }
 
 model AccountTb {
-  email                                             String             @db.VarChar
-  pw                                                String?            @db.VarChar
-  nickname                                          String             @default(dbgenerated("uuid_generate_v4()")) @db.VarChar
-  profile                                           String?
-  provider                                          String?            @db.VarChar
-  providerKey                                       String?            @map("provider_key") @db.VarChar(100)
-  createdAt                                         DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
-  deletedAt                                         DateTime?          @map("deleted_at") @db.Timestamptz(6)
-  idx                                               String             @id(map: "account_tb_pk") @default(dbgenerated("uuid_generate_v4()")) @db.VarChar
-  serialNumber                                      Int                @unique(map: "account_tb_serial_number_unique") @default(autoincrement()) @map("serial_number")
-  blocker                                           AccountBlockTb[]   @relation("account_block_tb_blocker_idxToaccount_tb")
-  blocked                                           AccountBlockTb[]   @relation("account_block_tb_blocked_idxToaccount_tb")
-  commentLikesTb                                    CommentLikesTb[]
-  commentTb                                         CommentTb[]
-  follower                                          FollowTb[]         @relation("follow_tb_follower_idxToaccount_tb")
-  followee                                          FollowTb[]         @relation("follow_tb_followee_idxToaccount_tb")
-  profileImgTb                                      ProfileImgTb[]
-  reviewBlockTb                                     ReviewBlockTb[]
-  reviewBookmarkTb                                  ReviewBookmarkTb[]
-  reviewLikesTb                                     ReviewLikesTb[]
-  reviewReportTb                                    ReviewReportTb[]
-  reviewShareTb                                     ReviewShareTb[]
-  reviewTb                                          ReviewTb[]
+  email            String             @db.VarChar
+  pw               String?            @db.VarChar
+  nickname         String             @default(dbgenerated("uuid_generate_v4()")) @db.VarChar
+  profile          String?
+  provider         String             @db.VarChar
+  providerKey      String?            @map("provider_key") @db.VarChar(100)
+  createdAt        DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt        DateTime?          @map("deleted_at") @db.Timestamptz(6)
+  idx              String             @id(map: "account_tb_pk") @default(dbgenerated("uuid_generate_v4()")) @db.VarChar
+  serialNumber     Int                @unique(map: "account_tb_serial_number_unique") @default(autoincrement()) @map("serial_number")
+  blocker          AccountBlockTb[]   @relation("account_block_tb_blocker_idxToaccount_tb")
+  blocked          AccountBlockTb[]   @relation("account_block_tb_blocked_idxToaccount_tb")
+  commentLikesTb   CommentLikesTb[]
+  commentTb        CommentTb[]
+  follower         FollowTb[]         @relation("follow_tb_follower_idxToaccount_tb")
+  followee         FollowTb[]         @relation("follow_tb_followee_idxToaccount_tb")
+  profileImgTb     ProfileImgTb[]
+  reviewBlockTb    ReviewBlockTb[]
+  reviewBookmarkTb ReviewBookmarkTb[]
+  reviewDislikeTb  ReviewDislikeTb[]
+  reviewLikeTb     ReviewLikeTb[]
+  reviewReportTb   ReviewReportTb[]
+  reviewShareTb    ReviewShareTb[]
+  reviewTb         ReviewTb[]
 
   @@map("account_tb")
 }
@@ -74,11 +75,11 @@ model CommentTb {
 }
 
 model FollowTb {
-  createdAt                               DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  followerIdx                             String    @map("follower_idx") @db.VarChar
-  followeeIdx                             String    @map("followee_idx") @db.VarChar
-  follower                                AccountTb @relation("follow_tb_follower_idxToaccount_tb", fields: [followerIdx], references: [idx], onDelete: Cascade, map: "fk_account_tb_to_follow_tb")
-  followee                                AccountTb @relation("follow_tb_followee_idxToaccount_tb", fields: [followeeIdx], references: [idx], onDelete: Cascade, map: "fk_account_tb_to_follow_tb1")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  followerIdx String    @map("follower_idx") @db.VarChar
+  followeeIdx String    @map("followee_idx") @db.VarChar
+  follower    AccountTb @relation("follow_tb_follower_idxToaccount_tb", fields: [followerIdx], references: [idx], onDelete: Cascade, map: "fk_account_tb_to_follow_tb")
+  followee    AccountTb @relation("follow_tb_followee_idxToaccount_tb", fields: [followeeIdx], references: [idx], onDelete: Cascade, map: "fk_account_tb_to_follow_tb1")
 
   @@id([followerIdx, followeeIdx], map: "follow_tb_pk")
   @@map("follow_tb")
@@ -128,17 +129,6 @@ model ReviewImgTb {
   @@map("review_img_tb")
 }
 
-model ReviewLikesTb {
-  reviewIdx  Int       @map("review_idx")
-  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  accountIdx String    @map("account_idx") @db.VarChar
-  accountTb  AccountTb @relation(fields: [accountIdx], references: [idx], onDelete: Cascade, map: "fk_account_tb_to_review_likes_tb")
-  reviewTb   ReviewTb  @relation(fields: [reviewIdx], references: [idx], onDelete: Cascade, map: "fk_review_tb_to_review_likes_tb")
-
-  @@id([reviewIdx, accountIdx], map: "review_likes_tb_pk")
-  @@map("review_likes_tb")
-}
-
 model ReviewReportTb {
   reviewIdx  Int       @map("review_idx")
   createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
@@ -174,8 +164,9 @@ model ReviewTb {
   commentTb        CommentTb[]
   reviewBlockTb    ReviewBlockTb[]
   reviewBookmarkTb ReviewBookmarkTb[]
+  reviewDislikeTb  ReviewDislikeTb[]
   reviewImgTb      ReviewImgTb[]
-  reviewLikesTb    ReviewLikesTb[]
+  reviewLikeTb     ReviewLikeTb[]
   reviewReportTb   ReviewReportTb[]
   reviewShareTb    ReviewShareTb[]
   accountTb        AccountTb          @relation(fields: [accountIdx], references: [idx], onDelete: Cascade, map: "fk_account_tb_to_review_tb")
@@ -201,4 +192,26 @@ model VerifiedEmailTb {
   createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   @@map("verified_email_tb")
+}
+
+model ReviewDislikeTb {
+  accountIdx String    @map("account_idx") @db.VarChar
+  reviewIdx  Int       @map("review_idx")
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  accountTb  AccountTb @relation(fields: [accountIdx], references: [idx], onDelete: Cascade)
+  reviewTb   ReviewTb  @relation(fields: [reviewIdx], references: [idx], onDelete: Cascade)
+
+  @@id([accountIdx, reviewIdx])
+  @@map("review_dislike_tb")
+}
+
+model ReviewLikeTb {
+  reviewIdx  Int       @map("review_idx")
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  accountIdx String    @map("account_idx") @db.VarChar
+  accountTb  AccountTb @relation(fields: [accountIdx], references: [idx], onDelete: Cascade, map: "fk_account_tb_to_review_likes_tb")
+  reviewTb   ReviewTb  @relation(fields: [reviewIdx], references: [idx], onDelete: Cascade, map: "fk_review_tb_to_review_likes_tb")
+
+  @@id([reviewIdx, accountIdx], map: "review_likes_tb_pk")
+  @@map("review_like_tb")
 }

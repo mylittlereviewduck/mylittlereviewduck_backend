@@ -74,9 +74,6 @@ export class CommentService {
           equals: null,
         },
       },
-      orderBy: {
-        idx: 'desc',
-      },
     });
 
     return {

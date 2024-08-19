@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ReviewService } from './review.service';
+import { ReviewShareEntity } from './entity/ReviewShare.entity';
 
 @Injectable()
 export class ReviewShareService {
@@ -9,7 +10,10 @@ export class ReviewShareService {
     private readonly reviewService: ReviewService,
   ) {}
 
-  async shareReview(userIdx: string, reviewIdx: number): Promise<void> {
+  async shareReview(
+    userIdx: string,
+    reviewIdx: number,
+  ): Promise<ReviewShareEntity> {
     const review = await this.reviewService.getReviewByIdx(reviewIdx);
     if (!review) {
       throw new NotFoundException('Not Found Review');
@@ -26,11 +30,12 @@ export class ReviewShareService {
       return;
     }
 
-    await this.prismaService.reviewShareTb.create({
+    const reviewShareData = await this.prismaService.reviewShareTb.create({
       data: {
         accountIdx: userIdx,
         reviewIdx: reviewIdx,
       },
     });
+    return new ReviewShareEntity(reviewShareData);
   }
 }

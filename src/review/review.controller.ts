@@ -51,6 +51,9 @@ import { FileValidationPipe } from 'src/common/fileValidation.pipe';
 import { ReviewLikeEntity } from './entity/ReviewLike.entity';
 import { ReviewDislikeEntity } from './entity/ReviewDislike.entity';
 import { ReviewBlockEntity } from './entity/ReviewBlock.entity';
+import { ReviewReportEntity } from './entity/ReviewReport.entity';
+import { ReviewShareEntity } from './entity/ReviewShare.entity';
+import { ReviewBookmarkEntity } from './entity/Reviewbookmark.entity';
 
 @Controller('')
 @ApiTags('review')
@@ -359,12 +362,15 @@ export class ReviewController {
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 찾을수 없음')
   @Exception(409, '현재상태와 요청 충돌')
-  @ApiResponse({ status: 201 })
+  @ApiResponse({ status: 201, type: ReviewBookmarkEntity })
   async bookmarkReview(
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
-  ): Promise<void> {
-    await this.reviewBookmarkService.bookmarkReview(loginUser.idx, reviewIdx);
+  ): Promise<ReviewBookmarkEntity> {
+    return await this.reviewBookmarkService.bookmarkReview(
+      loginUser.idx,
+      reviewIdx,
+    );
   }
 
   @Delete('/review/:reviewIdx/bookmark')
@@ -393,12 +399,12 @@ export class ReviewController {
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 찾을수 없음')
   @Exception(409, '현재상태와 요청 충돌')
-  @ApiResponse({ status: 201 })
+  @ApiResponse({ status: 201, type: ReviewShareEntity })
   async shareReview(
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
-  ): Promise<void> {
-    await this.reviewShareService.shareReview(loginUser.idx, reviewIdx);
+  ): Promise<ReviewShareEntity> {
+    return await this.reviewShareService.shareReview(loginUser.idx, reviewIdx);
   }
 
   @Post('/review/:reviewIdx/block')
@@ -445,12 +451,15 @@ export class ReviewController {
   @Exception(401, '권한없음')
   @Exception(404, '해당리소스 찾을 수 없음')
   @Exception(409, '현재상태와 요청 충돌')
-  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 200, type: ReviewReportEntity })
   async reportReview(
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
-  ): Promise<void> {
-    await this.reviewReportService.reportReview(loginUser.idx, reviewIdx);
+  ): Promise<ReviewReportEntity> {
+    return await this.reviewReportService.reportReview(
+      loginUser.idx,
+      reviewIdx,
+    );
   }
 
   @Get('/user/:userIdx/review/all')

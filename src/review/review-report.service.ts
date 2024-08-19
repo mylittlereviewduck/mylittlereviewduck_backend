@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ReviewService } from './review.service';
+import { ReviewReportEntity } from './entity/ReviewReport.entity';
 
 @Injectable()
 export class ReviewReportService {
@@ -13,7 +14,10 @@ export class ReviewReportService {
     private readonly reviewService: ReviewService,
   ) {}
 
-  async reportReview(userIdx: string, reviewIdx: number): Promise<void> {
+  async reportReview(
+    userIdx: string,
+    reviewIdx: number,
+  ): Promise<ReviewReportEntity> {
     const review = await this.reviewService.getReviewByIdx(reviewIdx);
 
     if (!review) {
@@ -35,12 +39,14 @@ export class ReviewReportService {
       throw new ConflictException('Already Review Reported');
     }
 
-    await this.prismaService.reviewReportTb.create({
+    const reviewReportData = await this.prismaService.reviewReportTb.create({
       data: {
         accountIdx: userIdx,
         reviewIdx: reviewIdx,
       },
     });
+
+    return new ReviewReportEntity(reviewReportData);
   }
 
   async unreportReview(userIdx: string, reviewIdx: number): Promise<void> {

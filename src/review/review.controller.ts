@@ -50,6 +50,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { FileValidationPipe } from 'src/common/fileValidation.pipe';
 import { ReviewLikeEntity } from './entity/ReviewLike.entity';
 import { ReviewDislikeEntity } from './entity/ReviewDislike.entity';
+import { ReviewBlockEntity } from './entity/ReviewBlock.entity';
 
 @Controller('')
 @ApiTags('review')
@@ -409,12 +410,12 @@ export class ReviewController {
   @Exception(401, '권한없음')
   @Exception(404, '해당리소스 찾을 수 없음')
   @Exception(409, '현재상태와 요청 충돌')
-  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 200, type: ReviewBlockEntity })
   async blockReview(
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
-  ): Promise<void> {
-    await this.reviewBlockService.blockReview(loginUser.idx, reviewIdx);
+  ): Promise<ReviewBlockEntity> {
+    return await this.reviewBlockService.blockReview(loginUser.idx, reviewIdx);
   }
 
   @Delete('/review/:reviewIdx/block')

@@ -1,7 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CommentLikeEntity {
-  @ApiProperty({ example: '1', description: '유저 idx' })
+  @ApiProperty({
+    example: 'de1704a4-bdd4-4df5-8fe8-053338cbac44',
+    description: '유저 idx',
+  })
   userIdx: number;
 
   @ApiProperty({ example: '2', description: '댓글 idx' })

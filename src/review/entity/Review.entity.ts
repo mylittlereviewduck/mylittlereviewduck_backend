@@ -4,7 +4,10 @@ export class ReviewEntity {
   @ApiProperty({ example: 1, description: '리뷰 idx' })
   idx: number;
 
-  @ApiProperty({ example: 1, description: '작성자 idx' })
+  @ApiProperty({
+    example: 'de1704a4-bdd4-4df5-8fe8-053338cbac44',
+    description: '작성자 idx',
+  })
   userIdx: string;
 
   @ApiProperty({ example: '제목입니다', description: '제목 255자' })

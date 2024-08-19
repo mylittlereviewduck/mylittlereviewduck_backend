@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ReviewService } from './review.service';
+import { ReviewBlockEntity } from './entity/ReviewBlock.entity';
 
 @Injectable()
 export class ReviewBlockService {
@@ -13,7 +14,10 @@ export class ReviewBlockService {
     private readonly reviewService: ReviewService,
   ) {}
 
-  async blockReview(userIdx: string, reviewIdx: number): Promise<void> {
+  async blockReview(
+    userIdx: string,
+    reviewIdx: number,
+  ): Promise<ReviewBlockEntity> {
     const review = await this.reviewService.getReviewByIdx(reviewIdx);
 
     if (!review) {
@@ -35,12 +39,14 @@ export class ReviewBlockService {
       throw new ConflictException('Already Blocked');
     }
 
-    await this.prismaService.reviewBlockTb.create({
+    const reviewBlockData = await this.prismaService.reviewBlockTb.create({
       data: {
         accountIdx: userIdx,
         reviewIdx: reviewIdx,
       },
     });
+
+    return new ReviewBlockEntity(reviewBlockData);
   }
 
   async unblockReview(userIdx: string, reviewIdx: number): Promise<void> {

@@ -497,8 +497,8 @@ export class ReviewService {
   }
 
   async getReviewCommented(
-    reviewPagerbleDto: ReviewPagerbleDto,
     userIdx: string,
+    reviewPagerbleDto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
     const user = await this.userService.getUser({ idx: userIdx });
 

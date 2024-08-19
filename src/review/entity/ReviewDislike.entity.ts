@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class ReviewLikeEntity {
+export class ReviewDislikeEntity {
   @ApiProperty({ example: 1, description: '유저 idx' })
   userIdx: string;
 

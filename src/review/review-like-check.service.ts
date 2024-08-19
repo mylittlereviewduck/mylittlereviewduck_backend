@@ -10,7 +10,7 @@ export class ReviewLikeCheckService {
     userIdx: string,
     reviews: ReviewEntity[],
   ): Promise<ReviewEntity[]> {
-    const sqlResult = await this.prismaService.reviewLikesTb.findMany({
+    const sqlResult = await this.prismaService.reviewLikeTb.findMany({
       where: {
         accountIdx: userIdx,
         reviewIdx: {

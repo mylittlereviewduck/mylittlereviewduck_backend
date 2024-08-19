@@ -98,7 +98,7 @@ export class ReviewService {
           },
           _count: {
             select: {
-              reviewLikesTb: true,
+              reviewLikeTb: true,
               reviewBookmarkTb: true,
               reviewShareTb: true,
               reviewReportTb: true,
@@ -194,7 +194,7 @@ export class ReviewService {
           },
           _count: {
             select: {
-              reviewLikesTb: true,
+              reviewLikeTb: true,
               reviewBookmarkTb: true,
               reviewReportTb: true,
               reviewShareTb: true,
@@ -206,6 +206,10 @@ export class ReviewService {
         },
       });
 
+      if (!reviewData) {
+        return;
+      }
+
       await tx.reviewTb.update({
         data: {
           viewCount: reviewData.viewCount + 1,
@@ -215,10 +219,6 @@ export class ReviewService {
         },
       });
     });
-
-    if (!reviewData) {
-      throw new NotFoundException('Not Found Review');
-    }
 
     const review = {
       ...reviewData,
@@ -263,7 +263,7 @@ export class ReviewService {
         },
         _count: {
           select: {
-            reviewLikesTb: true,
+            reviewLikeTb: true,
             reviewBookmarkTb: true,
             reviewShareTb: true,
             reviewReportTb: true,
@@ -282,7 +282,7 @@ export class ReviewService {
       return {
         ...elem,
         tags: elem.tagTb.map((elem) => elem.tagName),
-        likeCount: elem._count.reviewLikesTb,
+        likeCount: elem._count.reviewLikeTb,
         bookmarkCount: elem._count.reviewBookmarkTb,
         shareCount: elem._count.reviewShareTb,
         reportCount: elem._count.reviewReportTb,
@@ -351,7 +351,7 @@ export class ReviewService {
         },
         _count: {
           select: {
-            reviewLikesTb: true,
+            reviewLikeTb: true,
           },
         },
       },
@@ -399,7 +399,7 @@ export class ReviewService {
     const reviewData = searchSQLResult.map((review) => {
       return {
         ...review,
-        likeCount: review._count.reviewLikesTb,
+        likeCount: review._count.reviewLikeTb,
         tags: review.tagTb.map((elem) => elem.tagName),
       };
     });
@@ -439,7 +439,7 @@ export class ReviewService {
         },
         _count: {
           select: {
-            reviewLikesTb: true,
+            reviewLikeTb: true,
             reviewBookmarkTb: true,
             reviewShareTb: true,
             reviewReportTb: true,
@@ -464,7 +464,7 @@ export class ReviewService {
       return {
         ...elem,
         tags: elem.tagTb.map((elem) => elem.tagName),
-        likeCount: elem._count.reviewLikesTb,
+        likeCount: elem._count.reviewLikeTb,
         bookmarkCount: elem._count.reviewBookmarkTb,
         shareCount: elem._count.reviewShareTb,
         reportCount: elem._count.reviewReportTb,
@@ -482,7 +482,7 @@ export class ReviewService {
 
     const reviewList = await this.prismaService.reviewTb.findMany({
       include: {
-        reviewLikesTb: {
+        reviewLikeTb: {
           where: {
             createdAt: {
               gte: mostRecentNoon,
@@ -491,7 +491,7 @@ export class ReviewService {
         },
       },
     });
-    reviewList.sort((a, b) => b.reviewLikesTb.length - a.reviewLikesTb.length);
+    reviewList.sort((a, b) => b.reviewLikeTb.length - a.reviewLikeTb.length);
 
     return reviewList.map((elem) => new ReviewEntity(elem));
   }
@@ -526,7 +526,7 @@ export class ReviewService {
         },
         _count: {
           select: {
-            reviewLikesTb: true,
+            reviewLikeTb: true,
             reviewBookmarkTb: true,
             reviewShareTb: true,
             reviewReportTb: true,
@@ -552,7 +552,7 @@ export class ReviewService {
       return {
         ...elem,
         tags: elem.tagTb.map((elem) => elem.tagName),
-        likeCount: elem._count.reviewLikesTb,
+        likeCount: elem._count.reviewLikeTb,
         bookmarkCount: elem._count.reviewBookmarkTb,
         shareCount: elem._count.reviewShareTb,
         reportCount: elem._count.reviewReportTb,

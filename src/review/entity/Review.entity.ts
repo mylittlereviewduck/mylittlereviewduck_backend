@@ -60,9 +60,15 @@ export class ReviewEntity {
 
   @ApiProperty({
     example: 'true',
-    description: '팔로우여부',
+    description: '좋아요여부',
   })
   isMyLike: boolean = false;
+
+  @ApiProperty({
+    example: 'false',
+    description: '싫어요여부',
+  })
+  isMyDislike: boolean = false;
 
   @ApiProperty({
     example: 'true',
@@ -97,6 +103,7 @@ export class ReviewEntity {
     this.shareCount = data.shareCount ?? 0;
     this.reportCount = data.reportCount ?? 0;
     this.isMyLike = data.isMyLike ?? false;
+    this.isMyDislike = data.isMyDislike ?? false;
     this.isMyBookmark = data.isMyBookmark ?? false;
     this.isMyShare = data.isMyShare ?? false;
     this.isMyBlock = data.isMyBlock ?? false;

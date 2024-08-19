@@ -48,6 +48,8 @@ import { ReviewBookmarkService } from './review-bookmark.service';
 import { ReviewReportService } from './review-report.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileValidationPipe } from 'src/common/fileValidation.pipe';
+import { ReviewLikeEntity } from './entity/ReviewLike.entity';
+import { ReviewDislikeEntity } from './entity/ReviewDislike.entity';
 
 @Controller('')
 @ApiTags('review')
@@ -288,12 +290,12 @@ export class ReviewController {
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 찾을수 없음')
   @Exception(409, '현재상태와 요청 충돌')
-  @ApiResponse({ status: 201 })
+  @ApiResponse({ status: 201, type: ReviewLikeEntity })
   async likeReview(
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
-  ): Promise<void> {
-    await this.reviewLikeService.likeReview(loginUser.idx, reviewIdx);
+  ): Promise<ReviewLikeEntity> {
+    return await this.reviewLikeService.likeReview(loginUser.idx, reviewIdx);
   }
 
   @Delete('/review/:reviewIdx/like')
@@ -311,6 +313,40 @@ export class ReviewController {
     @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
   ): Promise<void> {
     await this.reviewLikeService.unlikeReview(loginUser.idx, reviewIdx);
+  }
+
+  @Post('/review/:reviewIdx/dislike')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: '리뷰 싫어요하기' })
+  @ApiParam({ name: 'reviewIdx', type: 'number', example: 1 })
+  @ApiBearerAuth()
+  @Exception(400, '유효하지않은 요청')
+  @Exception(401, '권한 없음')
+  @Exception(404, '해당 리소스 찾을수 없음')
+  @Exception(409, '현재상태와 요청 충돌')
+  @ApiResponse({ status: 201, type: ReviewDislikeEntity })
+  async dislikeReview(
+    @GetUser() loginUser: LoginUser,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
+  ): Promise<ReviewDislikeEntity> {
+    return await this.reviewLikeService.dislikeReview(loginUser.idx, reviewIdx);
+  }
+
+  @Delete('/review/:reviewIdx/dislike')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: '리뷰 싫어요 해제하기' })
+  @ApiParam({ name: 'reviewIdx', type: 'number', example: 1 })
+  @ApiBearerAuth()
+  @Exception(400, '유효하지않은 요청')
+  @Exception(401, '권한 없음')
+  @Exception(404, '해당 리소스 찾을수 없음')
+  @Exception(409, '현재상태와 요청 충돌')
+  @ApiResponse({ status: 201 })
+  async undislikeReview(
+    @GetUser() loginUser: LoginUser,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
+  ): Promise<void> {
+    await this.reviewLikeService.undislikeReview(loginUser.idx, reviewIdx);
   }
 
   @Post('/review/:reviewIdx/bookmark')

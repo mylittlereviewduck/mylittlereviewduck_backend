@@ -57,7 +57,7 @@ export class CommentController {
   })
   @Exception(400, '유효하지않은 요청')
   @Exception(404, '해당 리소스 없음')
-  @ApiResponse({ status: 200, type: CommentEntity, isArray: true })
+  @ApiResponse({ status: 200, type: CommentPagerbleResponseDto, isArray: true })
   async getCommemtAllByReviewIdx(
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx', ParseIntPipe) reviewIdx: number,

@@ -47,14 +47,14 @@ export class CommentLikeService {
       throw new ConflictException('Already Comment Like');
     }
 
-    await this.prismaService.commentLikesTb.create({
+    const commentLikeData = await this.prismaService.commentLikesTb.create({
       data: {
         accountIdx: userIdx,
         commentIdx: commentIdx,
       },
     });
 
-    return;
+    return new CommentLikeEntity(commentLikeData);
   }
 
   async unlikeComment(

@@ -112,7 +112,7 @@ export class CommentController {
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 없음')
-  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 200, type: CommentEntity })
   async updateComment(
     @GetUser() loginUser: LoginUser,
     @Body() updateCommentDto: UpdateCommentDto,
@@ -160,7 +160,11 @@ export class CommentController {
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 없음')
   @Exception(409, '현재상태와 요청 충돌')
-  @ApiResponse({ status: 200, description: '댓글 좋아요 성공시 200 반환' })
+  @ApiResponse({
+    status: 200,
+    description: '댓글 좋아요 성공시 200 반환',
+    type: CommentLikeEntity,
+  })
   async likeComment(
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx', ParseIntPipe) reviewIdx: number,

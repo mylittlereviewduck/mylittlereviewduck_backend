@@ -32,4 +32,32 @@ export class ReviewLikeCheckService {
 
     return reviews;
   }
+
+  async isReviewDisliked(
+    userIdx: string,
+    reviews: ReviewEntity[],
+  ): Promise<ReviewEntity[]> {
+    const sqlResult = await this.prismaService.reviewDislikeTb.findMany({
+      where: {
+        accountIdx: userIdx,
+        reviewIdx: {
+          in: reviews.map((review) => review.idx),
+        },
+      },
+      select: {
+        reviewIdx: true,
+      },
+    });
+    console.log('sqlResult: ', sqlResult);
+
+    const dislikedReviewIdxList = sqlResult.map((elem) => elem.reviewIdx);
+
+    for (let i = 0; i < reviews.length; i++) {
+      if (dislikedReviewIdxList.includes(reviews[i].idx)) {
+        reviews[i].isMyDislike = true;
+      }
+    }
+
+    return reviews;
+  }
 }

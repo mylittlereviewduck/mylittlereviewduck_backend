@@ -106,6 +106,11 @@ export class ReviewController {
       reviewPagerbleResponseDto.reviews,
     );
 
+    await this.reviewLikeCheckService.isReviewDisliked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
+
     await this.reviewBookmarkCheckService.isReviewBookmarked(
       loginUser.idx,
       reviewPagerbleResponseDto.reviews,
@@ -196,6 +201,10 @@ export class ReviewController {
     }
 
     await this.reviewLikeCheckService.isReviewLiked(loginUser.idx, [
+      reviewEntity,
+    ]);
+
+    await this.reviewLikeCheckService.isReviewDisliked(loginUser.idx, [
       reviewEntity,
     ]);
 
@@ -524,6 +533,11 @@ export class ReviewController {
     }
 
     await this.reviewLikeCheckService.isReviewLiked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
+
+    await this.reviewLikeCheckService.isReviewDisliked(
       loginUser.idx,
       reviewPagerbleResponseDto.reviews,
     );

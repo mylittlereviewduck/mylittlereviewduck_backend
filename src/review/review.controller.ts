@@ -142,7 +142,14 @@ export class ReviewController {
     description: '가져올 페이지, 기본값 1',
   })
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
-  async getReviewPopular() {}
+  async getReviewPopular(
+    @Query('size') size: number,
+    @Query('page') page: number,
+  ): Promise<ReviewPagerbleResponseDto> {
+    // await this.getHotReviews();
+
+    return;
+  }
 
   @Post('/review')
   @UseGuards(AuthGuard)
@@ -159,7 +166,10 @@ export class ReviewController {
     @GetUser() loginUser: LoginUser,
     @Body() createReviewDto: CreateReviewDto,
   ): Promise<ReviewEntity> {
-    return await this.reviewService.createReview(loginUser, createReviewDto);
+    return await this.reviewService.createReview(
+      loginUser.idx,
+      createReviewDto,
+    );
   }
 
   @Post('/review/img')
@@ -238,7 +248,7 @@ export class ReviewController {
     @Body() updateReviewDto: UpdateReviewDto,
   ): Promise<ReviewEntity> {
     return await this.reviewService.updateReview(
-      loginUser,
+      loginUser.idx,
       reviewIdx,
       updateReviewDto,
     );
@@ -257,7 +267,7 @@ export class ReviewController {
     @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
   ): Promise<ReviewEntity> {
     const reviewEntity = await this.reviewService.deleteReview(
-      loginUser,
+      loginUser.idx,
       reviewIdx,
     );
     return reviewEntity;
@@ -265,7 +275,7 @@ export class ReviewController {
 
   @Get('/review')
   @ApiOperation({ summary: '리뷰검색하기 닉네임, 태그, 제목,내용' })
-  @ApiQuery({ name: 'search', description: '검색 키워드' })
+  @ApiQuery({ name: 'search', description: '검색 키워드, 검색어 2글자 이상' })
   @ApiQuery({
     name: 'size',
     example: 1,
@@ -276,6 +286,7 @@ export class ReviewController {
     example: 1,
     description: '가져올 페이지, 기본값 1',
   })
+  @Exception(400, '유효하지않은 요청')
   @Exception(404, 'Not Found Page')
   @ApiResponse({ status: 200, type: ReviewSearchResponseDto })
   async getReviewWithSearch(
@@ -284,7 +295,7 @@ export class ReviewController {
     @Query('size') size: number,
   ): Promise<ReviewSearchResponseDto> {
     if (search.length < 2) {
-      throw new BadRequestException('Bad Request: 검색어는 2글자이상');
+      throw new BadRequestException('검색어는 2글자이상');
     }
 
     return await this.reviewService.getReviewWithSearch({
@@ -616,7 +627,7 @@ export class ReviewController {
     @Query('size') size: number,
   ): Promise<ReviewPagerbleResponseDto> {
     const reviewPagerbleResponseDto =
-      await this.reviewService.getReviewCommented(userIdx, {
+      await this.reviewService.getMyCommentedReviewAll(userIdx, {
         size: size || 10,
         page: page || 1,
       });

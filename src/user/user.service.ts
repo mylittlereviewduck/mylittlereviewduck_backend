@@ -17,25 +17,11 @@ export class UserService {
   constructor(private readonly prismaService: PrismaService) {}
 
   async getUser(getUserDto: GetUserDto): Promise<UserEntity | undefined> {
-    const user = await this.prismaService.accountTb.findFirst({
+    const user = await this.prismaService.accountDetailView.findFirst({
       where: {
         idx: getUserDto.idx,
         email: getUserDto.email,
         nickname: getUserDto.nickname,
-      },
-      include: {
-        profileImgTb: {
-          where: {
-            deletedAt: null,
-          },
-        },
-        _count: {
-          select: {
-            follower: true,
-            followee: true,
-            reviewReportTb: true,
-          },
-        },
       },
     });
 
@@ -45,10 +31,10 @@ export class UserService {
 
     return new UserEntity({
       ...user,
-      profileImg: user.profileImgTb[0].imgPath,
-      followingCount: user._count.follower,
-      followerCount: user._count.followee,
-      reportCount: user._count.reviewReportTb,
+      profileImg: user.profileImg,
+      followingCount: user.followerCount,
+      followerCount: user.followeeCount,
+      reportCount: user.accountReportedCount,
     });
   }
 
@@ -57,7 +43,7 @@ export class UserService {
     let newUser;
     let newProfileImg;
     await this.prismaService.$transaction(async (tx) => {
-      const emailDuplicatedUser = await tx.accountTb.findFirst({
+      const emailDuplicatedUser = await tx.accountInfoView.findFirst({
         where: {
           email: createUserDto.email,
         },
@@ -213,7 +199,7 @@ export class UserService {
     userIdx: string,
     provider: string,
   ): Promise<UserWithProvider> {
-    const userData = await this.prismaService.accountTb.findUnique({
+    const userData = await this.prismaService.accountInfoView.findUnique({
       where: {
         idx: userIdx,
         provider: provider,

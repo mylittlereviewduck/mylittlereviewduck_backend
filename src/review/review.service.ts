@@ -24,7 +24,7 @@ export class ReviewService {
   ) {}
 
   async createReview(
-    loginUser: LoginUser,
+    userIdx: string,
     createDto: CreateReviewDto,
   ): Promise<ReviewEntity> {
     let reviewData;
@@ -32,7 +32,7 @@ export class ReviewService {
     await this.prismaService.$transaction(async (tx) => {
       reviewData = await tx.reviewTb.create({
         data: {
-          accountIdx: loginUser.idx,
+          accountIdx: userIdx,
           title: createDto.title,
           content: createDto.content,
           score: createDto.score,
@@ -68,7 +68,7 @@ export class ReviewService {
   }
 
   async updateReview(
-    loginUser: LoginUser,
+    userIdx: string,
     reviewIdx: number,
     updateReviewDto: UpdateReviewDto,
   ): Promise<ReviewEntity> {
@@ -86,7 +86,7 @@ export class ReviewService {
         throw new NotFoundException('Not Found Review');
       }
 
-      if (review.accountIdx !== loginUser.idx) {
+      if (review.accountIdx !== userIdx) {
         throw new UnauthorizedException('Unauthorized User');
       }
       reviewData = await tx.reviewTb.update({
@@ -152,10 +152,8 @@ export class ReviewService {
     return new ReviewEntity(review);
   }
 
-  //나의 리뷰인지 확인하는 로직
-  //리뷰 식별자 난독화, 토큰화
   async deleteReview(
-    loginUser: LoginUser,
+    userIdx: string,
     reviewIdx: number,
   ): Promise<ReviewEntity> {
     const review = await this.prismaService.reviewTb.findUnique({
@@ -168,7 +166,7 @@ export class ReviewService {
       throw new NotFoundException('Not Found Review');
     }
 
-    if (review.accountIdx !== loginUser.idx) {
+    if (review.accountIdx !== userIdx) {
       throw new UnauthorizedException('Unauthorized User');
     }
 
@@ -496,7 +494,7 @@ export class ReviewService {
     return reviewList.map((elem) => new ReviewEntity(elem));
   }
 
-  async getReviewCommented(
+  async getMyCommentedReviewAll(
     userIdx: string,
     reviewPagerbleDto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {

@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["views"]
 }
 
 datasource db {
@@ -214,4 +215,44 @@ model ReviewLikeTb {
 
   @@id([reviewIdx, accountIdx], map: "review_likes_tb_pk")
   @@map("review_like_tb")
+}
+
+model AccountReportTb {
+  reporterIdx String   @map("reporter_idx") @db.VarChar
+  reportedIdx String   @map("reported_idx") @db.VarChar
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+
+  @@id([reporterIdx, reportedIdx], map: "account_report_pk")
+  @@map("account_report_tb")
+}
+
+/// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+view AccountInfoView {
+  email        String   @db.VarChar
+  nickname     String   @db.VarChar
+  profile      String
+  provider     String   @db.VarChar
+  createdAt    DateTime @map("created_at") @db.Timestamptz(6)
+  deletedAt    DateTime @map("deleted_at") @db.Timestamptz(6)
+  idx          String   @unique @db.VarChar
+  serialNumber Int      @map("serial_number")
+
+  @@map("account_info_view")
+}
+
+view AccountDetailView {
+  idx                  String   @unique @db.VarChar
+  email                String   @db.VarChar
+  nickname             String   @db.VarChar
+  profile              String
+  provider             String   @db.VarChar
+  createdAt            DateTime @map("created_at") @db.Timestamptz(6)
+  deletedAt            DateTime @map("deleted_at") @db.Timestamptz(6)
+  serialNumber         Int      @map("serial_number")
+  profileImg           String   @map("profile_img") @db.VarChar
+  followerCount        BigInt   @map("follower_count")
+  followeeCount        BigInt   @map("followee_count")
+  accountReportedCount BigInt?  @map("account_reported_count")
+
+  @@map("account_detail_view")
 }

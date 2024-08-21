@@ -475,23 +475,67 @@ export class ReviewService {
     };
   }
 
-  async getHotReviewAll(): Promise<ReviewEntity[]> {
+  async getHotReviewAll(
+    reviewPagerbleDto: ReviewPagerbleDto,
+  ): Promise<ReviewPagerbleResponseDto> {
     const mostRecentNoon = this.getMostRecentNoon();
 
-    const reviewList = await this.prismaService.reviewTb.findMany({
+    const totalCount = await this.prismaService.reviewTb.count();
+
+    const sqlResult = await this.prismaService.reviewTb.findMany({
       include: {
+        tagTb: {
+          select: {
+            tagName: true,
+          },
+        },
+        _count: {
+          select: {
+            reviewBookmarkTb: true,
+            reviewShareTb: true,
+            reviewReportTb: true,
+            reviewDislikeTb: true,
+            reviewLikeTb: true,
+          },
+        },
+      },
+      where: {
         reviewLikeTb: {
-          where: {
+          some: {
             createdAt: {
+              // gte: new Date(mostRecentNoon.getTime() - 12 * 60 * 60 * 1000),
+              // lte: mostRecentNoon,
               gte: mostRecentNoon,
+              lte: new Date(),
             },
           },
         },
       },
+      orderBy: {
+        reviewLikeTb: {
+          _count: 'desc',
+        },
+      },
     });
-    reviewList.sort((a, b) => b.reviewLikeTb.length - a.reviewLikeTb.length);
 
-    return reviewList.map((elem) => new ReviewEntity(elem));
+    console.log('sqlResult: ', sqlResult);
+
+    const reviewEntityData = sqlResult.map((elem) => {
+      return {
+        ...elem,
+        tags: elem.tagTb.map((elem) => elem.tagName),
+        likeCount: elem._count.reviewLikeTb,
+        dislikeCount: elem._count.reviewDislikeTb,
+        bookmarkCount: elem._count.reviewBookmarkTb,
+        shareCount: elem._count.reviewShareTb,
+        reportCount: elem._count.reviewReportTb,
+      };
+    });
+
+    return {
+      totalPage: Math.ceil(totalCount / reviewPagerbleDto.size),
+      reviews: reviewEntityData.map((elem) => new ReviewEntity(elem)),
+    };
   }
 
   async getMyCommentedReviewAll(

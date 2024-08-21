@@ -226,33 +226,32 @@ model AccountReportTb {
   @@map("account_report_tb")
 }
 
-/// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 view AccountInfoView {
-  email        String   @db.VarChar
-  nickname     String   @db.VarChar
-  profile      String
-  provider     String   @db.VarChar
-  createdAt    DateTime @map("created_at") @db.Timestamptz(6)
-  deletedAt    DateTime @map("deleted_at") @db.Timestamptz(6)
-  idx          String   @unique @db.VarChar
-  serialNumber Int      @map("serial_number")
+  email        String    @db.VarChar
+  nickname     String    @db.VarChar
+  profile      String?
+  provider     String    @db.VarChar
+  createdAt    DateTime  @map("created_at") @db.Timestamptz(6)
+  deletedAt    DateTime? @map("deleted_at") @db.Timestamptz(6)
+  idx          String    @unique @db.VarChar
+  serialNumber Int       @map("serial_number")
 
   @@map("account_info_view")
 }
 
 view AccountDetailView {
-  idx                  String   @unique @db.VarChar
-  email                String   @db.VarChar
-  nickname             String   @db.VarChar
-  profile              String
-  provider             String   @db.VarChar
-  createdAt            DateTime @map("created_at") @db.Timestamptz(6)
-  deletedAt            DateTime @map("deleted_at") @db.Timestamptz(6)
-  serialNumber         Int      @map("serial_number")
-  profileImg           String   @map("profile_img") @db.VarChar
-  followerCount        BigInt   @map("follower_count")
-  followeeCount        BigInt   @map("followee_count")
-  accountReportedCount BigInt?  @map("account_reported_count")
+  idx                  String    @unique @db.VarChar
+  email                String    @db.VarChar
+  nickname             String    @db.VarChar
+  profile              String?
+  provider             String    @db.VarChar
+  createdAt            DateTime  @map("created_at") @db.Timestamptz(6)
+  deletedAt            DateTime? @map("deleted_at") @db.Timestamptz(6)
+  serialNumber         Int       @map("serial_number")
+  profileImg           String    @map("profile_img") @db.VarChar
+  followerCount        BigInt?    @map("follower_count")
+  followeeCount        BigInt?    @map("followee_count")
+  accountReportedCount BigInt?   @map("account_reported_count")
 
   @@map("account_detail_view")
 }

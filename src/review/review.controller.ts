@@ -146,9 +146,10 @@ export class ReviewController {
     @Query('size') size: number,
     @Query('page') page: number,
   ): Promise<ReviewPagerbleResponseDto> {
-    // await this.getHotReviews();
-
-    return;
+    return await this.reviewService.getHotReviewAll({
+      size: size || 10,
+      page: page || 1,
+    });
   }
 
   @Post('/review')

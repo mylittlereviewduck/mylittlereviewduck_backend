@@ -49,6 +49,9 @@ export class ReviewEntity {
   @ApiProperty({ example: 10, description: '좋아요수' })
   likeCount: number = 0;
 
+  @ApiProperty({ example: 10, description: '싫어요수' })
+  dislikeCount: number = 0;
+
   @ApiProperty({ example: 10, description: '북마크수' })
   bookmarkCount: number = 0;
 
@@ -102,6 +105,7 @@ export class ReviewEntity {
     this.createdAt = data.createdAt;
     this.viewCount = data.viewCount ?? 0;
     this.likeCount = data.likeCount ?? 0;
+    this.dislikeCount = data.dislikeCount ?? 0;
     this.bookmarkCount = data.bookmarkCount ?? 0;
     this.shareCount = data.shareCount ?? 0;
     this.reportCount = data.reportCount ?? 0;

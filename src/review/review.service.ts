@@ -15,6 +15,7 @@ import { ReviewSearchPagerbleDto } from './dto/review-search-pagerble.dto';
 import { ReviewPagerbleResponseDto } from './dto/response/review-pagerble-response.dto';
 import { UserService } from 'src/user/user.service';
 import { Cron } from '@nestjs/schedule';
+import { elementAt } from 'rxjs';
 
 @Injectable()
 export class ReviewService {
@@ -29,6 +30,8 @@ export class ReviewService {
     createDto: CreateReviewDto,
   ): Promise<ReviewEntity> {
     let reviewData;
+
+    //리뷰 이미지 6개 제한 예외처리
 
     await this.prismaService.$transaction(async (tx) => {
       reviewData = await tx.reviewTb.create({
@@ -68,6 +71,7 @@ export class ReviewService {
     return new ReviewEntity(reviewEntityData);
   }
 
+  //이미지 6개제한 예외처리
   async updateReview(
     userIdx: string,
     reviewIdx: number,
@@ -75,6 +79,7 @@ export class ReviewService {
   ): Promise<ReviewEntity> {
     let reviewData;
     let tagData;
+    let imageData;
 
     await this.prismaService.$transaction(async (tx) => {
       const review = await tx.reviewTb.findUnique({
@@ -97,9 +102,18 @@ export class ReviewService {
               tagName: true,
             },
           },
+          reviewImgTb: {
+            select: {
+              imgPath: true,
+            },
+            where: {
+              deletedAt: null,
+            },
+          },
           _count: {
             select: {
               reviewLikeTb: true,
+              reviewDislikeTb: true,
               reviewBookmarkTb: true,
               reviewShareTb: true,
               reviewReportTb: true,
@@ -110,6 +124,7 @@ export class ReviewService {
           title: updateReviewDto.title,
           score: updateReviewDto.score,
           content: updateReviewDto.content,
+          updatedAt: new Date(),
         },
         where: {
           idx: reviewIdx,
@@ -139,12 +154,41 @@ export class ReviewService {
           tagName: true,
         },
       });
+
+      await tx.reviewImgTb.updateMany({
+        data: {
+          deletedAt: new Date(),
+        },
+        where: {
+          reviewIdx: reviewIdx,
+        },
+      });
+
+      await tx.reviewImgTb.createMany({
+        data: updateReviewDto.images.map((image) => {
+          return {
+            reviewIdx: reviewIdx,
+            imgPath: image,
+          };
+        }),
+      });
+
+      imageData = await tx.reviewImgTb.findMany({
+        where: {
+          reviewIdx: reviewIdx,
+        },
+        select: {
+          imgPath: true,
+        },
+      });
     });
 
     const review = {
       ...reviewData,
       tags: tagData.map((tag) => tag.tagName),
-      likeCount: reviewData._count.reviewLikesTb,
+      images: imageData.map((image) => image.imgPath),
+      likeCount: reviewData._count.reviewLikeTb,
+      dislikeCount: reviewData._count.reviewDislikeTb,
       bookmarkCount: reviewData._count.reviewBookmarkTb,
       shareCount: reviewData._count.reviewShareTb,
       reportCount: reviewData._count.reviewReportTb,
@@ -171,7 +215,10 @@ export class ReviewService {
       throw new UnauthorizedException('Unauthorized User');
     }
 
-    const deletedReview = await this.prismaService.reviewTb.delete({
+    const deletedReview = await this.prismaService.reviewTb.update({
+      data: {
+        deletedAt: new Date(),
+      },
       where: {
         idx: reviewIdx,
       },
@@ -191,9 +238,18 @@ export class ReviewService {
               tagName: true,
             },
           },
+          reviewImgTb: {
+            select: {
+              imgPath: true,
+            },
+            where: {
+              deletedAt: null,
+            },
+          },
           _count: {
             select: {
               reviewLikeTb: true,
+              reviewDislikeTb: true,
               reviewBookmarkTb: true,
               reviewReportTb: true,
               reviewShareTb: true,
@@ -202,6 +258,7 @@ export class ReviewService {
         },
         where: {
           idx: reviewIdx,
+          deletedAt: null,
         },
       });
 
@@ -222,8 +279,10 @@ export class ReviewService {
     const review = {
       ...reviewData,
       tags: reviewData.tagTb.map((tag) => tag.tagName),
+      images: reviewData.reviewImgTb.map((image) => image.imgPath),
       viewCount: reviewData.viewCount + 1,
-      likeCount: reviewData._count.reviewLikesTb,
+      likeCount: reviewData._count.reviewLikeTb,
+      dislikeCount: reviewData._count.reviewDislikeTb,
       bookmarkCount: reviewData._count.reviewBookmarkTb,
       shareCount: reviewData._count.reviewShareTb,
       reportCount: reviewData._count.reviewReportTb,
@@ -260,16 +319,27 @@ export class ReviewService {
             tagName: true,
           },
         },
+        reviewImgTb: {
+          select: {
+            imgPath: true,
+          },
+          where: {
+            deletedAt: null,
+          },
+        },
         _count: {
           select: {
             reviewLikeTb: true,
+            reviewDislikeTb: true,
             reviewBookmarkTb: true,
             reviewShareTb: true,
             reviewReportTb: true,
           },
         },
       },
-      where: userIdx ? { accountIdx: userIdx } : {},
+      where: userIdx
+        ? { accountIdx: userIdx, deletedAt: null }
+        : { deletedAt: null },
       orderBy: {
         idx: 'desc',
       },
@@ -281,7 +351,9 @@ export class ReviewService {
       return {
         ...elem,
         tags: elem.tagTb.map((elem) => elem.tagName),
+        images: reviewData.reviewImgTb.map((image) => image.imgPath),
         likeCount: elem._count.reviewLikeTb,
+        dislikeCount: elem._count.reviewDislikeTb,
         bookmarkCount: elem._count.reviewBookmarkTb,
         shareCount: elem._count.reviewShareTb,
         reportCount: elem._count.reviewReportTb,
@@ -331,6 +403,7 @@ export class ReviewService {
             },
           },
         ],
+        deletedAt: null,
       },
     });
 
@@ -348,9 +421,21 @@ export class ReviewService {
             tagName: true,
           },
         },
+        reviewImgTb: {
+          select: {
+            imgPath: true,
+          },
+          where: {
+            deletedAt: null,
+          },
+        },
         _count: {
           select: {
             reviewLikeTb: true,
+            reviewDislikeTb: true,
+            reviewBookmarkTb: true,
+            reviewShareTb: true,
+            reviewReportTb: true,
           },
         },
       },
@@ -387,6 +472,7 @@ export class ReviewService {
             },
           },
         ],
+        deletedAt: null,
       },
       orderBy: {
         idx: 'desc',
@@ -398,8 +484,13 @@ export class ReviewService {
     const reviewData = searchSQLResult.map((review) => {
       return {
         ...review,
+        tags: review.tagTb.map((tag) => tag.tagName),
+        images: review.reviewImgTb.map((image) => image.imgPath),
         likeCount: review._count.reviewLikeTb,
-        tags: review.tagTb.map((elem) => elem.tagName),
+        dislikeCount: review._count.reviewDislikeTb,
+        bookmarkCount: review._count.reviewBookmarkTb,
+        shareCount: review._count.reviewShareTb,
+        reportCount: review._count.reviewReportTb,
       };
     });
 
@@ -436,9 +527,18 @@ export class ReviewService {
             tagName: true,
           },
         },
+        reviewImgTb: {
+          select: {
+            imgPath: true,
+          },
+          where: {
+            deletedAt: null,
+          },
+        },
         _count: {
           select: {
             reviewLikeTb: true,
+            reviewDislikeTb: true,
             reviewBookmarkTb: true,
             reviewShareTb: true,
             reviewReportTb: true,
@@ -463,7 +563,9 @@ export class ReviewService {
       return {
         ...elem,
         tags: elem.tagTb.map((elem) => elem.tagName),
+        images: elem.reviewImgTb.map((image) => image.imgPath),
         likeCount: elem._count.reviewLikeTb,
+        dislikeCount: elem._count.reviewDislikeTb,
         bookmarkCount: elem._count.reviewBookmarkTb,
         shareCount: elem._count.reviewShareTb,
         reportCount: elem._count.reviewReportTb,
@@ -490,13 +592,21 @@ export class ReviewService {
             tagName: true,
           },
         },
+        reviewImgTb: {
+          select: {
+            imgPath: true,
+          },
+          where: {
+            deletedAt: null,
+          },
+        },
         _count: {
           select: {
+            reviewLikeTb: true,
+            reviewDislikeTb: true,
             reviewBookmarkTb: true,
             reviewShareTb: true,
             reviewReportTb: true,
-            reviewDislikeTb: true,
-            reviewLikeTb: true,
           },
         },
       },
@@ -504,10 +614,10 @@ export class ReviewService {
         reviewLikeTb: {
           some: {
             createdAt: {
-              // gte: new Date(mostRecentNoon.getTime() - 12 * 60 * 60 * 1000),
-              // lte: mostRecentNoon,
-              gte: mostRecentNoon,
-              lte: new Date(),
+              gte: new Date(mostRecentNoon.getTime() - 12 * 60 * 60 * 1000),
+              lte: mostRecentNoon,
+              // gte: mostRecentNoon,
+              // lte: new Date(),
             },
           },
         },
@@ -522,7 +632,8 @@ export class ReviewService {
     const reviewEntityData = sqlResult.map((elem) => {
       return {
         ...elem,
-        tags: elem.tagTb.map((elem) => elem.tagName),
+        tags: elem.tagTb.map((tag) => tag.tagName),
+        images: elem.reviewImgTb.map((image) => image.imgPath),
         likeCount: elem._count.reviewLikeTb,
         dislikeCount: elem._count.reviewDislikeTb,
         bookmarkCount: elem._count.reviewBookmarkTb,
@@ -585,9 +696,18 @@ export class ReviewService {
             tagName: true,
           },
         },
+        reviewImgTb: {
+          select: {
+            imgPath: true,
+          },
+          where: {
+            deletedAt: null,
+          },
+        },
         _count: {
           select: {
             reviewLikeTb: true,
+            reviewDislikeTb: true,
             reviewBookmarkTb: true,
             reviewShareTb: true,
             reviewReportTb: true,
@@ -613,7 +733,9 @@ export class ReviewService {
       return {
         ...elem,
         tags: elem.tagTb.map((elem) => elem.tagName),
+        images: elem.reviewImgTb.map((image) => image.imgPath),
         likeCount: elem._count.reviewLikeTb,
+        dislikeCount: elem._count.reviewDislikeTb,
         bookmarkCount: elem._count.reviewBookmarkTb,
         shareCount: elem._count.reviewShareTb,
         reportCount: elem._count.reviewReportTb,

@@ -25,4 +25,15 @@ export class UpdateReviewDto {
   @IsArray()
   @IsString({ each: true })
   tags: string[];
+
+  @ApiProperty({
+    example: [
+      'https://s3.ap-northeast-2.amazonaws.com/todayreview/1723962576545',
+      'https://s3.ap-northeast-2.amazonaws.com/todayreview/1723962576545',
+    ],
+    description: '이미지 주소, 6개제한',
+  })
+  @IsArray()
+  @IsString({ each: true })
+  images: string[];
 }

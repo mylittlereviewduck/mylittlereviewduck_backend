@@ -69,7 +69,6 @@ export class ReviewController {
     private readonly reviewBlockService: ReviewBlockService,
     private readonly reviewBlockCheckService: ReviewBlockCheckService,
     private readonly reviewReportService: ReviewReportService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly awsService: AwsService,
   ) {}
 

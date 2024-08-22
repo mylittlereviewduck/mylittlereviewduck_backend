@@ -1,3 +1,4 @@
+import { Length } from 'class-validator';
 import {
   Inject,
   Injectable,
@@ -9,11 +10,11 @@ import { ReviewEntity } from './entity/Review.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
-import { LoginUser } from 'src/auth/model/login-user.model';
 import { UpdateReviewDto } from './dto/update-review.dto';
 import { ReviewSearchPagerbleDto } from './dto/review-search-pagerble.dto';
 import { ReviewPagerbleResponseDto } from './dto/response/review-pagerble-response.dto';
 import { UserService } from 'src/user/user.service';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class ReviewService {
@@ -475,12 +476,12 @@ export class ReviewService {
     };
   }
 
-  async getHotReviewAll(
-    reviewPagerbleDto: ReviewPagerbleDto,
-  ): Promise<ReviewPagerbleResponseDto> {
+  // 700ms, 460ms 소요(캐싱, 인덱스 안했을경우)
+  // (인덱싱 했을경우)
+  // 메모리에 저장하는 함수, 12시간마다 실행되는 함수
+  @Cron(' 0 0 0,12 * * *')
+  async setHotReviewAll(): Promise<void> {
     const mostRecentNoon = this.getMostRecentNoon();
-
-    const totalCount = await this.prismaService.reviewTb.count();
 
     const sqlResult = await this.prismaService.reviewTb.findMany({
       include: {
@@ -518,8 +519,6 @@ export class ReviewService {
       },
     });
 
-    console.log('sqlResult: ', sqlResult);
-
     const reviewEntityData = sqlResult.map((elem) => {
       return {
         ...elem,
@@ -532,9 +531,29 @@ export class ReviewService {
       };
     });
 
+    const hotReviews = reviewEntityData.map((elem) => new ReviewEntity(elem));
+
+    await this.cacheManager.set('hotReviews', hotReviews);
+  }
+
+  async getHotReviewAll(
+    reviewPagerbleDto: ReviewPagerbleDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    const hotReviews =
+      await this.cacheManager.get<Array<ReviewEntity>>('hotReviews');
+
+    if (!hotReviews) {
+      return;
+    }
+
+    const startIndex = reviewPagerbleDto.size * (reviewPagerbleDto.page - 1);
+
     return {
-      totalPage: Math.ceil(totalCount / reviewPagerbleDto.size),
-      reviews: reviewEntityData.map((elem) => new ReviewEntity(elem)),
+      totalPage: Math.ceil(hotReviews.length / reviewPagerbleDto.size),
+      reviews: hotReviews.slice(
+        startIndex,
+        startIndex + reviewPagerbleDto.size,
+      ),
     };
   }
 
@@ -622,5 +641,10 @@ export class ReviewService {
     }
 
     return noon;
+  }
+
+  async onModuleInit() {
+    console.log('setHotReviewAll() Method Start');
+    await this.setHotReviewAll();
   }
 }

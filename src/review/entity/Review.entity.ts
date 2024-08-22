@@ -38,7 +38,7 @@ export class ReviewEntity {
   images: string[];
 
   @ApiProperty({
-    example: '2024-08-01T07:58:57.844Z',
+    example: '2024-08-01Tq07:58:57.844Z',
     description: '작성일 타임스탬프',
   })
   createdAt: Date;

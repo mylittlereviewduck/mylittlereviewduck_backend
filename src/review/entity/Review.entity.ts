@@ -1,14 +1,29 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Decimal } from '@prisma/client/runtime/library';
+import { UserEntity } from 'src/user/entity/User.entity';
 
 export class ReviewEntity {
   @ApiProperty({ example: 1, description: '리뷰 idx' })
   idx: number;
 
   @ApiProperty({
-    example: 'de1704a4-bdd4-4df5-8fe8-053338cbac44',
-    description: '작성자 idx',
+    example: `{
+      "idx": "de1704a4-bdd4-4df5-8fe8-053338cbac44",
+      "email": "abc123@naver.com",
+      "profile": "유저 프로필 소개",
+      "profileImg": "example.png",
+      "nickname": "닉네임",
+      "createdAt": "2024-08-01T07:58:57.844Z",
+      "followingCount": 111,
+      "followerCount": 112,
+      "reportCount": 1,
+      "isFollowing": true,
+      "isBlocked": false,
+      "isReported": false
+    }`,
+    description: '작성자',
   })
-  userIdx: string;
+  user: UserEntity;
 
   @ApiProperty({ example: '제목입니다', description: '제목 255자' })
   title: string;
@@ -17,7 +32,7 @@ export class ReviewEntity {
   content: string;
 
   @ApiProperty({ example: '3.5', description: '평점 1.0-5.0점' })
-  score: number;
+  score: Decimal;
 
   @ApiProperty({
     example: ['태그1', '태그2', '태그3'],
@@ -42,6 +57,12 @@ export class ReviewEntity {
     description: '작성일 타임스탬프',
   })
   createdAt: Date;
+
+  @ApiProperty({
+    example: '2024-08-01Tq07:58:57.844Z',
+    description: '수정일 타임스탬프',
+  })
+  updatedAt: Date;
 
   @ApiProperty({ example: 10, description: '조회수' })
   viewCount: number = 0;
@@ -94,15 +115,16 @@ export class ReviewEntity {
   })
   isMyBlock: boolean = false;
 
-  constructor(data) {
+  constructor(data: Partial<ReviewEntity>) {
     this.idx = data.idx;
-    this.userIdx = data.accountIdx;
+    this.user = new UserEntity(data.user);
     this.title = data.title;
     this.content = data.content;
     this.score = data.score;
     this.tags = data.tags;
     this.images = data.images;
     this.createdAt = data.createdAt;
+    this.updatedAt = data.updatedAt;
     this.viewCount = data.viewCount ?? 0;
     this.likeCount = data.likeCount ?? 0;
     this.dislikeCount = data.dislikeCount ?? 0;

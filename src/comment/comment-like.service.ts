@@ -47,7 +47,7 @@ export class CommentLikeService {
       throw new ConflictException('Already Comment Like');
     }
 
-    const commentLikeData = await this.prismaService.commentLikesTb.create({
+    const commentLikeData = await this.prismaService.commentLikeTb.create({
       data: {
         accountIdx: userIdx,
         commentIdx: commentIdx,
@@ -86,7 +86,7 @@ export class CommentLikeService {
       throw new ConflictException('Already Not Comment Like');
     }
 
-    await this.prismaService.commentLikesTb.deleteMany({
+    await this.prismaService.commentLikeTb.deleteMany({
       where: {
         accountIdx: userIdx,
         commentIdx: commentIdx,

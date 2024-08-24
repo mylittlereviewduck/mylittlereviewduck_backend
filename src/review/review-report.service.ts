@@ -24,7 +24,7 @@ export class ReviewReportService {
       throw new NotFoundException('Not Found Review');
     }
 
-    if (review.userIdx == userIdx) {
+    if (review.user.idx == userIdx) {
       throw new ConflictException("Can't Report My Review");
     }
 
@@ -56,7 +56,7 @@ export class ReviewReportService {
       throw new NotFoundException('Not Found Review');
     }
 
-    if (review.userIdx == userIdx) {
+    if (review.user.idx == userIdx) {
       throw new ConflictException("Can't Report My Review");
     }
 

@@ -8,9 +8,9 @@ SELECT
   a.deleted_at,
   a.serial_number,
   p.img_path AS profile_img,
-  count(f1.follower_idx) AS follower_count,
-  count(f2.followee_idx) AS followee_count,
-  count(r.reported_idx) AS account_reported_count
+  (count(f1.follower_idx)) :: integer AS follower_count,
+  (count(f2.followee_idx)) :: integer AS followee_count,
+  (count(r.reported_idx)) :: integer AS account_reported_count
 FROM
   (
     (

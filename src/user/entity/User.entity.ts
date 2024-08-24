@@ -61,7 +61,7 @@ export class UserEntity {
   })
   isReported: boolean = false;
 
-  constructor(data) {
+  constructor(data: Partial<UserEntity>) {
     this.idx = data.idx;
     this.email = data.email;
     this.profile = data.profile;

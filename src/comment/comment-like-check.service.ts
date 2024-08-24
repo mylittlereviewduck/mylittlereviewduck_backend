@@ -11,7 +11,7 @@ export class CommentLikeCheckService {
     userIdx: string,
     comments: CommentEntity[],
   ): Promise<CommentEntity[]> {
-    const sqlResult = await this.prismaService.commentLikesTb.findMany({
+    const sqlResult = await this.prismaService.commentLikeTb.findMany({
       where: {
         accountIdx: userIdx,
         commentIdx: {

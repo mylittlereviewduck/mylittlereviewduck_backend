@@ -24,7 +24,7 @@ export class ReviewBlockService {
       throw new NotFoundException('Not Found Review');
     }
 
-    if (review.userIdx == userIdx) {
+    if (review.user.idx == userIdx) {
       throw new ConflictException("Can't block my review");
     }
 
@@ -56,7 +56,7 @@ export class ReviewBlockService {
       throw new NotFoundException('Not Found Review');
     }
 
-    if (review.userIdx == userIdx) {
+    if (review.user.idx == userIdx) {
       throw new ConflictException("Can't block my review");
     }
 

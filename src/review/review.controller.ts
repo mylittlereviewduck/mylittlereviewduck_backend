@@ -11,7 +11,6 @@ import {
   Controller,
   Delete,
   Get,
-  Inject,
   Param,
   ParseIntPipe,
   ParseUUIDPipe,
@@ -36,7 +35,6 @@ import { ReviewEntity } from './entity/Review.entity';
 import { UploadReviewImageResponseDto } from './dto/response/upload-review-image-response.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
 import { ReviewService } from './review.service';
-import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { LoginUser } from 'src/auth/model/login-user.model';
 import { GetUser } from 'src/auth/get-user.decorator';
 import { AuthGuard } from 'src/auth/auth.guard';
@@ -265,12 +263,8 @@ export class ReviewController {
   async deleteReview(
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
-  ): Promise<ReviewEntity> {
-    const reviewEntity = await this.reviewService.deleteReview(
-      loginUser.idx,
-      reviewIdx,
-    );
-    return reviewEntity;
+  ): Promise<void> {
+    await this.reviewService.deleteReview(loginUser.idx, reviewIdx);
   }
 
   @Get('/review')

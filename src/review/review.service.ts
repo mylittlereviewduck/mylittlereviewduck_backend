@@ -648,6 +648,15 @@ export class ReviewService {
 
     const sqlResult = await this.prismaService.reviewTb.findMany({
       include: {
+        accountTb: {
+          include: {
+            profileImgTb: {
+              select: {
+                imgPath: true,
+              },
+            },
+          },
+        },
         tagTb: {
           select: {
             tagName: true,
@@ -675,8 +684,10 @@ export class ReviewService {
         reviewLikeTb: {
           some: {
             createdAt: {
+              // 12시간마다 업데이트 버전
               gte: new Date(mostRecentNoon.getTime() - 12 * 60 * 60 * 1000),
               lte: mostRecentNoon,
+              // 실시간 업데이트 버전
               // gte: mostRecentNoon,
               // lte: new Date(),
             },
@@ -690,16 +701,20 @@ export class ReviewService {
       },
     });
 
-    const reviewEntityData = sqlResult.map((elem) => {
+    const reviewEntityData = sqlResult.map((review) => {
       return {
-        ...elem,
-        tags: elem.tagTb.map((tag) => tag.tagName),
-        images: elem.reviewImgTb.map((image) => image.imgPath),
-        likeCount: elem._count.reviewLikeTb,
-        dislikeCount: elem._count.reviewDislikeTb,
-        bookmarkCount: elem._count.reviewBookmarkTb,
-        shareCount: elem._count.reviewShareTb,
-        reportCount: elem._count.reviewReportTb,
+        ...review,
+        user: new UserEntity({
+          ...review.accountTb,
+          profileImg: review.accountTb.profileImgTb[0].imgPath,
+        }),
+        tags: review.tagTb.map((tag) => tag.tagName),
+        images: review.reviewImgTb.map((image) => image.imgPath),
+        likeCount: review._count.reviewLikeTb,
+        dislikeCount: review._count.reviewDislikeTb,
+        bookmarkCount: review._count.reviewBookmarkTb,
+        shareCount: review._count.reviewShareTb,
+        reportCount: review._count.reviewReportTb,
       };
     });
 
@@ -752,6 +767,15 @@ export class ReviewService {
 
     const reviewData = await this.prismaService.reviewTb.findMany({
       include: {
+        accountTb: {
+          include: {
+            profileImgTb: {
+              select: {
+                imgPath: true,
+              },
+            },
+          },
+        },
         tagTb: {
           select: {
             tagName: true,
@@ -790,16 +814,20 @@ export class ReviewService {
       take: reviewPagerbleDto.size,
     });
 
-    const reviews = reviewData.map((elem) => {
+    const reviews = reviewData.map((review) => {
       return {
-        ...elem,
-        tags: elem.tagTb.map((elem) => elem.tagName),
-        images: elem.reviewImgTb.map((image) => image.imgPath),
-        likeCount: elem._count.reviewLikeTb,
-        dislikeCount: elem._count.reviewDislikeTb,
-        bookmarkCount: elem._count.reviewBookmarkTb,
-        shareCount: elem._count.reviewShareTb,
-        reportCount: elem._count.reviewReportTb,
+        ...review,
+        user: new UserEntity({
+          ...review.accountTb,
+          profileImg: review.accountTb[0].imgPath,
+        }),
+        tags: review.tagTb.map((tag) => tag.tagName),
+        images: review.reviewImgTb.map((image) => image.imgPath),
+        likeCount: review._count.reviewLikeTb,
+        dislikeCount: review._count.reviewDislikeTb,
+        bookmarkCount: review._count.reviewBookmarkTb,
+        shareCount: review._count.reviewShareTb,
+        reportCount: review._count.reviewReportTb,
       };
     });
 

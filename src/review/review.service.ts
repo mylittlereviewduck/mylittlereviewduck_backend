@@ -48,8 +48,6 @@ export class ReviewService {
         },
       });
 
-      console.log('userData: ', userData);
-
       await tx.tagTb.createMany({
         data: createDto.tags.map((tag) => {
           return {
@@ -220,7 +218,7 @@ export class ReviewService {
       throw new UnauthorizedException('Unauthorized User');
     }
 
-    const deletedReview = await this.prismaService.reviewTb.update({
+    await this.prismaService.reviewTb.update({
       data: {
         deletedAt: new Date(),
       },
@@ -228,8 +226,6 @@ export class ReviewService {
         idx: reviewIdx,
       },
     });
-
-    return;
   }
 
   async getReviewByIdx(reviewIdx: number): Promise<ReviewEntity> {
@@ -248,6 +244,18 @@ export class ReviewService {
 
       reviewData = await tx.reviewTb.update({
         include: {
+          accountTb: {
+            include: {
+              profileImgTb: {
+                select: {
+                  imgPath: true,
+                },
+                orderBy: {
+                  idx: 'desc',
+                },
+              },
+            },
+          },
           tagTb: {
             select: {
               tagName: true,
@@ -262,18 +270,7 @@ export class ReviewService {
             },
             take: 1,
           },
-          accountTb: {
-            include: {
-              profileImgTb: {
-                select: {
-                  imgPath: true,
-                },
-                orderBy: {
-                  idx: 'desc',
-                },
-              },
-            },
-          },
+
           _count: {
             select: {
               reviewLikeTb: true,
@@ -294,14 +291,12 @@ export class ReviewService {
       });
     });
 
-    reviewData.accountTb = {
-      ...reviewData.accountTb,
-      profileImg: reviewData.accountTb.profileImgTb[0].imgPath,
-    };
-
     const review = {
       ...reviewData,
-      user: reviewData.accountTb,
+      user: new UserEntity({
+        ...reviewData.accountTb,
+        profileImg: reviewData.accountTb.profileImgTb[0].imgPath,
+      }),
       tags: reviewData.tagTb.map((tag) => tag.tagName),
       images: reviewData.reviewImgTb.map((image) => image.imgPath),
       viewCount: reviewData.viewCount + 1,
@@ -338,6 +333,18 @@ export class ReviewService {
 
     const reviewSQLResult = await this.prismaService.reviewTb.findMany({
       include: {
+        accountTb: {
+          include: {
+            profileImgTb: {
+              select: {
+                imgPath: true,
+              },
+              orderBy: {
+                idx: 'desc',
+              },
+            },
+          },
+        },
         tagTb: {
           select: {
             tagName: true,
@@ -351,18 +358,6 @@ export class ReviewService {
             idx: 'desc',
           },
           take: 1,
-        },
-        accountTb: {
-          include: {
-            profileImgTb: {
-              select: {
-                imgPath: true,
-              },
-              orderBy: {
-                idx: 'desc',
-              },
-            },
-          },
         },
         _count: {
           select: {
@@ -575,6 +570,15 @@ export class ReviewService {
 
     const reviewData = await this.prismaService.reviewTb.findMany({
       include: {
+        accountTb: {
+          include: {
+            profileImgTb: {
+              select: {
+                imgPath: true,
+              },
+            },
+          },
+        },
         tagTb: {
           select: {
             tagName: true,
@@ -612,16 +616,20 @@ export class ReviewService {
       take: reviewPagerbleDto.size,
     });
 
-    const reviews = reviewData.map((elem) => {
+    const reviews = reviewData.map((review) => {
       return {
-        ...elem,
-        tags: elem.tagTb.map((elem) => elem.tagName),
-        images: elem.reviewImgTb.map((image) => image.imgPath),
-        likeCount: elem._count.reviewLikeTb,
-        dislikeCount: elem._count.reviewDislikeTb,
-        bookmarkCount: elem._count.reviewBookmarkTb,
-        shareCount: elem._count.reviewShareTb,
-        reportCount: elem._count.reviewReportTb,
+        ...review,
+        user: new UserEntity({
+          ...review.accountTb,
+          profileImg: review.accountTb.profileImgTb[0].imgPath,
+        }),
+        tags: review.tagTb.map((tag) => tag.tagName),
+        images: review.reviewImgTb.map((image) => image.imgPath),
+        likeCount: review._count.reviewLikeTb,
+        dislikeCount: review._count.reviewDislikeTb,
+        bookmarkCount: review._count.reviewBookmarkTb,
+        shareCount: review._count.reviewShareTb,
+        reportCount: review._count.reviewReportTb,
       };
     });
 

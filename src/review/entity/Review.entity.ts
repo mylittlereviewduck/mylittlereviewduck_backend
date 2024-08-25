@@ -7,20 +7,38 @@ export class ReviewEntity {
   idx: number;
 
   @ApiProperty({
-    example: `{
-      "idx": "de1704a4-bdd4-4df5-8fe8-053338cbac44",
-      "email": "abc123@naver.com",
-      "profile": "유저 프로필 소개",
-      "profileImg": "example.png",
-      "nickname": "닉네임",
-      "createdAt": "2024-08-01T07:58:57.844Z",
-      "followingCount": 111,
-      "followerCount": 112,
-      "reportCount": 1,
-      "isFollowing": true,
-      "isBlocked": false,
-      "isReported": false
-    }`,
+    example: {
+      viewCount: 1,
+      likeCount: 0,
+      dislikeCount: 0,
+      bookmarkCount: 0,
+      shareCount: 0,
+      reportCount: 0,
+      isMyLike: false,
+      isMyDislike: false,
+      isMyBookmark: false,
+      isMyShare: false,
+      isMyBlock: false,
+      idx: 10102,
+      user: {
+        isFollowing: false,
+        isBlocked: false,
+        isReported: false,
+        idx: '344e753e-9071-47b2-b651-bc32a0a92b1f',
+        email: 'test1@a.com',
+        profile: null,
+        profileImg: 'default_img',
+        nickname: '23번째 오리',
+        createdAt: '2024-08-20T11:36:44.732Z',
+      },
+      title: 'updated title',
+      content: 'updated content',
+      score: '5',
+      tags: [],
+      images: ['6'],
+      createdAt: '2024-08-22T08:25:32.998Z',
+      updatedAt: '2024-08-22T09:15:16.176Z',
+    },
     description: '작성자',
   })
   user: UserEntity;

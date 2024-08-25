@@ -1,4 +1,4 @@
-import { AccountTb } from '@prisma/client';
+import { AccountTb, ProfileImgTb } from '@prisma/client';
 import {
   Inject,
   Injectable,
@@ -30,8 +30,7 @@ export class ReviewService {
     createDto: CreateReviewDto,
   ): Promise<ReviewEntity> {
     let reviewData;
-
-    //리뷰 이미지 6개 제한 예외처리
+    let userData;
 
     await this.prismaService.$transaction(async (tx) => {
       reviewData = await tx.reviewTb.create({
@@ -42,6 +41,14 @@ export class ReviewService {
           score: createDto.score,
         },
       });
+
+      userData = await tx.accountInfoView.findUnique({
+        where: {
+          idx: userIdx,
+        },
+      });
+
+      console.log('userData: ', userData);
 
       await tx.tagTb.createMany({
         data: createDto.tags.map((tag) => {
@@ -64,6 +71,10 @@ export class ReviewService {
 
     const reviewEntityData = {
       ...reviewData,
+      user: new UserEntity({
+        ...userData,
+        profileImg: userData.imgPath,
+      }),
       tags: createDto.tags,
       images: createDto.images,
     };
@@ -71,7 +82,6 @@ export class ReviewService {
     return new ReviewEntity(reviewEntityData);
   }
 
-  //이미지 6개제한 예외처리
   async updateReview(
     userIdx: string,
     reviewIdx: number,
@@ -91,6 +101,7 @@ export class ReviewService {
       if (review.user.idx !== userIdx) {
         throw new UnauthorizedException('Unauthorized User');
       }
+
       await tx.reviewTb.update({
         data: {
           title: updateReviewDto.title,
@@ -180,14 +191,12 @@ export class ReviewService {
       });
     });
 
-    reviewData.accountTb = {
-      ...reviewData.accountTb,
-      profileImg: reviewData.accountTb.profileImgTb[0].imgPath,
-    };
-
     const review = {
       ...reviewData,
-      user: reviewData.accountTb,
+      user: new UserEntity({
+        ...reviewData.accountTb,
+        profileImg: reviewData.accountTb.profileImgTb[0].imgPath,
+      }),
       tags: reviewData.tagTb.map((tag) => tag.tagName),
       images: reviewData.reviewImgTb.map((image) => image.imgPath),
       likeCount: reviewData._count.reviewLikeTb,
@@ -447,7 +456,15 @@ export class ReviewService {
 
     const searchSQLResult = await this.prismaService.reviewTb.findMany({
       include: {
-        accountTb: true,
+        accountTb: {
+          include: {
+            profileImgTb: {
+              select: {
+                imgPath: true,
+              },
+            },
+          },
+        },
         tagTb: {
           select: {
             tagName: true,
@@ -516,6 +533,10 @@ export class ReviewService {
     const reviewData = searchSQLResult.map((review) => {
       return {
         ...review,
+        user: new UserEntity({
+          ...review.accountTb,
+          profileImg: review.accountTb.profileImgTb[0].imgPath,
+        }),
         tags: review.tagTb.map((tag) => tag.tagName),
         images: review.reviewImgTb.map((image) => image.imgPath),
         likeCount: review._count.reviewLikeTb,
@@ -527,8 +548,8 @@ export class ReviewService {
     });
 
     return {
-      reviews: reviewData.map((elem) => new ReviewEntity(elem)),
       totalPage: Math.ceil(totalCount / reviewSearchPagerbleDto.size),
+      reviews: reviewData.map((elem) => new ReviewEntity(elem)),
     };
   }
 

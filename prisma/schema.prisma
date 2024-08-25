@@ -235,6 +235,7 @@ view AccountInfoView {
   deletedAt    DateTime? @map("deleted_at") @db.Timestamptz(6)
   idx          String    @unique @db.VarChar
   serialNumber Int       @map("serial_number")
+  imgPath      String?   @map("img_path") @db.VarChar
 
   @@map("account_info_view")
 }

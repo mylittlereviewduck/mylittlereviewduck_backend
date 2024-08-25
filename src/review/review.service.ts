@@ -291,6 +291,8 @@ export class ReviewService {
       });
     });
 
+    console.log('reviewData: ', reviewData);
+
     const review = {
       ...reviewData,
       user: new UserEntity({

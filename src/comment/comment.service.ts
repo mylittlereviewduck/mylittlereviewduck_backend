@@ -10,6 +10,7 @@ import { UpdateCommentDto } from './dto/update-comment.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ReviewService } from 'src/review/review.service';
 import { CommentPagerbleDto } from './dto/comment-pagerble.dto';
+import { UserEntity } from 'src/user/entity/User.entity';
 
 @Injectable()
 export class CommentService {
@@ -29,6 +30,17 @@ export class CommentService {
     }
 
     const comment = await this.prismaService.commentTb.findUnique({
+      include: {
+        accountTb: {
+          include: {
+            profileImgTb: {
+              select: {
+                imgPath: true,
+              },
+            },
+          },
+        },
+      },
       where: {
         idx: commentIdx,
         reviewIdx: reviewIdx,
@@ -41,7 +53,10 @@ export class CommentService {
 
     const commentData = {
       ...comment,
-      userIdx: comment.accountIdx,
+      user: new UserEntity({
+        ...comment.accountTb,
+        profileImg: comment.accountTb.profileImgTb[0].imgPath,
+      }),
     };
 
     return new CommentEntity(commentData);
@@ -66,7 +81,15 @@ export class CommentService {
 
     const commentData = await this.prismaService.commentTb.findMany({
       include: {
-        accountTb: true,
+        accountTb: {
+          include: {
+            profileImgTb: {
+              select: {
+                imgPath: true,
+              },
+            },
+          },
+        },
       },
       where: {
         reviewIdx: commentPagerbleDto.reviewIdx,
@@ -94,6 +117,17 @@ export class CommentService {
     }
 
     const commentData = await this.prismaService.commentTb.create({
+      include: {
+        accountTb: {
+          include: {
+            profileImgTb: {
+              select: {
+                imgPath: true,
+              },
+            },
+          },
+        },
+      },
       data: {
         reviewIdx: reviewIdx,
         accountIdx: userIdx,
@@ -102,7 +136,15 @@ export class CommentService {
       },
     });
 
-    return new CommentEntity(commentData);
+    const commentEntityData = {
+      ...commentData,
+      user: new UserEntity({
+        ...commentData.accountTb,
+        profileImg: commentData.accountTb.profileImgTb[0].imgPath,
+      }),
+    };
+
+    return new CommentEntity(commentEntityData);
   }
 
   async updateComment(
@@ -117,11 +159,22 @@ export class CommentService {
       throw new NotFoundException('Not Found Comment');
     }
 
-    if (comment.userIdx !== userIdx) {
+    if (comment.user.idx !== userIdx) {
       throw new UnauthorizedException('Unauthorized User');
     }
 
     const commentData = await this.prismaService.commentTb.update({
+      include: {
+        accountTb: {
+          include: {
+            profileImgTb: {
+              select: {
+                imgPath: true,
+              },
+            },
+          },
+        },
+      },
       data: {
         content: updateCommentDto.content,
         updatedAt: new Date(),
@@ -131,25 +184,33 @@ export class CommentService {
       },
     });
 
-    return new CommentEntity(commentData);
+    const commentEntityData = {
+      ...commentData,
+      user: new UserEntity({
+        ...commentData.accountTb,
+        profileImg: commentData.accountTb.profileImgTb[0].imgPath,
+      }),
+    };
+
+    return new CommentEntity(commentEntityData);
   }
 
   async deleteComment(
     userIdx: string,
     reviewIdx: number,
     commentIdx: number,
-  ): Promise<CommentEntity> {
+  ): Promise<void> {
     const comment = await this.getCommentByIdx(reviewIdx, commentIdx);
 
     if (!comment) {
       throw new NotFoundException('Not Found Comment');
     }
 
-    if (comment.userIdx !== userIdx) {
+    if (comment.user.idx !== userIdx) {
       throw new UnauthorizedException('Unauthorized');
     }
 
-    const deletedCommentData = await this.prismaService.commentTb.update({
+    await this.prismaService.commentTb.update({
       data: {
         deletedAt: new Date(),
       },
@@ -158,6 +219,7 @@ export class CommentService {
         accountIdx: userIdx,
       },
     });
-    return new CommentEntity(deletedCommentData);
+
+    return;
   }
 }

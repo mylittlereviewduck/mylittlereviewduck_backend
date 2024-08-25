@@ -1,14 +1,25 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { UserEntity } from 'src/user/entity/User.entity';
 
 export class CommentEntity {
   @ApiProperty({ example: 1, description: '댓글 idx' })
   idx: number;
 
   @ApiProperty({
-    example: 'de1704a4-bdd4-4df5-8fe8-053338cbac44',
-    description: '유저 idx',
+    example: {
+      isFollowing: false,
+      isBlocked: false,
+      isReported: false,
+      idx: '344e753e-9071-47b2-b651-bc32a0a92b1f',
+      email: 'test1@a.com',
+      profile: null,
+      profileImg: 'default_img',
+      nickname: '23번째 오리',
+      createdAt: '2024-08-20T11:36:44.732Z',
+    },
+    description: '작성자',
   })
-  userIdx: string;
+  user: UserEntity;
 
   @ApiProperty({ example: 1, description: '리뷰 idx' })
   reviewIdx: number;
@@ -34,9 +45,9 @@ export class CommentEntity {
   @ApiProperty({ example: true, description: '좋아요여부' })
   isMyLike: boolean = false;
 
-  constructor(data) {
+  constructor(data: Partial<CommentEntity>) {
     this.idx = data.idx;
-    this.userIdx = data.accountIdx;
+    this.user = new UserEntity(data.user);
     this.reviewIdx = data.reviewIdx;
     this.commentIdx = data.commentIdx;
     this.content = data.content;

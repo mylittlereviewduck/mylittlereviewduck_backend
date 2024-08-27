@@ -1,3 +1,4 @@
+import { ProfileImgTb } from '@prisma/client';
 import { CommentPagerbleResponseDto } from './dto/response/comment-pagerble-response.dto';
 import {
   Injectable,
@@ -99,9 +100,19 @@ export class CommentService {
       },
     });
 
+    const commentEntityData = commentData.map((comment) => {
+      return {
+        ...comment,
+        user: new UserEntity({
+          ...comment.accountTb,
+          profileImg: comment.accountTb.profileImgTb[0].imgPath,
+        }),
+      };
+    });
+
     return {
       totalPage: Math.ceil(totalCount / commentPagerbleDto.size),
-      comments: commentData.map((elem) => new CommentEntity(elem)),
+      comments: commentEntityData.map((comment) => new CommentEntity(comment)),
     };
   }
 
@@ -147,6 +158,7 @@ export class CommentService {
     return new CommentEntity(commentEntityData);
   }
 
+  //댓글 수정시 없는 댓글요청시 서버에러나는거 수정해야함
   async updateComment(
     userIdx: string,
     reviewIdx: number,

@@ -16,6 +16,7 @@ import { ReviewPagerbleResponseDto } from './dto/response/review-pagerble-respon
 import { UserService } from 'src/user/user.service';
 import { Cron } from '@nestjs/schedule';
 import { UserEntity } from 'src/user/entity/User.entity';
+import { text } from 'stream/consumers';
 
 @Injectable()
 export class ReviewService {
@@ -229,71 +230,65 @@ export class ReviewService {
   }
 
   async getReviewByIdx(reviewIdx: number): Promise<ReviewEntity> {
-    let reviewData;
+    const existingReview = await this.prismaService.reviewTb.findUnique({
+      where: {
+        idx: reviewIdx,
+      },
+    });
 
-    await this.prismaService.$transaction(async (tx) => {
-      const existingReview = await tx.reviewTb.findUnique({
-        where: {
-          idx: reviewIdx,
-        },
-      });
+    if (!existingReview) {
+      return;
+    }
 
-      if (!existingReview) {
-        return;
-      }
-
-      reviewData = await tx.reviewTb.update({
-        include: {
-          accountTb: {
-            include: {
-              profileImgTb: {
-                select: {
-                  imgPath: true,
-                },
-                orderBy: {
-                  idx: 'desc',
-                },
+    let reviewData = await this.prismaService.reviewTb.update({
+      include: {
+        accountTb: {
+          include: {
+            profileImgTb: {
+              select: {
+                imgPath: true,
+              },
+              orderBy: {
+                idx: 'desc',
               },
             },
           },
-          tagTb: {
-            select: {
-              tagName: true,
-            },
-          },
-          reviewImgTb: {
-            select: {
-              imgPath: true,
-            },
-            orderBy: {
-              idx: 'desc',
-            },
-            take: 1,
-          },
-
-          _count: {
-            select: {
-              reviewLikeTb: true,
-              reviewDislikeTb: true,
-              reviewBookmarkTb: true,
-              reviewReportTb: true,
-              reviewShareTb: true,
-            },
+        },
+        tagTb: {
+          select: {
+            tagName: true,
           },
         },
-        data: {
-          viewCount: existingReview.viewCount + 1,
+        reviewImgTb: {
+          select: {
+            imgPath: true,
+          },
+          orderBy: {
+            idx: 'desc',
+          },
+          take: 1,
         },
 
-        where: {
-          idx: reviewIdx,
+        _count: {
+          select: {
+            reviewLikeTb: true,
+            reviewDislikeTb: true,
+            reviewBookmarkTb: true,
+            reviewReportTb: true,
+            reviewShareTb: true,
+          },
         },
-      });
+      },
+      data: {
+        viewCount: existingReview.viewCount + 1,
+      },
+
+      where: {
+        idx: reviewIdx,
+      },
     });
 
-    console.log('reviewData: ', reviewData);
-
-    const review = {
+    const reviewEntityData = {
       ...reviewData,
       user: new UserEntity({
         ...reviewData.accountTb,
@@ -309,7 +304,7 @@ export class ReviewService {
       reportCount: reviewData._count.reviewReportTb,
     };
 
-    return new ReviewEntity(review);
+    return new ReviewEntity(reviewEntityData);
   }
 
   async getReviews(

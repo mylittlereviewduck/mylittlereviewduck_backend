@@ -10,7 +10,9 @@ SELECT
   p.img_path AS profile_img,
   (count(f1.follower_idx)) :: integer AS follower_count,
   (count(f2.followee_idx)) :: integer AS followee_count,
-  (count(r.reported_idx)) :: integer AS account_reported_count
+  (count(r.reported_idx)) :: integer AS account_reported_count,
+  a.interest_1,
+  a.interest_2
 FROM
   (
     (
@@ -29,4 +31,6 @@ GROUP BY
   a.idx,
   a.email,
   a.nickname,
-  p.img_path;
+  p.img_path,
+  a.interest_1,
+  a.interest_2;

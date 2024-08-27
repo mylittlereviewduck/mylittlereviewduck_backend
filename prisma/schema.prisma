@@ -30,6 +30,8 @@ model AccountTb {
   deletedAt        DateTime?          @map("deleted_at") @db.Timestamptz(6)
   idx              String             @id(map: "account_tb_pk") @default(dbgenerated("uuid_generate_v4()")) @db.VarChar
   serialNumber     Int                @unique(map: "account_tb_serial_number_unique") @default(autoincrement()) @map("serial_number")
+  interest1        String?            @map("interest_1") @db.VarChar(12)
+  interest2        String?            @map("interest_2") @db.VarChar(12)
   blocker          AccountBlockTb[]   @relation("account_block_tb_blocker_idxToaccount_tb")
   blocked          AccountBlockTb[]   @relation("account_block_tb_blocked_idxToaccount_tb")
   commentLikeTb    CommentLikeTb[]
@@ -149,7 +151,7 @@ model ReviewTb {
   createdAt        DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
   deletedAt        DateTime?          @map("deleted_at") @db.Timestamptz(6)
   updatedAt        DateTime?          @map("updated_at") @db.Timestamptz(6)
-  score            Decimal            @db.Decimal(3, 2)
+  score            Int
   accountIdx       String             @default(dbgenerated("uuid_generate_v4()")) @map("account_idx") @db.VarChar
   commentTb        CommentTb[]
   reviewBlockTb    ReviewBlockTb[]
@@ -236,6 +238,8 @@ view AccountInfoView {
   idx          String    @unique @db.VarChar
   serialNumber Int       @map("serial_number")
   imgPath      String?   @map("img_path") @db.VarChar
+  interest1   String?    @db.VarChar(12) @map("interest_1")
+  interest2   String?    @db.VarChar(12) @map("interest_2")
 
   @@map("account_info_view")
 }
@@ -253,6 +257,8 @@ view AccountDetailView {
   followerCount        Int?      @map("follower_count")
   followeeCount        Int?      @map("followee_count")
   accountReportedCount Int?      @map("account_reported_count")
+  interest1            String?   @db.VarChar(12) @map("interest_1")
+  interest2            String?   @db.VarChar(12) @map("interest_2")
 
   @@map("account_detail_view")
 }

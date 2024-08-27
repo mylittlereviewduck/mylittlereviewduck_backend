@@ -7,7 +7,9 @@ SELECT
   account_tb.deleted_at,
   account_tb.idx,
   account_tb.serial_number,
-  p.img_path
+  p.img_path,
+  account_tb.interest_1,
+  account_tb.interest_2
 FROM
   (
     account_tb

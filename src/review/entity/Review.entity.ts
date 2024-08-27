@@ -28,8 +28,8 @@ export class ReviewEntity {
   @ApiProperty({ example: '내용입니다', description: '내용 글자제한X' })
   content: string;
 
-  @ApiProperty({ example: '3.5', description: '평점 1.0-5.0점' })
-  score: Decimal;
+  @ApiProperty({ example: '3', description: '평점 0-5점' })
+  score: number;
 
   @ApiProperty({
     example: ['태그1', '태그2', '태그3'],

@@ -140,11 +140,8 @@ export class UserController {
   async updateMyInfo(
     @GetUser() loginUser: LoginUser,
     @Body() updateMyInfoDto: UpdateMyInfoDto,
-  ): Promise<void> {
-    await this.userService.updateMyinfo(loginUser.idx, {
-      nickname: updateMyInfoDto.nickname,
-      profile: updateMyInfoDto.profile,
-    });
+  ): Promise<UserEntity> {
+    return await this.userService.updateMyinfo(loginUser.idx, updateMyInfoDto);
   }
 
   @Put('profile-img')

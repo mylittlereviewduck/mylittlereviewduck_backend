@@ -21,7 +21,7 @@ export class CreateReviewDto {
   @Length(1, 10000)
   content: string;
 
-  @ApiProperty({ example: '4.5', description: '별점 최대 5점' })
+  @ApiProperty({ example: '3', description: '별점 0-5점' })
   @IsNumber({ maxDecimalPlaces: 1 })
   @Min(0)
   @Max(5)

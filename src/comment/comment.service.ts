@@ -1,4 +1,3 @@
-import { ProfileImgTb } from '@prisma/client';
 import { CommentPagerbleResponseDto } from './dto/response/comment-pagerble-response.dto';
 import {
   Injectable,

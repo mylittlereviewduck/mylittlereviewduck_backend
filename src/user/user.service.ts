@@ -28,6 +28,7 @@ export class UserService {
     if (!user) {
       return;
     }
+    console.log('user: ', user);
 
     return new UserEntity({
       ...user,
@@ -124,7 +125,7 @@ export class UserService {
   async updateMyinfo(
     userIdx: string,
     updateMyInfoDto: UpdateMyInfoDto,
-  ): Promise<void> {
+  ): Promise<UserEntity> {
     const user = await this.getUser({
       idx: userIdx,
     });
@@ -137,7 +138,7 @@ export class UserService {
       nickname: updateMyInfoDto.nickname,
     });
 
-    if (duplicatedUser) {
+    if (duplicatedUser && user.nickname != duplicatedUser.nickname) {
       throw new ConflictException('Duplicated Nickname');
     }
 
@@ -145,15 +146,15 @@ export class UserService {
       data: {
         nickname: updateMyInfoDto.nickname,
         profile: updateMyInfoDto.profile,
+        interest1: updateMyInfoDto.interest[0],
+        interest2: updateMyInfoDto.interest[1],
       },
       where: {
         idx: userIdx,
       },
     });
 
-    console.log(updatedUser);
-
-    return;
+    return new UserEntity(updatedUser);
   }
 
   async updateMyProfileImg(userIdx: string, imgPath: string): Promise<void> {

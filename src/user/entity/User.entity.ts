@@ -19,6 +19,12 @@ export class UserEntity {
   @ApiProperty({ example: '닉네임', description: '닉네임' })
   nickname: string;
 
+  @ApiProperty({ example: '스포츠', description: '관심사1' })
+  interest1?: string;
+
+  @ApiProperty({ example: '여행', description: '관심사2' })
+  interest2?: string;
+
   @ApiProperty({ example: '2024-08-01T07:58:57.844Z', description: '가입일' })
   createdAt: Date;
 
@@ -67,6 +73,8 @@ export class UserEntity {
     this.profile = data.profile;
     this.profileImg = data.profileImg;
     this.nickname = data.nickname;
+    this.interest1 = data.interest1;
+    this.interest2 = data.interest2;
     this.createdAt = data.createdAt;
     this.followingCount = data.followingCount;
     this.followerCount = data.followerCount;

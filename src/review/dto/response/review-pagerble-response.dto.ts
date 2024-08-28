@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { ReviewEntity } from 'src/review/entity/Review.entity';
+import { ReviewListEntity } from 'src/review/entity/ReviewList.entity';
 
 export class ReviewPagerbleResponseDto {
   @ApiProperty({ example: 9, description: '전체 페이지 수' })
@@ -8,7 +9,7 @@ export class ReviewPagerbleResponseDto {
   @ApiProperty({
     description: '리뷰리스트',
     isArray: true,
-    type: ReviewEntity,
+    type: ReviewListEntity,
     example: [
       {
         viewCount: 1,
@@ -82,5 +83,5 @@ export class ReviewPagerbleResponseDto {
       },
     ],
   })
-  reviews: ReviewEntity[];
+  reviews: ReviewListEntity[];
 }

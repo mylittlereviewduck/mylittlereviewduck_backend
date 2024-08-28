@@ -1,4 +1,3 @@
-import { AccountTb, ProfileImgTb } from '@prisma/client';
 import {
   Inject,
   Injectable,
@@ -16,7 +15,7 @@ import { ReviewPagerbleResponseDto } from './dto/response/review-pagerble-respon
 import { UserService } from 'src/user/user.service';
 import { Cron } from '@nestjs/schedule';
 import { UserEntity } from 'src/user/entity/User.entity';
-import { text } from 'stream/consumers';
+import { ReviewListEntity } from './entity/ReviewList.entity';
 
 @Injectable()
 export class ReviewService {
@@ -40,6 +39,26 @@ export class ReviewService {
           title: createDto.title,
           content: createDto.content,
           score: createDto.score,
+          tagTb: {
+            createMany: {
+              data: createDto.tags.map((tag) => {
+                return {
+                  reviewIdx: reviewData.idx,
+                  tagName: tag,
+                };
+              }),
+            },
+          },
+          reviewImgTb: {
+            createMany: {
+              data: createDto.images.map((image) => {
+                return {
+                  imgPath: image,
+                  reviewIdx: reviewData.idx,
+                };
+              }),
+            },
+          },
         },
       });
 
@@ -47,24 +66,6 @@ export class ReviewService {
         where: {
           idx: userIdx,
         },
-      });
-
-      await tx.tagTb.createMany({
-        data: createDto.tags.map((tag) => {
-          return {
-            reviewIdx: reviewData.idx,
-            tagName: tag,
-          };
-        }),
-      });
-
-      await tx.reviewImgTb.createMany({
-        data: createDto.images.map((image) => {
-          return {
-            imgPath: image,
-            reviewIdx: reviewData.idx,
-          };
-        }),
       });
     });
 
@@ -107,56 +108,50 @@ export class ReviewService {
           score: updateReviewDto.score,
           content: updateReviewDto.content,
           updatedAt: new Date(),
+
+          tagTb: {
+            deleteMany: {
+              reviewIdx: reviewIdx,
+            },
+            createMany: {
+              data: updateReviewDto.tags.map((tag) => {
+                return {
+                  reviewIdx: reviewIdx,
+                  tagName: tag,
+                };
+              }),
+            },
+          },
+
+          reviewImgTb: {
+            updateMany: {
+              data: {
+                deletedAt: new Date(),
+              },
+              where: {
+                reviewIdx: reviewIdx,
+              },
+            },
+
+            createMany: {
+              data: updateReviewDto.images.map((image) => {
+                return {
+                  reviewIdx: reviewIdx,
+                  imgPath: image,
+                };
+              }),
+            },
+          },
         },
         where: {
           idx: reviewIdx,
         },
       });
 
-      await tx.tagTb.deleteMany({
-        where: {
-          reviewIdx: reviewIdx,
-        },
-      });
-
-      await tx.tagTb.createMany({
-        data: updateReviewDto.tags.map((tag) => {
-          return {
-            reviewIdx: reviewIdx,
-            tagName: tag,
-          };
-        }),
-      });
-
-      await tx.reviewImgTb.updateMany({
-        data: {
-          deletedAt: new Date(),
-        },
-        where: {
-          reviewIdx: reviewIdx,
-        },
-      });
-
-      await tx.reviewImgTb.createMany({
-        data: updateReviewDto.images.map((image) => {
-          return {
-            reviewIdx: reviewIdx,
-            imgPath: image,
-          };
-        }),
-      });
-
       reviewData = await tx.reviewTb.findUnique({
         include: {
-          tagTb: {
-            select: {
-              tagName: true,
-            },
-          },
+          tagTb: true,
           reviewImgTb: {
-            select: {
-              imgPath: true,
-            },
             orderBy: {
               idx: 'desc',
             },
@@ -165,9 +160,6 @@ export class ReviewService {
           accountTb: {
             include: {
               profileImgTb: {
-                select: {
-                  imgPath: true,
-                },
                 where: {
                   deletedAt: null,
                 },
@@ -245,32 +237,23 @@ export class ReviewService {
         accountTb: {
           include: {
             profileImgTb: {
-              select: {
-                imgPath: true,
-              },
               orderBy: {
                 idx: 'desc',
               },
+              take: 1,
             },
           },
         },
-        tagTb: {
-          select: {
-            tagName: true,
-          },
-        },
+        tagTb: true,
         reviewImgTb: {
-          select: {
-            imgPath: true,
+          where: {
+            deletedAt: null,
           },
-          orderBy: {
-            idx: 'desc',
-          },
-          take: 1,
         },
 
         _count: {
           select: {
+            commentTb: true,
             reviewLikeTb: true,
             reviewDislikeTb: true,
             reviewBookmarkTb: true,
@@ -288,23 +271,7 @@ export class ReviewService {
       },
     });
 
-    const reviewEntityData = {
-      ...reviewData,
-      user: new UserEntity({
-        ...reviewData.accountTb,
-        profileImg: reviewData.accountTb.profileImgTb[0].imgPath,
-      }),
-      tags: reviewData.tagTb.map((tag) => tag.tagName),
-      images: reviewData.reviewImgTb.map((image) => image.imgPath),
-      viewCount: reviewData.viewCount + 1,
-      likeCount: reviewData._count.reviewLikeTb,
-      dislikeCount: reviewData._count.reviewDislikeTb,
-      bookmarkCount: reviewData._count.reviewBookmarkTb,
-      shareCount: reviewData._count.reviewShareTb,
-      reportCount: reviewData._count.reviewReportTb,
-    };
-
-    return new ReviewEntity(reviewEntityData);
+    return new ReviewEntity(reviewData);
   }
 
   async getReviews(
@@ -333,31 +300,28 @@ export class ReviewService {
         accountTb: {
           include: {
             profileImgTb: {
-              select: {
-                imgPath: true,
-              },
               orderBy: {
                 idx: 'desc',
               },
+              take: 1,
             },
           },
         },
-        tagTb: {
-          select: {
-            tagName: true,
-          },
-        },
+        tagTb: true,
         reviewImgTb: {
-          select: {
-            imgPath: true,
-          },
           orderBy: {
             idx: 'desc',
           },
           take: 1,
         },
+        // reviewLikeTb: {
+        //   where: {
+        //     accountIdx: userIdx || '',
+        //   },
+        // },
         _count: {
           select: {
+            commentTb: true,
             reviewLikeTb: true,
             reviewDislikeTb: true,
             reviewBookmarkTb: true,
@@ -376,26 +340,9 @@ export class ReviewService {
       skip: (reviewPagerbleDto.page - 1) * reviewPagerbleDto.size,
     });
 
-    const reviewData = reviewSQLResult.map((elem) => {
-      return {
-        ...elem,
-        user: new UserEntity({
-          ...elem.accountTb,
-          profileImg: elem.accountTb.profileImgTb[0].imgPath,
-        }),
-        tags: elem.tagTb.map((elem) => elem.tagName),
-        images: elem.reviewImgTb.map((image) => image.imgPath),
-        likeCount: elem._count.reviewLikeTb,
-        dislikeCount: elem._count.reviewDislikeTb,
-        bookmarkCount: elem._count.reviewBookmarkTb,
-        shareCount: elem._count.reviewShareTb,
-        reportCount: elem._count.reviewReportTb,
-      };
-    });
-
     return {
       totalPage: Math.ceil(reviewCount / reviewPagerbleDto.size),
-      reviews: reviewData.map((elem) => new ReviewEntity(elem)),
+      reviews: reviewSQLResult.map((elem) => new ReviewListEntity(elem)),
     };
   }
 
@@ -440,26 +387,15 @@ export class ReviewService {
       },
     });
 
-    const searchSQLResult = await this.prismaService.reviewTb.findMany({
+    const reviewData = await this.prismaService.reviewTb.findMany({
       include: {
         accountTb: {
           include: {
-            profileImgTb: {
-              select: {
-                imgPath: true,
-              },
-            },
+            profileImgTb: true,
           },
         },
-        tagTb: {
-          select: {
-            tagName: true,
-          },
-        },
+        tagTb: true,
         reviewImgTb: {
-          select: {
-            imgPath: true,
-          },
           where: {
             deletedAt: null,
           },
@@ -516,26 +452,9 @@ export class ReviewService {
       skip: reviewSearchPagerbleDto.size * (reviewSearchPagerbleDto.page - 1),
     });
 
-    const reviewData = searchSQLResult.map((review) => {
-      return {
-        ...review,
-        user: new UserEntity({
-          ...review.accountTb,
-          profileImg: review.accountTb.profileImgTb[0].imgPath,
-        }),
-        tags: review.tagTb.map((tag) => tag.tagName),
-        images: review.reviewImgTb.map((image) => image.imgPath),
-        likeCount: review._count.reviewLikeTb,
-        dislikeCount: review._count.reviewDislikeTb,
-        bookmarkCount: review._count.reviewBookmarkTb,
-        shareCount: review._count.reviewShareTb,
-        reportCount: review._count.reviewReportTb,
-      };
-    });
-
     return {
       totalPage: Math.ceil(totalCount / reviewSearchPagerbleDto.size),
-      reviews: reviewData.map((elem) => new ReviewEntity(elem)),
+      reviews: reviewData.map((elem) => new ReviewListEntity(elem)),
     };
   }
 
@@ -563,22 +482,11 @@ export class ReviewService {
       include: {
         accountTb: {
           include: {
-            profileImgTb: {
-              select: {
-                imgPath: true,
-              },
-            },
+            profileImgTb: true,
           },
         },
-        tagTb: {
-          select: {
-            tagName: true,
-          },
-        },
+        tagTb: true,
         reviewImgTb: {
-          select: {
-            imgPath: true,
-          },
           where: {
             deletedAt: null,
           },
@@ -607,26 +515,9 @@ export class ReviewService {
       take: reviewPagerbleDto.size,
     });
 
-    const reviews = reviewData.map((review) => {
-      return {
-        ...review,
-        user: new UserEntity({
-          ...review.accountTb,
-          profileImg: review.accountTb.profileImgTb[0].imgPath,
-        }),
-        tags: review.tagTb.map((tag) => tag.tagName),
-        images: review.reviewImgTb.map((image) => image.imgPath),
-        likeCount: review._count.reviewLikeTb,
-        dislikeCount: review._count.reviewDislikeTb,
-        bookmarkCount: review._count.reviewBookmarkTb,
-        shareCount: review._count.reviewShareTb,
-        reportCount: review._count.reviewReportTb,
-      };
-    });
-
     return {
       totalPage: Math.ceil(totalCount / reviewPagerbleDto.size),
-      reviews: reviews.map((elem) => new ReviewEntity(elem)),
+      reviews: reviewData.map((elem) => new ReviewListEntity(elem)),
     };
   }
 
@@ -637,32 +528,22 @@ export class ReviewService {
   async setHotReviewAll(): Promise<void> {
     const mostRecentNoon = this.getMostRecentNoon();
 
-    const sqlResult = await this.prismaService.reviewTb.findMany({
+    const reviewData = await this.prismaService.reviewTb.findMany({
       include: {
         accountTb: {
           include: {
-            profileImgTb: {
-              select: {
-                imgPath: true,
-              },
-            },
+            profileImgTb: true,
           },
         },
-        tagTb: {
-          select: {
-            tagName: true,
-          },
-        },
+        tagTb: true,
         reviewImgTb: {
-          select: {
-            imgPath: true,
-          },
           where: {
             deletedAt: null,
           },
         },
         _count: {
           select: {
+            commentTb: true,
             reviewLikeTb: true,
             reviewDislikeTb: true,
             reviewBookmarkTb: true,
@@ -692,24 +573,7 @@ export class ReviewService {
       },
     });
 
-    const reviewEntityData = sqlResult.map((review) => {
-      return {
-        ...review,
-        user: new UserEntity({
-          ...review.accountTb,
-          profileImg: review.accountTb.profileImgTb[0].imgPath,
-        }),
-        tags: review.tagTb.map((tag) => tag.tagName),
-        images: review.reviewImgTb.map((image) => image.imgPath),
-        likeCount: review._count.reviewLikeTb,
-        dislikeCount: review._count.reviewDislikeTb,
-        bookmarkCount: review._count.reviewBookmarkTb,
-        shareCount: review._count.reviewShareTb,
-        reportCount: review._count.reviewReportTb,
-      };
-    });
-
-    const hotReviews = reviewEntityData.map((elem) => new ReviewEntity(elem));
+    const hotReviews = reviewData.map((review) => new ReviewListEntity(review));
 
     await this.cacheManager.set('hotReviews', hotReviews);
   }
@@ -760,22 +624,11 @@ export class ReviewService {
       include: {
         accountTb: {
           include: {
-            profileImgTb: {
-              select: {
-                imgPath: true,
-              },
-            },
+            profileImgTb: true,
           },
         },
-        tagTb: {
-          select: {
-            tagName: true,
-          },
-        },
+        tagTb: true,
         reviewImgTb: {
-          select: {
-            imgPath: true,
-          },
           where: {
             deletedAt: null,
           },
@@ -805,26 +658,9 @@ export class ReviewService {
       take: reviewPagerbleDto.size,
     });
 
-    const reviews = reviewData.map((review) => {
-      return {
-        ...review,
-        user: new UserEntity({
-          ...review.accountTb,
-          profileImg: review.accountTb.profileImgTb[0].imgPath,
-        }),
-        tags: review.tagTb.map((tag) => tag.tagName),
-        images: review.reviewImgTb.map((image) => image.imgPath),
-        likeCount: review._count.reviewLikeTb,
-        dislikeCount: review._count.reviewDislikeTb,
-        bookmarkCount: review._count.reviewBookmarkTb,
-        shareCount: review._count.reviewShareTb,
-        reportCount: review._count.reviewReportTb,
-      };
-    });
-
     return {
       totalPage: Math.ceil(totalCount / reviewPagerbleDto.size),
-      reviews: reviews.map((elem) => new ReviewEntity(elem)),
+      reviews: reviewData.map((elem) => new ReviewListEntity(elem)),
     };
   }
 
@@ -863,22 +699,11 @@ export class ReviewService {
       include: {
         accountTb: {
           include: {
-            profileImgTb: {
-              select: {
-                imgPath: true,
-              },
-            },
+            profileImgTb: true,
           },
         },
-        tagTb: {
-          select: {
-            tagName: true,
-          },
-        },
+        tagTb: true,
         reviewImgTb: {
-          select: {
-            imgPath: true,
-          },
           where: {
             deletedAt: null,
           },
@@ -907,28 +732,9 @@ export class ReviewService {
       take: reviewPagerbleDto.size,
     });
 
-    console.log('reviewData: ', reviewData);
-
-    const reviews = reviewData.map((review) => {
-      return {
-        ...review,
-        user: new UserEntity({
-          ...review.accountTb,
-          profileImg: review.accountTb.profileImgTb[0].imgPath,
-        }),
-        tags: review.tagTb.map((tag) => tag.tagName),
-        images: review.reviewImgTb.map((image) => image.imgPath),
-        likeCount: review._count.reviewLikeTb,
-        dislikeCount: review._count.reviewDislikeTb,
-        bookmarkCount: review._count.reviewBookmarkTb,
-        shareCount: review._count.reviewShareTb,
-        reportCount: review._count.reviewReportTb,
-      };
-    });
-
     return {
       totalPage: Math.ceil(totalCount / reviewPagerbleDto.size),
-      reviews: reviews.map((elem) => new ReviewEntity(elem)),
+      reviews: reviewData.map((elem) => new ReviewListEntity(elem)),
     };
   }
 

@@ -86,11 +86,7 @@ export class UserBlockService {
       include: {
         blocked: {
           include: {
-            profileImgTb: {
-              select: {
-                imgPath: true,
-              },
-            },
+            profileImgTb: true,
             _count: {
               select: {
                 follower: true,
@@ -111,10 +107,8 @@ export class UserBlockService {
     let blockedUserList = blockedList.map((elem) => {
       return {
         ...elem.blocked,
-        profileImg: elem.blocked.profileImgTb[0].imgPath,
         followingCount: elem.blocked._count.follower,
         followerCount: elem.blocked._count.followee,
-        reportCount: elem.blocked._count.reviewReportTb,
         isBlocked: true,
       };
     });

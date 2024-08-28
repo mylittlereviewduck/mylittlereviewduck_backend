@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { ReviewEntity } from 'src/review/entity/Review.entity';
+import { ReviewListEntity } from 'src/review/entity/ReviewList.entity';
 
 export class ReviewSearchResponseDto {
   @ApiProperty({
@@ -77,7 +78,7 @@ export class ReviewSearchResponseDto {
     ],
     isArray: true,
   })
-  reviews: ReviewEntity[];
+  reviews: ReviewListEntity[];
 
   @ApiProperty({ example: 10, description: '최대 페이지수' })
   totalPage: number;

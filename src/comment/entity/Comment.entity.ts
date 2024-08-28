@@ -1,5 +1,23 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { UserEntity } from 'src/user/entity/User.entity';
+import { Prisma } from '@prisma/client';
+import { ReviewUserEntity } from 'src/review/entity/ReviewUser.entity';
+
+const comment = Prisma.validator<Prisma.CommentTbDefaultArgs>()({
+  include: {
+    accountTb: {
+      include: {
+        profileImgTb: true,
+      },
+    },
+    _count: {
+      select: {
+        commentLikeTb: true,
+      },
+    },
+  },
+});
+
+type Comment = Prisma.CommentTbGetPayload<typeof comment>;
 
 export class CommentEntity {
   @ApiProperty({ example: 1, description: '댓글 idx' })
@@ -19,7 +37,7 @@ export class CommentEntity {
     },
     description: '작성자',
   })
-  user: UserEntity;
+  user: ReviewUserEntity;
 
   @ApiProperty({ example: 1, description: '리뷰 idx' })
   reviewIdx: number;
@@ -45,14 +63,12 @@ export class CommentEntity {
   @ApiProperty({ example: true, description: '좋아요여부' })
   isMyLike: boolean = false;
 
-  constructor(data: Partial<CommentEntity>) {
+  constructor(data: Comment) {
     this.idx = data.idx;
-    this.user = new UserEntity(data.user);
+    this.user = new ReviewUserEntity(data.accountTb);
     this.reviewIdx = data.reviewIdx;
     this.commentIdx = data.commentIdx;
     this.content = data.content;
     this.createdAt = data.createdAt;
-    this.isMyBlock = data.isMyBlock || false;
-    this.isMyLike = data.isMyLike || false;
   }
 }

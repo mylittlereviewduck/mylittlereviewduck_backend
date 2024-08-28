@@ -13,13 +13,25 @@ import { UserWithProvider } from './model/user-with-provider.model';
 import { AccountTb, ProfileImgTb } from '@prisma/client';
 import { UserSearchPagerbleDto } from './dto/user-search-pagerble.dto';
 import { UserSearchResponseDto } from './dto/response/user-search-response.dto';
+import { UserPagerbleDto } from './dto/user-pagerble.dto';
+import { UserPagerbleResponseDto } from './dto/response/user-pagerble-response.dto';
+import { UserFollowPagerbleDto } from './dto/user-follow-pagerble.dto';
 
 @Injectable()
 export class UserService {
   constructor(private readonly prismaService: PrismaService) {}
 
   async getUser(getUserDto: GetUserDto): Promise<UserEntity | undefined> {
-    const user = await this.prismaService.accountDetailView.findFirst({
+    const userData = await this.prismaService.accountTb.findFirst({
+      include: {
+        profileImgTb: true,
+        _count: {
+          select: {
+            followee: true,
+            follower: true,
+          },
+        },
+      },
       where: {
         idx: getUserDto.idx,
         email: getUserDto.email,
@@ -27,24 +39,17 @@ export class UserService {
       },
     });
 
-    if (!user) {
-      return;
+    if (!userData) {
+      return undefined;
     }
-    console.log('user: ', user);
 
-    return new UserEntity({
-      ...user,
-      profileImg: user.profileImg,
-      followingCount: user.followerCount,
-      followerCount: user.followeeCount,
-      reportCount: user.accountReportedCount,
-    });
+    return new UserEntity(userData);
   }
 
   async getUserWithSearch(
     userSearchPagerbleDto: UserSearchPagerbleDto,
   ): Promise<UserSearchResponseDto> {
-    const totalCount = await this.prismaService.accountInfoView.count({
+    const totalCount = await this.prismaService.accountTb.count({
       where: {
         OR: [
           {
@@ -70,7 +75,16 @@ export class UserService {
       },
     });
 
-    const userData = await this.prismaService.accountInfoView.findMany({
+    const userData = await this.prismaService.accountTb.findMany({
+      include: {
+        profileImgTb: true,
+        _count: {
+          select: {
+            followee: true,
+            follower: true,
+          },
+        },
+      },
       where: {
         OR: [
           {
@@ -134,6 +148,11 @@ export class UserService {
       newUser = await tx.accountTb.update({
         data: {
           nickname: newUser.serialNumber + '번째 오리',
+
+          //이미지 자동생성되는지 확인
+          profileImgTb: {
+            create: {},
+          },
         },
         where: {
           idx: newUser.idx,
@@ -147,21 +166,13 @@ export class UserService {
       });
     });
 
-    const userData = {
-      ...newUser,
-      profileImg: newProfileImg.imgPath,
-      followingCount: 0,
-      followerCount: 0,
-      reportCount: 0,
-    };
-
-    return new UserEntity(userData);
+    return new UserEntity(newUser);
   }
 
   async createUserWithOAuth(
     createUserOAuthDto: CreateUserOAtuhDto,
   ): Promise<UserEntity> {
-    let userData: AccountTb, profileImgData: ProfileImgTb;
+    let userData, userEntityData;
 
     await this.prismaService.$transaction(async (tx) => {
       userData = await tx.accountTb.create({
@@ -170,25 +181,39 @@ export class UserService {
           nickname: createUserOAuthDto.nickname,
           provider: createUserOAuthDto.provider,
           providerKey: createUserOAuthDto.providerKey,
+
+          profileImgTb: {
+            create: {},
+          },
+        },
+        include: {
+          profileImgTb: true,
+          _count: {
+            select: {
+              followee: true,
+              follower: true,
+            },
+          },
         },
       });
 
-      profileImgData = await tx.profileImgTb.create({
-        data: {
-          accountIdx: userData.idx,
+      const userEntityData = tx.accountTb.findUnique({
+        include: {
+          profileImgTb: true,
+          _count: {
+            select: {
+              followee: true,
+              follower: true,
+            },
+          },
+        },
+        where: {
+          idx: userData.idx,
         },
       });
     });
 
-    const userEntityData = {
-      ...userData,
-      profileImg: profileImgData.imgPath,
-      followingCount: 0,
-      followerCount: 0,
-      reportCount: 0,
-    };
-
-    return new UserEntity(userEntityData);
+    return new UserEntity(userData);
   }
 
   async updateMyinfo(
@@ -212,6 +237,15 @@ export class UserService {
     }
 
     const updatedUser = await this.prismaService.accountTb.update({
+      include: {
+        profileImgTb: true,
+        _count: {
+          select: {
+            followee: true,
+            follower: true,
+          },
+        },
+      },
       data: {
         nickname: updateMyInfoDto.nickname,
         profile: updateMyInfoDto.profile,
@@ -292,5 +326,45 @@ export class UserService {
         deletedAt: new Date(),
       },
     });
+  }
+
+  async getFollowingList(
+    userPagerbleDto: UserFollowPagerbleDto,
+  ): Promise<UserPagerbleResponseDto> {
+    const getFollowingCount = await this.prismaService.followTb.count({
+      where: {
+        followerIdx: userPagerbleDto.userIdx,
+      },
+    });
+
+    const followList = await this.prismaService.accountTb.findMany({
+      include: {
+        profileImgTb: true,
+        _count: {
+          select: {
+            followee: true,
+            follower: true,
+          },
+        },
+      },
+
+      where: {
+        followee: {
+          some: {
+            [userPagerbleDto.type === 'follower'
+              ? 'followerIdx'
+              : 'followeeIdx']: userPagerbleDto.userIdx,
+          },
+        },
+      },
+
+      skip: (userPagerbleDto.page - 1) * userPagerbleDto.size,
+      take: userPagerbleDto.size,
+    });
+
+    return {
+      totalPage: Math.ceil(getFollowingCount / userPagerbleDto.size),
+      users: followList.map((elem) => new UserEntity(elem)),
+    };
   }
 }

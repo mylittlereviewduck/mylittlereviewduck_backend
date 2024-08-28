@@ -10,7 +10,6 @@ import { UpdateCommentDto } from './dto/update-comment.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ReviewService } from 'src/review/review.service';
 import { CommentPagerbleDto } from './dto/comment-pagerble.dto';
-import { UserEntity } from 'src/user/entity/User.entity';
 
 @Injectable()
 export class CommentService {
@@ -33,11 +32,12 @@ export class CommentService {
       include: {
         accountTb: {
           include: {
-            profileImgTb: {
-              select: {
-                imgPath: true,
-              },
-            },
+            profileImgTb: true,
+          },
+        },
+        _count: {
+          select: {
+            commentLikeTb: true,
           },
         },
       },
@@ -51,15 +51,7 @@ export class CommentService {
       return;
     }
 
-    const commentData = {
-      ...comment,
-      user: new UserEntity({
-        ...comment.accountTb,
-        profileImg: comment.accountTb.profileImgTb[0].imgPath,
-      }),
-    };
-
-    return new CommentEntity(commentData);
+    return new CommentEntity(comment);
   }
 
   async getCommentAll(
@@ -83,11 +75,12 @@ export class CommentService {
       include: {
         accountTb: {
           include: {
-            profileImgTb: {
-              select: {
-                imgPath: true,
-              },
-            },
+            profileImgTb: true,
+          },
+        },
+        _count: {
+          select: {
+            commentLikeTb: true,
           },
         },
       },
@@ -99,19 +92,9 @@ export class CommentService {
       },
     });
 
-    const commentEntityData = commentData.map((comment) => {
-      return {
-        ...comment,
-        user: new UserEntity({
-          ...comment.accountTb,
-          profileImg: comment.accountTb.profileImgTb[0].imgPath,
-        }),
-      };
-    });
-
     return {
       totalPage: Math.ceil(totalCount / commentPagerbleDto.size),
-      comments: commentEntityData.map((comment) => new CommentEntity(comment)),
+      comments: commentData.map((comment) => new CommentEntity(comment)),
     };
   }
 
@@ -130,11 +113,12 @@ export class CommentService {
       include: {
         accountTb: {
           include: {
-            profileImgTb: {
-              select: {
-                imgPath: true,
-              },
-            },
+            profileImgTb: true,
+          },
+        },
+        _count: {
+          select: {
+            commentLikeTb: true,
           },
         },
       },
@@ -146,15 +130,7 @@ export class CommentService {
       },
     });
 
-    const commentEntityData = {
-      ...commentData,
-      user: new UserEntity({
-        ...commentData.accountTb,
-        profileImg: commentData.accountTb.profileImgTb[0].imgPath,
-      }),
-    };
-
-    return new CommentEntity(commentEntityData);
+    return new CommentEntity(commentData);
   }
 
   //댓글 수정시 없는 댓글요청시 서버에러나는거 수정해야함
@@ -178,11 +154,12 @@ export class CommentService {
       include: {
         accountTb: {
           include: {
-            profileImgTb: {
-              select: {
-                imgPath: true,
-              },
-            },
+            profileImgTb: true,
+          },
+        },
+        _count: {
+          select: {
+            commentLikeTb: true,
           },
         },
       },
@@ -195,15 +172,7 @@ export class CommentService {
       },
     });
 
-    const commentEntityData = {
-      ...commentData,
-      user: new UserEntity({
-        ...commentData.accountTb,
-        profileImg: commentData.accountTb.profileImgTb[0].imgPath,
-      }),
-    };
-
-    return new CommentEntity(commentEntityData);
+    return new CommentEntity(commentData);
   }
 
   async deleteComment(

@@ -98,30 +98,30 @@ export class ReviewController {
       return reviewPagerbleResponseDto;
     }
 
-    await this.reviewLikeCheckService.isReviewLiked(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
+    // await this.reviewLikeCheckService.isReviewLiked(
+    //   loginUser.idx,
+    //   reviewPagerbleResponseDto.reviews,
+    // );
 
-    await this.reviewLikeCheckService.isReviewDisliked(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
+    // await this.reviewLikeCheckService.isReviewDisliked(
+    //   loginUser.idx,
+    //   reviewPagerbleResponseDto.reviews,
+    // );
 
-    await this.reviewBookmarkCheckService.isReviewBookmarked(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
+    // await this.reviewBookmarkCheckService.isReviewBookmarked(
+    //   loginUser.idx,
+    //   reviewPagerbleResponseDto.reviews,
+    // );
 
-    await this.reviewBlockCheckService.isReviewBlocked(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
+    // await this.reviewBlockCheckService.isReviewBlocked(
+    //   loginUser.idx,
+    //   reviewPagerbleResponseDto.reviews,
+    // );
 
-    await this.reviewShareCheckService.isReviewShared(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
+    // await this.reviewShareCheckService.isReviewShared(
+    //   loginUser.idx,
+    //   reviewPagerbleResponseDto.reviews,
+    // );
 
     return reviewPagerbleResponseDto;
   }
@@ -510,30 +510,30 @@ export class ReviewController {
       return reviewPagerbleResponseDto;
     }
 
-    await this.reviewLikeCheckService.isReviewLiked(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
+    // await this.reviewLikeCheckService.isReviewLiked(
+    //   loginUser.idx,
+    //   reviewPagerbleResponseDto.reviews,
+    // );
 
-    await this.reviewLikeCheckService.isReviewDisliked(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
+    // await this.reviewLikeCheckService.isReviewDisliked(
+    //   loginUser.idx,
+    //   reviewPagerbleResponseDto.reviews,
+    // );
 
-    await this.reviewBookmarkCheckService.isReviewBookmarked(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
+    // await this.reviewBookmarkCheckService.isReviewBookmarked(
+    //   loginUser.idx,
+    //   reviewPagerbleResponseDto.reviews,
+    // );
 
-    await this.reviewShareCheckService.isReviewShared(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
+    // await this.reviewShareCheckService.isReviewShared(
+    //   loginUser.idx,
+    //   reviewPagerbleResponseDto.reviews,
+    // );
 
-    await this.reviewBlockCheckService.isReviewBlocked(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
+    // await this.reviewBlockCheckService.isReviewBlocked(
+    //   loginUser.idx,
+    //   reviewPagerbleResponseDto.reviews,
+    // );
 
     return reviewPagerbleResponseDto;
   }
@@ -570,30 +570,30 @@ export class ReviewController {
       return reviewPagerbleResponseDto;
     }
 
-    await this.reviewLikeCheckService.isReviewLiked(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
+    // await this.reviewLikeCheckService.isReviewLiked(
+    //   loginUser.idx,
+    //   reviewPagerbleResponseDto.reviews,
+    // );
 
-    await this.reviewLikeCheckService.isReviewDisliked(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
+    // await this.reviewLikeCheckService.isReviewDisliked(
+    //   loginUser.idx,
+    //   reviewPagerbleResponseDto.reviews,
+    // );
 
-    await this.reviewBookmarkCheckService.isReviewBookmarked(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
+    // await this.reviewBookmarkCheckService.isReviewBookmarked(
+    //   loginUser.idx,
+    //   reviewPagerbleResponseDto.reviews,
+    // );
 
-    await this.reviewShareCheckService.isReviewShared(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
+    // await this.reviewShareCheckService.isReviewShared(
+    //   loginUser.idx,
+    //   reviewPagerbleResponseDto.reviews,
+    // );
 
-    await this.reviewBlockCheckService.isReviewBlocked(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
+    // await this.reviewBlockCheckService.isReviewBlocked(
+    //   loginUser.idx,
+    //   reviewPagerbleResponseDto.reviews,
+    // );
 
     return reviewPagerbleResponseDto;
   }
@@ -630,30 +630,30 @@ export class ReviewController {
       return reviewPagerbleResponseDto;
     }
 
-    await this.reviewLikeCheckService.isReviewLiked(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
+    // await this.reviewLikeCheckService.isReviewLiked(
+    //   loginUser.idx,
+    //   reviewPagerbleResponseDto.reviews,
+    // );
 
-    await this.reviewLikeCheckService.isReviewDisliked(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
+    // await this.reviewLikeCheckService.isReviewDisliked(
+    //   loginUser.idx,
+    //   reviewPagerbleResponseDto.reviews,
+    // );
 
-    await this.reviewBookmarkCheckService.isReviewBookmarked(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
+    // await this.reviewBookmarkCheckService.isReviewBookmarked(
+    //   loginUser.idx,
+    //   reviewPagerbleResponseDto.reviews,
+    // );
 
-    await this.reviewShareCheckService.isReviewShared(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
+    // await this.reviewShareCheckService.isReviewShared(
+    //   loginUser.idx,
+    //   reviewPagerbleResponseDto.reviews,
+    // );
 
-    await this.reviewBlockCheckService.isReviewBlocked(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
+    // await this.reviewBlockCheckService.isReviewBlocked(
+    //   loginUser.idx,
+    //   reviewPagerbleResponseDto.reviews,
+    // );
 
     return reviewPagerbleResponseDto;
   }
@@ -690,30 +690,30 @@ export class ReviewController {
       return reviewPagerbleResponseDto;
     }
 
-    await this.reviewLikeCheckService.isReviewLiked(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
+    // await this.reviewLikeCheckService.isReviewLiked(
+    //   loginUser.idx,
+    //   reviewPagerbleResponseDto.reviews,
+    // );
 
-    await this.reviewLikeCheckService.isReviewDisliked(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
+    // await this.reviewLikeCheckService.isReviewDisliked(
+    //   loginUser.idx,
+    //   reviewPagerbleResponseDto.reviews,
+    // );
 
-    await this.reviewBookmarkCheckService.isReviewBookmarked(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
+    // await this.reviewBookmarkCheckService.isReviewBookmarked(
+    //   loginUser.idx,
+    //   reviewPagerbleResponseDto.reviews,
+    // );
 
-    await this.reviewShareCheckService.isReviewShared(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
+    // await this.reviewShareCheckService.isReviewShared(
+    //   loginUser.idx,
+    //   reviewPagerbleResponseDto.reviews,
+    // );
 
-    await this.reviewBlockCheckService.isReviewBlocked(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
+    // await this.reviewBlockCheckService.isReviewBlocked(
+    //   loginUser.idx,
+    //   reviewPagerbleResponseDto.reviews,
+    // );
 
     return reviewPagerbleResponseDto;
   }

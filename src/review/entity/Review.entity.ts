@@ -1,6 +1,29 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Decimal } from '@prisma/client/runtime/library';
-import { UserEntity } from 'src/user/entity/User.entity';
+import { Prisma } from '@prisma/client';
+import { ReviewUserEntity } from './ReviewUser.entity';
+
+const review = Prisma.validator<Prisma.ReviewTbDefaultArgs>()({
+  include: {
+    accountTb: {
+      include: {
+        profileImgTb: true,
+      },
+    },
+    tagTb: true,
+    reviewImgTb: true,
+    _count: {
+      select: {
+        commentTb: true,
+        reviewLikeTb: true,
+        reviewDislikeTb: true,
+        reviewBookmarkTb: true,
+        reviewShareTb: true,
+      },
+    },
+  },
+});
+
+type Review = Prisma.ReviewTbGetPayload<typeof review>;
 
 export class ReviewEntity {
   @ApiProperty({ example: 1, description: '리뷰 idx' })
@@ -20,7 +43,7 @@ export class ReviewEntity {
     },
     description: '작성자',
   })
-  user: UserEntity;
+  user: ReviewUserEntity;
 
   @ApiProperty({ example: '제목입니다', description: '제목 255자' })
   title: string;
@@ -76,11 +99,8 @@ export class ReviewEntity {
   @ApiProperty({ example: 10, description: '공유수' })
   shareCount: number = 0;
 
-  @ApiProperty({
-    example: '3',
-    description: '신고횟수',
-  })
-  reportCount: number = 0;
+  @ApiProperty({ example: 10, description: '댓글수' })
+  commentCount: number = 0;
 
   @ApiProperty({
     example: 'true',
@@ -112,26 +132,21 @@ export class ReviewEntity {
   })
   isMyBlock: boolean = false;
 
-  constructor(data: Partial<ReviewEntity>) {
+  constructor(data: Review) {
     this.idx = data.idx;
-    this.user = new UserEntity(data.user);
+    this.user = new ReviewUserEntity(data.accountTb);
     this.title = data.title;
     this.content = data.content;
     this.score = data.score;
-    this.tags = data.tags;
-    this.images = data.images;
+    this.tags = data.tagTb.map((tag) => tag.tagName);
+    this.images = data.reviewImgTb.map((img) => img.imgPath);
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
-    this.viewCount = data.viewCount ?? 0;
-    this.likeCount = data.likeCount ?? 0;
-    this.dislikeCount = data.dislikeCount ?? 0;
-    this.bookmarkCount = data.bookmarkCount ?? 0;
-    this.shareCount = data.shareCount ?? 0;
-    this.reportCount = data.reportCount ?? 0;
-    this.isMyLike = data.isMyLike ?? false;
-    this.isMyDislike = data.isMyDislike ?? false;
-    this.isMyBookmark = data.isMyBookmark ?? false;
-    this.isMyShare = data.isMyShare ?? false;
-    this.isMyBlock = data.isMyBlock ?? false;
+    this.viewCount = data.viewCount;
+    this.likeCount = data._count.reviewLikeTb;
+    this.dislikeCount = data._count.reviewDislikeTb;
+    this.bookmarkCount = data._count.reviewBookmarkTb;
+    this.shareCount = data._count.reviewShareTb;
+    this.commentCount = data._count.commentTb;
   }
 }

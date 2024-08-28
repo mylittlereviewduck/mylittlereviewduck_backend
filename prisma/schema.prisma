@@ -20,32 +20,34 @@ model AccountBlockTb {
 }
 
 model AccountTb {
-  email            String             @db.VarChar
-  pw               String?            @db.VarChar
-  nickname         String             @default(dbgenerated("uuid_generate_v4()")) @db.VarChar
-  profile          String?
-  provider         String             @db.VarChar
-  providerKey      String?            @map("provider_key") @db.VarChar(100)
-  createdAt        DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
-  deletedAt        DateTime?          @map("deleted_at") @db.Timestamptz(6)
-  idx              String             @id(map: "account_tb_pk") @default(dbgenerated("uuid_generate_v4()")) @db.VarChar
-  serialNumber     Int                @unique(map: "account_tb_serial_number_unique") @default(autoincrement()) @map("serial_number")
-  interest1        String?            @map("interest_1") @db.VarChar(12)
-  interest2        String?            @map("interest_2") @db.VarChar(12)
-  blocker          AccountBlockTb[]   @relation("account_block_tb_blocker_idxToaccount_tb")
-  blocked          AccountBlockTb[]   @relation("account_block_tb_blocked_idxToaccount_tb")
-  commentLikeTb    CommentLikeTb[]
-  commentTb        CommentTb[]
-  follower         FollowTb[]         @relation("follow_tb_follower_idxToaccount_tb")
-  followee         FollowTb[]         @relation("follow_tb_followee_idxToaccount_tb")
-  profileImgTb     ProfileImgTb[]
-  reviewBlockTb    ReviewBlockTb[]
-  reviewBookmarkTb ReviewBookmarkTb[]
-  reviewDislikeTb  ReviewDislikeTb[]
-  reviewLikeTb     ReviewLikeTb[]
-  reviewReportTb   ReviewReportTb[]
-  reviewShareTb    ReviewShareTb[]
-  reviewTb         ReviewTb[]
+  email                                                        String             @db.VarChar
+  pw                                                           String?            @db.VarChar
+  nickname                                                     String             @default(dbgenerated("uuid_generate_v4()")) @db.VarChar
+  profile                                                      String?
+  provider                                                     String             @db.VarChar
+  providerKey                                                  String?            @map("provider_key") @db.VarChar(100)
+  createdAt                                                    DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt                                                    DateTime?          @map("deleted_at") @db.Timestamptz(6)
+  idx                                                          String             @id(map: "account_tb_pk") @default(dbgenerated("uuid_generate_v4()")) @db.VarChar
+  serialNumber                                                 Int                @unique(map: "account_tb_serial_number_unique") @default(autoincrement()) @map("serial_number")
+  interest1                                                    String?            @map("interest_1") @db.VarChar(12)
+  interest2                                                    String?            @map("interest_2") @db.VarChar(12)
+  blocker                                                      AccountBlockTb[]   @relation("account_block_tb_blocker_idxToaccount_tb")
+  blocked                                                      AccountBlockTb[]   @relation("account_block_tb_blocked_idxToaccount_tb")
+  reported                                                     AccountReportTb[]  @relation("account_report_tb_reported_idxToaccount_tb")
+  reporter                                                     AccountReportTb[]  @relation("account_report_tb_reporter_idxToaccount_tb")
+  commentLikeTb                                                CommentLikeTb[]
+  commentTb                                                    CommentTb[]
+  follower                                                     FollowTb[]         @relation("follow_tb_follower_idxToaccount_tb")
+  followee                                                     FollowTb[]         @relation("follow_tb_followee_idxToaccount_tb")
+  profileImgTb                                                 ProfileImgTb[]
+  reviewBlockTb                                                ReviewBlockTb[]
+  reviewBookmarkTb                                             ReviewBookmarkTb[]
+  reviewDislikeTb                                              ReviewDislikeTb[]
+  reviewLikeTb                                                 ReviewLikeTb[]
+  reviewReportTb                                               ReviewReportTb[]
+  reviewShareTb                                                ReviewShareTb[]
+  reviewTb                                                     ReviewTb[]
 
   @@map("account_tb")
 }
@@ -209,9 +211,11 @@ model ReviewLikeTb {
 }
 
 model AccountReportTb {
-  reporterIdx String   @map("reporter_idx") @db.VarChar
-  reportedIdx String   @map("reported_idx") @db.VarChar
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  reporterIdx                                           String    @map("reporter_idx") @db.VarChar
+  reportedIdx                                           String    @map("reported_idx") @db.VarChar
+  createdAt                                             DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  reported                                              AccountTb @relation("account_report_tb_reported_idxToaccount_tb", fields: [reportedIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "account_reported_fk")
+  reporter                                              AccountTb @relation("account_report_tb_reporter_idxToaccount_tb", fields: [reporterIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "account_reporter_fk")
 
   @@id([reporterIdx, reportedIdx], map: "account_report_pk")
   @@map("account_report_tb")
@@ -238,8 +242,8 @@ view AccountInfoView {
   idx          String    @unique @db.VarChar
   serialNumber Int       @map("serial_number")
   imgPath      String?   @map("img_path") @db.VarChar
-  interest1   String?    @db.VarChar(12) @map("interest_1")
-  interest2   String?    @db.VarChar(12) @map("interest_2")
+  interest1    String?   @map("interest_1") @db.VarChar(12)
+  interest2    String?   @map("interest_2") @db.VarChar(12)
 
   @@map("account_info_view")
 }
@@ -257,8 +261,8 @@ view AccountDetailView {
   followerCount        Int?      @map("follower_count")
   followeeCount        Int?      @map("followee_count")
   accountReportedCount Int?      @map("account_reported_count")
-  interest1            String?   @db.VarChar(12) @map("interest_1")
-  interest2            String?   @db.VarChar(12) @map("interest_2")
+  interest1            String?   @map("interest_1") @db.VarChar(12)
+  interest2            String?   @map("interest_2") @db.VarChar(12)
 
   @@map("account_detail_view")
 }

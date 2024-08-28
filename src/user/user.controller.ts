@@ -285,10 +285,19 @@ export class UserController {
     @Query('size') size: number,
     @GetUser() loginUser: LoginUser,
   ): Promise<UserPagerbleResponseDto> {
-    const userPagerbleResponseDto = await this.followService.getFollowingList({
-      userIdx: userIdx,
+    // const userPagerbleResponseDto = await this.followService.getFollowingList({
+    //   userIdx: userIdx,
+    //   page: page || 1,
+    //   size: size || 20,
+    // });
+
+    console.log('함수시작');
+
+    const userPagerbleResponseDto = await this.userService.getFollowingList({
       page: page || 1,
-      size: size || 20,
+      size: size || 10,
+      type: 'follower',
+      userIdx: userIdx,
     });
 
     if (!loginUser) {
@@ -321,10 +330,17 @@ export class UserController {
     @Query('size') size: number,
     @GetUser() loginUser: LoginUser,
   ): Promise<UserPagerbleResponseDto> {
-    const userPagerbleResponseDto = await this.followService.getFollowerList({
+    // const userPagerbleResponseDto = await this.followService.getFollowerList({
+    //   userIdx: userIdx,
+    //   page: page || 1,
+    //   size: size || 20,
+    // });
+
+    const userPagerbleResponseDto = await this.userService.getFollowingList({
       userIdx: userIdx,
       page: page || 1,
       size: size || 20,
+      type: 'followee',
     });
 
     if (!loginUser) {

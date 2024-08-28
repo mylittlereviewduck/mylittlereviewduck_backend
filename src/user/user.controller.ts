@@ -1,6 +1,7 @@
 import { UserBlockCheckService } from './user-block-check.service';
 import { UserBlockService } from './user-block.service';
 import {
+  BadRequestException,
   Body,
   ConflictException,
   Controller,
@@ -47,6 +48,7 @@ import { UserBlockEntity } from './entity/UserBlock.entity';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { AwsService } from 'src/aws/aws.service';
 import { FileValidationPipe } from 'src/common/fileValidation.pipe';
+import { UserSearchResponseDto } from './dto/response/user-search-response.dto';
 
 @Controller('user')
 @ApiTags('user')
@@ -221,6 +223,38 @@ export class UserController {
     // await this.userReportCheckService.isReported(loginUser.idx, [user]);
 
     return user;
+  }
+
+  @Get('')
+  @ApiOperation({ summary: '유저검색하기 닉네임, 관심사' })
+  @ApiQuery({ name: 'search', description: '검색 키워드, 검색어 2글자 이상' })
+  @ApiQuery({
+    name: 'size',
+    example: 1,
+    description: '한 페이지당 가져올 리뷰수, 기본값 10',
+  })
+  @ApiQuery({
+    name: 'page',
+    example: 1,
+    description: '가져올 페이지, 기본값 1',
+  })
+  @Exception(400, '유효하지않은 요청')
+  @Exception(404, 'Not Found Page')
+  @ApiResponse({ status: 200, type: UserSearchResponseDto })
+  async getUserWithSearch(
+    @Query('search') search: string,
+    @Query('page') page: number,
+    @Query('size') size: number,
+  ): Promise<UserSearchResponseDto> {
+    if (search.length < 2) {
+      throw new BadRequestException('검색어는 2글자이상');
+    }
+
+    return await this.userService.getUserWithSearch({
+      search: search,
+      size: size || 10,
+      page: page || 1,
+    });
   }
 
   @Delete('')

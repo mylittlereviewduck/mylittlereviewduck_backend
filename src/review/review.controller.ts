@@ -268,7 +268,7 @@ export class ReviewController {
   }
 
   @Get('/review')
-  @ApiOperation({ summary: '리뷰검색하기 닉네임, 태그, 제목,내용' })
+  @ApiOperation({ summary: '리뷰검색하기 닉네임, 태그, 제목, 내용' })
   @ApiQuery({ name: 'search', description: '검색 키워드, 검색어 2글자 이상' })
   @ApiQuery({
     name: 'size',

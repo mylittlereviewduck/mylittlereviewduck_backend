@@ -440,12 +440,6 @@ export class ReviewService {
       },
     });
 
-    const totalPage = Math.ceil(totalCount / reviewSearchPagerbleDto.size);
-
-    if (reviewSearchPagerbleDto.page > totalPage) {
-      throw new NotFoundException('Not Found Page');
-    }
-
     const searchSQLResult = await this.prismaService.reviewTb.findMany({
       include: {
         accountTb: {

@@ -11,6 +11,8 @@ import { UpdateMyInfoDto } from './dto/update-my-info.dto';
 import { GetUserDto } from './dto/get-user.dto';
 import { UserWithProvider } from './model/user-with-provider.model';
 import { AccountTb, ProfileImgTb } from '@prisma/client';
+import { UserSearchPagerbleDto } from './dto/user-search-pagerble.dto';
+import { UserSearchResponseDto } from './dto/response/user-search-response.dto';
 
 @Injectable()
 export class UserService {
@@ -37,6 +39,73 @@ export class UserService {
       followerCount: user.followeeCount,
       reportCount: user.accountReportedCount,
     });
+  }
+
+  async getUserWithSearch(
+    userSearchPagerbleDto: UserSearchPagerbleDto,
+  ): Promise<UserSearchResponseDto> {
+    const totalCount = await this.prismaService.accountInfoView.count({
+      where: {
+        OR: [
+          {
+            nickname: {
+              contains: userSearchPagerbleDto.search,
+              mode: 'insensitive',
+            },
+          },
+          {
+            interest1: {
+              contains: userSearchPagerbleDto.search,
+              mode: 'insensitive',
+            },
+          },
+          {
+            interest2: {
+              contains: userSearchPagerbleDto.search,
+              mode: 'insensitive',
+            },
+          },
+        ],
+        deletedAt: null,
+      },
+    });
+
+    const userData = await this.prismaService.accountInfoView.findMany({
+      where: {
+        OR: [
+          {
+            nickname: {
+              contains: userSearchPagerbleDto.search,
+              mode: 'insensitive',
+            },
+          },
+          {
+            interest1: {
+              contains: userSearchPagerbleDto.search,
+              mode: 'insensitive',
+            },
+          },
+          {
+            interest2: {
+              contains: userSearchPagerbleDto.search,
+              mode: 'insensitive',
+            },
+          },
+        ],
+        deletedAt: null,
+      },
+
+      orderBy: {
+        idx: 'desc',
+      },
+      skip: userSearchPagerbleDto.size * (userSearchPagerbleDto.page - 1),
+      take: userSearchPagerbleDto.size,
+    });
+
+    return {
+      totalPage: Math.ceil(totalCount / userSearchPagerbleDto.size),
+      users: userData.map((elem) => new UserEntity(elem)),
+    };
   }
 
   //이메일인증 확인 로직추가

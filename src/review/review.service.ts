@@ -810,7 +810,7 @@ export class ReviewService {
         ...review,
         user: new UserEntity({
           ...review.accountTb,
-          profileImg: review.accountTb[0].imgPath,
+          profileImg: review.accountTb.profileImgTb[0].imgPath,
         }),
         tags: review.tagTb.map((tag) => tag.tagName),
         images: review.reviewImgTb.map((image) => image.imgPath),
@@ -843,6 +843,93 @@ export class ReviewService {
     }
 
     return noon;
+  }
+
+  async getReviewLikedAll(
+    userIdx: string,
+    reviewPagerbleDto: ReviewPagerbleDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    const totalCount = await this.prismaService.reviewTb.count({
+      where: {
+        reviewLikeTb: {
+          some: {
+            accountIdx: userIdx,
+          },
+        },
+      },
+    });
+
+    const reviewData = await this.prismaService.reviewTb.findMany({
+      include: {
+        accountTb: {
+          include: {
+            profileImgTb: {
+              select: {
+                imgPath: true,
+              },
+            },
+          },
+        },
+        tagTb: {
+          select: {
+            tagName: true,
+          },
+        },
+        reviewImgTb: {
+          select: {
+            imgPath: true,
+          },
+          where: {
+            deletedAt: null,
+          },
+        },
+        _count: {
+          select: {
+            reviewLikeTb: true,
+            reviewDislikeTb: true,
+            reviewBookmarkTb: true,
+            reviewShareTb: true,
+            reviewReportTb: true,
+          },
+        },
+      },
+      where: {
+        reviewLikeTb: {
+          some: {
+            accountIdx: userIdx,
+          },
+        },
+      },
+      orderBy: {
+        idx: 'desc',
+      },
+      skip: (reviewPagerbleDto.page - 1) * reviewPagerbleDto.size,
+      take: reviewPagerbleDto.size,
+    });
+
+    console.log('reviewData: ', reviewData);
+
+    const reviews = reviewData.map((review) => {
+      return {
+        ...review,
+        user: new UserEntity({
+          ...review.accountTb,
+          profileImg: review.accountTb.profileImgTb[0].imgPath,
+        }),
+        tags: review.tagTb.map((tag) => tag.tagName),
+        images: review.reviewImgTb.map((image) => image.imgPath),
+        likeCount: review._count.reviewLikeTb,
+        dislikeCount: review._count.reviewDislikeTb,
+        bookmarkCount: review._count.reviewBookmarkTb,
+        shareCount: review._count.reviewShareTb,
+        reportCount: review._count.reviewReportTb,
+      };
+    });
+
+    return {
+      totalPage: Math.ceil(totalCount / reviewPagerbleDto.size),
+      reviews: reviews.map((elem) => new ReviewEntity(elem)),
+    };
   }
 
   async onModuleInit() {

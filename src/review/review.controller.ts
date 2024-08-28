@@ -657,4 +657,64 @@ export class ReviewController {
 
     return reviewPagerbleResponseDto;
   }
+
+  @Get('/user/:userIdx/review/like')
+  @UseGuards(OptionalAuthGuard)
+  @ApiOperation({ summary: '유저의 좋아요한 리뷰목록보기' })
+  @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
+  @ApiQuery({
+    name: 'size',
+    example: 10,
+    description: '한 페이지에 가져올 리뷰수, 기본값 10',
+  })
+  @ApiQuery({
+    name: 'page',
+    example: 1,
+    description: '가져올 페이지, 기본값 1',
+  })
+  @Exception(400, '유효하지않은 요청')
+  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
+  async getReviewLiked(
+    @GetUser() loginUser: LoginUser,
+    @Param('userIdx', ParseUUIDPipe) userIdx: string,
+    @Query('page') page: number,
+    @Query('size') size: number,
+  ): Promise<ReviewPagerbleResponseDto> {
+    const reviewPagerbleResponseDto =
+      await this.reviewService.getReviewLikedAll(userIdx, {
+        size: size || 10,
+        page: page || 1,
+      });
+
+    if (!loginUser) {
+      return reviewPagerbleResponseDto;
+    }
+
+    await this.reviewLikeCheckService.isReviewLiked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
+
+    await this.reviewLikeCheckService.isReviewDisliked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
+
+    await this.reviewBookmarkCheckService.isReviewBookmarked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
+
+    await this.reviewShareCheckService.isReviewShared(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
+
+    await this.reviewBlockCheckService.isReviewBlocked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
+
+    return reviewPagerbleResponseDto;
+  }
 }

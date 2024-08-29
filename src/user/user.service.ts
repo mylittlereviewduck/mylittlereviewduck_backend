@@ -349,13 +349,16 @@ export class UserService {
       },
 
       where: {
-        followee: {
+        [userPagerbleDto.type === 'follower' ? 'followee' : 'follower']: {
           some: {
             [userPagerbleDto.type === 'follower'
               ? 'followerIdx'
               : 'followeeIdx']: userPagerbleDto.userIdx,
           },
         },
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
 
       skip: (userPagerbleDto.page - 1) * userPagerbleDto.size,

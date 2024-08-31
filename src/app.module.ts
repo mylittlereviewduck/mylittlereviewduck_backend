@@ -9,6 +9,7 @@ import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { MailModule } from './email/Email.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { MailModule } from './email/Email.module';
     PrismaModule,
     MailModule,
     CacheModule.register(),
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

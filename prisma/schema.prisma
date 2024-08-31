@@ -20,34 +20,36 @@ model AccountBlockTb {
 }
 
 model AccountTb {
-  email                                                        String             @db.VarChar
-  pw                                                           String?            @db.VarChar
-  nickname                                                     String             @default(dbgenerated("uuid_generate_v4()")) @db.VarChar
-  profile                                                      String?
-  provider                                                     String             @db.VarChar
-  providerKey                                                  String?            @map("provider_key") @db.VarChar(100)
-  createdAt                                                    DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
-  deletedAt                                                    DateTime?          @map("deleted_at") @db.Timestamptz(6)
-  idx                                                          String             @id(map: "account_tb_pk") @default(dbgenerated("uuid_generate_v4()")) @db.VarChar
-  serialNumber                                                 Int                @unique(map: "account_tb_serial_number_unique") @default(autoincrement()) @map("serial_number")
-  interest1                                                    String?            @map("interest_1") @db.VarChar(12)
-  interest2                                                    String?            @map("interest_2") @db.VarChar(12)
-  blocker                                                      AccountBlockTb[]   @relation("account_block_tb_blocker_idxToaccount_tb")
-  blocked                                                      AccountBlockTb[]   @relation("account_block_tb_blocked_idxToaccount_tb")
-  reported                                                     AccountReportTb[]  @relation("account_report_tb_reported_idxToaccount_tb")
-  reporter                                                     AccountReportTb[]  @relation("account_report_tb_reporter_idxToaccount_tb")
-  commentLikeTb                                                CommentLikeTb[]
-  commentTb                                                    CommentTb[]
-  follower                                                     FollowTb[]         @relation("follow_tb_follower_idxToaccount_tb")
-  followee                                                     FollowTb[]         @relation("follow_tb_followee_idxToaccount_tb")
-  profileImgTb                                                 ProfileImgTb[]
-  reviewBlockTb                                                ReviewBlockTb[]
-  reviewBookmarkTb                                             ReviewBookmarkTb[]
-  reviewDislikeTb                                              ReviewDislikeTb[]
-  reviewLikeTb                                                 ReviewLikeTb[]
-  reviewReportTb                                               ReviewReportTb[]
-  reviewShareTb                                                ReviewShareTb[]
-  reviewTb                                                     ReviewTb[]
+  email                                               String             @db.VarChar
+  pw                                                  String?            @db.VarChar
+  nickname                                            String             @default(dbgenerated("uuid_generate_v4()")) @db.VarChar
+  profile                                             String?
+  provider                                            String             @db.VarChar
+  providerKey                                         String?            @map("provider_key") @db.VarChar(100)
+  createdAt                                           DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt                                           DateTime?          @map("deleted_at") @db.Timestamptz(6)
+  idx                                                 String             @id(map: "account_tb_pk") @default(dbgenerated("uuid_generate_v4()")) @db.VarChar
+  serialNumber                                        Int                @unique(map: "account_tb_serial_number_unique") @default(autoincrement()) @map("serial_number")
+  interest1                                           String?            @map("interest_1") @db.VarChar(12)
+  interest2                                           String?            @map("interest_2") @db.VarChar(12)
+  blocker                                             AccountBlockTb[]   @relation("account_block_tb_blocker_idxToaccount_tb")
+  blocked                                             AccountBlockTb[]   @relation("account_block_tb_blocked_idxToaccount_tb")
+  reported                                            AccountReportTb[]  @relation("account_report_tb_reported_idxToaccount_tb")
+  reporter                                            AccountReportTb[]  @relation("account_report_tb_reporter_idxToaccount_tb")
+  commentLikeTb                                       CommentLikeTb[]
+  commentTb                                           CommentTb[]
+  follower                                            FollowTb[]         @relation("follow_tb_follower_idxToaccount_tb")
+  followee                                            FollowTb[]         @relation("follow_tb_followee_idxToaccount_tb")
+  notificationTbNotificationTbSenderIdxToaccountTb    NotificationTb[]   @relation("notification_tb_sender_idxToaccount_tb")
+  notificationTbNotificationTbRecipientIdxToaccountTb NotificationTb[]   @relation("notification_tb_recipient_idxToaccount_tb")
+  profileImgTb                                        ProfileImgTb[]
+  reviewBlockTb                                       ReviewBlockTb[]
+  reviewBookmarkTb                                    ReviewBookmarkTb[]
+  reviewDislikeTb                                     ReviewDislikeTb[]
+  reviewLikeTb                                        ReviewLikeTb[]
+  reviewReportTb                                      ReviewReportTb[]
+  reviewShareTb                                       ReviewShareTb[]
+  reviewTb                                            ReviewTb[]
 
   @@map("account_tb")
 }
@@ -211,11 +213,11 @@ model ReviewLikeTb {
 }
 
 model AccountReportTb {
-  reporterIdx                                           String    @map("reporter_idx") @db.VarChar
-  reportedIdx                                           String    @map("reported_idx") @db.VarChar
-  createdAt                                             DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
-  reported                                              AccountTb @relation("account_report_tb_reported_idxToaccount_tb", fields: [reportedIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "account_reported_fk")
-  reporter                                              AccountTb @relation("account_report_tb_reporter_idxToaccount_tb", fields: [reporterIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "account_reporter_fk")
+  reporterIdx String    @map("reporter_idx") @db.VarChar
+  reportedIdx String    @map("reported_idx") @db.VarChar
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  reported    AccountTb @relation("account_report_tb_reported_idxToaccount_tb", fields: [reportedIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "account_reported_fk")
+  reporter    AccountTb @relation("account_report_tb_reporter_idxToaccount_tb", fields: [reporterIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "account_reporter_fk")
 
   @@id([reporterIdx, reportedIdx], map: "account_report_pk")
   @@map("account_report_tb")
@@ -230,6 +232,31 @@ model CommentLikeTb {
 
   @@id([commentIdx, accountIdx], map: "comment_likes_tb_pk")
   @@map("comment_like_tb")
+}
+
+model NotificationTb {
+  recipientIdx                                   String             @map("recipient_idx") @db.VarChar
+  senderIdx                                      String             @map("sender_idx") @db.VarChar
+  type                                           Int
+  reviewIdx                                      Int?               @map("review_idx")
+  readAt                                         DateTime?          @map("read_at") @db.Timestamptz(6)
+  createdAt                                      DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt                                      DateTime?          @map("deleted_at") @db.Timestamptz(6)
+  message                                        String             @db.VarChar(100)
+  idx                                            Int                @id(map: "notification_pkey") @default(autoincrement())
+  accountTbNotificationTbSenderIdxToaccountTb    AccountTb          @relation("notification_tb_sender_idxToaccount_tb", fields: [senderIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "account_tb_to_notification_2")
+  accountTbNotificationTbRecipientIdxToaccountTb AccountTb          @relation("notification_tb_recipient_idxToaccount_tb", fields: [recipientIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "account_tb_to_notification_fk_1")
+  notificationTypeTb                             NotificationTypeTb @relation(fields: [type], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "notification_type_to_notification")
+
+  @@map("notification_tb")
+}
+
+model NotificationTypeTb {
+  idx            Int              @id(map: "notification_type_pkey")
+  type           String           @db.VarChar
+  notificationTb NotificationTb[]
+
+  @@map("notification_type_tb")
 }
 
 view AccountInfoView {

@@ -1,5 +1,6 @@
 import { UserPagerbleDto } from './dto/user-pagerble.dto';
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -23,6 +24,10 @@ export class UserBlockService {
     userIdx: string,
     toUserIdx: string,
   ): Promise<UserBlockEntity> {
+    if (userIdx == toUserIdx) {
+      throw new BadRequestException('Cannot Block Myself');
+    }
+
     const user = await this.userService.getUser({ idx: toUserIdx });
 
     if (!user) {

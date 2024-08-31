@@ -1,3 +1,4 @@
+import { NotificationService } from './../notification/notification.service';
 import { UserBlockCheckService } from './user-block-check.service';
 import { UserBlockService } from './user-block.service';
 import {
@@ -60,6 +61,7 @@ export class UserController {
     private readonly userBlockService: UserBlockService,
     private readonly userBlockCheckService: UserBlockCheckService,
     private readonly awsService: AwsService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   @Post('/check-email')
@@ -356,9 +358,20 @@ export class UserController {
   })
   async followUser(
     @GetUser() loginUser: LoginUser,
-    @Param('userIdx', ParseIntPipe) userIdx: string,
+    @Param('userIdx', ParseUUIDPipe) userIdx: string,
   ): Promise<FollowEntity> {
-    return await this.followService.followUser(loginUser.idx, userIdx);
+    const followEntity = await this.followService.followUser(
+      loginUser.idx,
+      userIdx,
+    );
+
+    await this.notificationService.createNotification({
+      senderIdx: followEntity.followerIdx,
+      recipientIdx: followEntity.followeeIdx,
+      type: 1,
+    });
+
+    return followEntity;
   }
 
   @Delete('/:userIdx/follow')
@@ -371,7 +384,7 @@ export class UserController {
   @ApiResponse({ status: 200, description: '언팔로우 성공 200 반환' })
   async UnfollowUser(
     @GetUser() loginUser: LoginUser,
-    @Param('userIdx', ParseIntPipe) userIdx: string,
+    @Param('userIdx', ParseUUIDPipe) userIdx: string,
   ): Promise<void> {
     await this.followService.unfollowUser(loginUser.idx, userIdx);
   }

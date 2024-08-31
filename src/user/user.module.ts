@@ -8,9 +8,15 @@ import { AuthModule } from '../../src/auth/auth.module';
 import { FollowCheckService } from './follow-check.service';
 import { UserBlockCheckService } from './user-block-check.service';
 import { AwsModule } from 'src/aws/aws.module';
+import { NotificationModule } from 'src/notification/notification.module';
 
 @Module({
-  imports: [PrismaModule, forwardRef(() => AuthModule), AwsModule],
+  imports: [
+    PrismaModule,
+    forwardRef(() => AuthModule),
+    AwsModule,
+    NotificationModule,
+  ],
   controllers: [UserController],
   providers: [
     UserService,

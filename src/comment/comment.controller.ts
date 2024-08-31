@@ -31,6 +31,8 @@ import { CommentLikeCheckService } from './comment-like-check.service';
 import { CommentLikeEntity } from './entity/CommentLike.entity';
 import { OptionalAuthGuard } from 'src/auth/optional-auth.guard';
 import { CommentPagerbleResponseDto } from './dto/response/comment-pagerble-response.dto';
+import { NotificationService } from 'src/notification/notification.service';
+import { ReviewService } from 'src/review/review.service';
 
 @ApiTags('comment')
 @Controller()
@@ -39,6 +41,8 @@ export class CommentController {
     private readonly commentService: CommentService,
     private readonly commentLikeService: CommentLikeService,
     private readonly commentLikeCheckService: CommentLikeCheckService,
+    private readonly notificationService: NotificationService,
+    private readonly reviewService: ReviewService,
   ) {}
 
   @Get('/review/:reviewIdx/comment/all')
@@ -96,11 +100,26 @@ export class CommentController {
     @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
     @GetUser() loginUser: LoginUser,
   ): Promise<CommentEntity> {
-    return await this.commentService.createComment(
+    const commentEntity = await this.commentService.createComment(
       loginUser.idx,
       reviewIdx,
       createCommentDto,
     );
+
+    const reviewEntity = await this.reviewService.getReviewByIdx(
+      commentEntity.reviewIdx,
+    );
+
+    if (loginUser.idx !== reviewEntity.user.idx) {
+      await this.notificationService.createNotification({
+        senderIdx: loginUser.idx,
+        recipientIdx: commentEntity.user.idx,
+        content: commentEntity.content,
+        type: 3,
+      });
+    }
+
+    return commentEntity;
   }
 
   @Put('/review/:reviewIdx/comment/:commentIdx')

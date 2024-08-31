@@ -90,6 +90,8 @@ export class CommentService {
           equals: null,
         },
       },
+      take: commentPagerbleDto.size,
+      skip: (commentPagerbleDto.page - 1) * commentPagerbleDto.size,
     });
 
     return {

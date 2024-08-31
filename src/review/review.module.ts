@@ -15,6 +15,7 @@ import { ReviewShareService } from './review-share.service';
 import { ReviewShareCheckService } from './review-share-check.service';
 import { UserModule } from 'src/user/user.module';
 import { AwsModule } from 'src/aws/aws.module';
+import { NotificationModule } from 'src/notification/notification.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { AwsModule } from 'src/aws/aws.module';
     PrismaModule,
     UserModule,
     AwsModule,
+    NotificationModule,
   ],
   controllers: [ReviewController],
   providers: [

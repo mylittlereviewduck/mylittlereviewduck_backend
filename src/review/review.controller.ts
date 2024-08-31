@@ -52,6 +52,7 @@ import { ReviewBlockEntity } from './entity/ReviewBlock.entity';
 import { ReviewReportEntity } from './entity/ReviewReport.entity';
 import { ReviewShareEntity } from './entity/ReviewShare.entity';
 import { ReviewBookmarkEntity } from './entity/Reviewbookmark.entity';
+import { NotificationService } from 'src/notification/notification.service';
 
 @Controller('')
 @ApiTags('review')
@@ -68,6 +69,7 @@ export class ReviewController {
     private readonly reviewBlockCheckService: ReviewBlockCheckService,
     private readonly reviewReportService: ReviewReportService,
     private readonly awsService: AwsService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   @Get('/review/all')
@@ -325,7 +327,23 @@ export class ReviewController {
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
   ): Promise<ReviewLikeEntity> {
-    return await this.reviewLikeService.likeReview(loginUser.idx, reviewIdx);
+    const reviewLikeEntity = await this.reviewLikeService.likeReview(
+      loginUser.idx,
+      reviewIdx,
+    );
+
+    const reviewEntity = await this.reviewService.getReviewByIdx(
+      reviewLikeEntity.reviewIdx,
+    );
+
+    if (loginUser.idx != reviewEntity.user.idx) {
+      await this.notificationService.createNotification({
+        senderIdx: loginUser.idx,
+        recipientIdx: reviewEntity.user.idx,
+        type: 2,
+      });
+    }
+    return reviewLikeEntity;
   }
 
   @Delete('/review/:reviewIdx/like')

@@ -1,16 +1,13 @@
 import { UserService } from 'src/user/user.service';
 import { FollowCheckService } from './follow-check.service';
 import { FollowEntity } from './entity/Follow.entity';
-import { FollowListPagerble } from './dto/follow-list-pagerble';
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { UserEntity } from './entity/User.entity';
 import { PrismaService } from '../../src/prisma/prisma.service';
-import { UserPagerbleResponseDto } from './dto/response/user-pagerble-response.dto';
-import { UserPagerbleDto } from './dto/user-pagerble.dto';
 
 @Injectable()
 export class FollowService {
@@ -23,13 +20,22 @@ export class FollowService {
   async followUser(userIdx: string, toUserIdx: string): Promise<FollowEntity> {
     const user = await this.userService.getUser({ idx: toUserIdx });
 
+    if (userIdx == toUserIdx) {
+      throw new BadRequestException('Cannot Follow Myself');
+    }
+
     if (!user) {
       throw new NotFoundException('Not Found User');
     }
 
-    const existingFollow = await this.followCheckService.isFollow(userIdx, [
-      user,
-    ]);
+    const existingFollow = await this.prismaService.followTb.findUnique({
+      where: {
+        followerIdx_followeeIdx: {
+          followerIdx: userIdx,
+          followeeIdx: toUserIdx,
+        },
+      },
+    });
 
     if (existingFollow) {
       throw new ConflictException('Already Followed');

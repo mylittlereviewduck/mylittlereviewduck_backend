@@ -27,6 +27,8 @@ export class ReviewShareCheckService {
     for (let i = 0; i < reviews.length; i++) {
       if (sharedReviewIdxList.includes(reviews[i].idx)) {
         reviews[i].isMyShare = true;
+      } else {
+        reviews[i].isMyShare = false;
       }
     }
 

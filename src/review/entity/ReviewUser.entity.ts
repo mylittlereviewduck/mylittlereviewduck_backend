@@ -15,6 +15,8 @@ export class ReviewUserEntity extends PickType(UserEntity, [
   'email',
   'nickname',
   'profileImg',
+  'interest1',
+  'interest2',
 ]) {
   constructor(data: ReviewUser) {
     super();
@@ -22,5 +24,7 @@ export class ReviewUserEntity extends PickType(UserEntity, [
     this.email = data.email;
     this.nickname = data.nickname;
     this.profileImg = data.profileImgTb[0].imgPath;
+    this.interest1 = data.interest1;
+    this.interest2 = data.interest2;
   }
 }

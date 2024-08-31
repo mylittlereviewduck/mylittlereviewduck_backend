@@ -1,3 +1,4 @@
+import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
 import { AwsService } from '../aws/aws.service';
 import { ReviewShareCheckService } from './review-share-check.service';
 import { ReviewShareService } from './review-share.service';
@@ -38,7 +39,6 @@ import { ReviewService } from './review.service';
 import { LoginUser } from 'src/auth/model/login-user.model';
 import { GetUser } from 'src/auth/get-user.decorator';
 import { AuthGuard } from 'src/auth/auth.guard';
-import { ReviewSearchResponseDto } from './dto/response/review-search-response.dto';
 import { OptionalAuthGuard } from 'src/auth/optional-auth.guard';
 import { ReviewPagerbleResponseDto } from './dto/response/review-pagerble-response.dto';
 import { ReviewLikeCheckService } from './review-like-check.service';
@@ -98,30 +98,20 @@ export class ReviewController {
       return reviewPagerbleResponseDto;
     }
 
-    // await this.reviewLikeCheckService.isReviewLiked(
-    //   loginUser.idx,
-    //   reviewPagerbleResponseDto.reviews,
-    // );
+    await this.reviewLikeCheckService.isReviewLiked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
 
-    // await this.reviewLikeCheckService.isReviewDisliked(
-    //   loginUser.idx,
-    //   reviewPagerbleResponseDto.reviews,
-    // );
+    await this.reviewLikeCheckService.isReviewDisliked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
 
-    // await this.reviewBookmarkCheckService.isReviewBookmarked(
-    //   loginUser.idx,
-    //   reviewPagerbleResponseDto.reviews,
-    // );
-
-    // await this.reviewBlockCheckService.isReviewBlocked(
-    //   loginUser.idx,
-    //   reviewPagerbleResponseDto.reviews,
-    // );
-
-    // await this.reviewShareCheckService.isReviewShared(
-    //   loginUser.idx,
-    //   reviewPagerbleResponseDto.reviews,
-    // );
+    await this.reviewBlockCheckService.isReviewBlocked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
 
     return reviewPagerbleResponseDto;
   }
@@ -268,6 +258,7 @@ export class ReviewController {
   }
 
   @Get('/review')
+  @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '리뷰검색하기 닉네임, 태그, 제목, 내용' })
   @ApiQuery({ name: 'search', description: '검색 키워드, 검색어 2글자 이상' })
   @ApiQuery({
@@ -282,21 +273,42 @@ export class ReviewController {
   })
   @Exception(400, '유효하지않은 요청')
   @Exception(404, 'Not Found Page')
-  @ApiResponse({ status: 200, type: ReviewSearchResponseDto })
+  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
   async getReviewWithSearch(
+    @GetUser() loginUser: LoginUser,
     @Query('search') search: string,
     @Query('page') page: number,
     @Query('size') size: number,
-  ): Promise<ReviewSearchResponseDto> {
+  ): Promise<ReviewPagerbleResponseDto> {
     if (search.length < 2) {
       throw new BadRequestException('검색어는 2글자이상');
     }
 
-    return await this.reviewService.getReviewWithSearch({
-      search: search,
-      size: size || 10,
-      page: page || 1,
-    });
+    const reviewPagerbleResponseDto =
+      await this.reviewService.getReviewWithSearch({
+        search: search,
+        size: size || 10,
+        page: page || 1,
+      });
+
+    if (!loginUser) {
+      return reviewPagerbleResponseDto;
+    }
+
+    await this.reviewLikeCheckService.isReviewLiked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
+
+    await this.reviewLikeCheckService.isReviewDisliked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
+
+    await this.reviewBlockCheckService.isReviewBlocked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
   }
 
   @Post('/review/:reviewIdx/like')
@@ -510,30 +522,20 @@ export class ReviewController {
       return reviewPagerbleResponseDto;
     }
 
-    // await this.reviewLikeCheckService.isReviewLiked(
-    //   loginUser.idx,
-    //   reviewPagerbleResponseDto.reviews,
-    // );
+    await this.reviewLikeCheckService.isReviewLiked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
 
-    // await this.reviewLikeCheckService.isReviewDisliked(
-    //   loginUser.idx,
-    //   reviewPagerbleResponseDto.reviews,
-    // );
+    await this.reviewLikeCheckService.isReviewDisliked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
 
-    // await this.reviewBookmarkCheckService.isReviewBookmarked(
-    //   loginUser.idx,
-    //   reviewPagerbleResponseDto.reviews,
-    // );
-
-    // await this.reviewShareCheckService.isReviewShared(
-    //   loginUser.idx,
-    //   reviewPagerbleResponseDto.reviews,
-    // );
-
-    // await this.reviewBlockCheckService.isReviewBlocked(
-    //   loginUser.idx,
-    //   reviewPagerbleResponseDto.reviews,
-    // );
+    await this.reviewBlockCheckService.isReviewBlocked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
 
     return reviewPagerbleResponseDto;
   }
@@ -570,30 +572,20 @@ export class ReviewController {
       return reviewPagerbleResponseDto;
     }
 
-    // await this.reviewLikeCheckService.isReviewLiked(
-    //   loginUser.idx,
-    //   reviewPagerbleResponseDto.reviews,
-    // );
+    await this.reviewLikeCheckService.isReviewLiked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
 
-    // await this.reviewLikeCheckService.isReviewDisliked(
-    //   loginUser.idx,
-    //   reviewPagerbleResponseDto.reviews,
-    // );
+    await this.reviewLikeCheckService.isReviewDisliked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
 
-    // await this.reviewBookmarkCheckService.isReviewBookmarked(
-    //   loginUser.idx,
-    //   reviewPagerbleResponseDto.reviews,
-    // );
-
-    // await this.reviewShareCheckService.isReviewShared(
-    //   loginUser.idx,
-    //   reviewPagerbleResponseDto.reviews,
-    // );
-
-    // await this.reviewBlockCheckService.isReviewBlocked(
-    //   loginUser.idx,
-    //   reviewPagerbleResponseDto.reviews,
-    // );
+    await this.reviewBlockCheckService.isReviewBlocked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
 
     return reviewPagerbleResponseDto;
   }
@@ -630,30 +622,20 @@ export class ReviewController {
       return reviewPagerbleResponseDto;
     }
 
-    // await this.reviewLikeCheckService.isReviewLiked(
-    //   loginUser.idx,
-    //   reviewPagerbleResponseDto.reviews,
-    // );
+    await this.reviewLikeCheckService.isReviewLiked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
 
-    // await this.reviewLikeCheckService.isReviewDisliked(
-    //   loginUser.idx,
-    //   reviewPagerbleResponseDto.reviews,
-    // );
+    await this.reviewLikeCheckService.isReviewDisliked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
 
-    // await this.reviewBookmarkCheckService.isReviewBookmarked(
-    //   loginUser.idx,
-    //   reviewPagerbleResponseDto.reviews,
-    // );
-
-    // await this.reviewShareCheckService.isReviewShared(
-    //   loginUser.idx,
-    //   reviewPagerbleResponseDto.reviews,
-    // );
-
-    // await this.reviewBlockCheckService.isReviewBlocked(
-    //   loginUser.idx,
-    //   reviewPagerbleResponseDto.reviews,
-    // );
+    await this.reviewBlockCheckService.isReviewBlocked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
 
     return reviewPagerbleResponseDto;
   }
@@ -690,30 +672,20 @@ export class ReviewController {
       return reviewPagerbleResponseDto;
     }
 
-    // await this.reviewLikeCheckService.isReviewLiked(
-    //   loginUser.idx,
-    //   reviewPagerbleResponseDto.reviews,
-    // );
+    await this.reviewLikeCheckService.isReviewLiked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
 
-    // await this.reviewLikeCheckService.isReviewDisliked(
-    //   loginUser.idx,
-    //   reviewPagerbleResponseDto.reviews,
-    // );
+    await this.reviewLikeCheckService.isReviewDisliked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
 
-    // await this.reviewBookmarkCheckService.isReviewBookmarked(
-    //   loginUser.idx,
-    //   reviewPagerbleResponseDto.reviews,
-    // );
-
-    // await this.reviewShareCheckService.isReviewShared(
-    //   loginUser.idx,
-    //   reviewPagerbleResponseDto.reviews,
-    // );
-
-    // await this.reviewBlockCheckService.isReviewBlocked(
-    //   loginUser.idx,
-    //   reviewPagerbleResponseDto.reviews,
-    // );
+    await this.reviewBlockCheckService.isReviewBlocked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
 
     return reviewPagerbleResponseDto;
   }

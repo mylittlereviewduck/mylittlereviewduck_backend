@@ -39,6 +39,9 @@ export class ReviewListEntity extends PickType(ReviewEntity, [
   'likeCount',
   'dislikeCount',
   'commentCount',
+  'isMyLike',
+  'isMyDislike',
+  'isMyBlock',
 ]) {
   user: ReviewListUserEntity;
 

@@ -25,15 +25,13 @@ export class CommentEntity {
 
   @ApiProperty({
     example: {
-      isFollowing: false,
-      isBlocked: false,
-      isReported: false,
       idx: '344e753e-9071-47b2-b651-bc32a0a92b1f',
       email: 'test1@a.com',
-      profile: null,
-      profileImg: 'default_img',
       nickname: '23번째 오리',
-      createdAt: '2024-08-20T11:36:44.732Z',
+      profileImg:
+        'https://s3.ap-northeast-2.amazonaws.com/todayreview/1724893124840.png',
+      interest1: '여행',
+      interest2: null,
     },
     description: '작성자',
   })

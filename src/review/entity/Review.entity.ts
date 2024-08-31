@@ -23,7 +23,7 @@ const review = Prisma.validator<Prisma.ReviewTbDefaultArgs>()({
   },
 });
 
-type Review = Prisma.ReviewTbGetPayload<typeof review>;
+export type Review = Prisma.ReviewTbGetPayload<typeof review>;
 
 export class ReviewEntity {
   @ApiProperty({ example: 1, description: '리뷰 idx' })

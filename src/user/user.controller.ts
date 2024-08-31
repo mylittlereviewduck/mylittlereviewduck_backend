@@ -285,14 +285,6 @@ export class UserController {
     @Query('size') size: number,
     @GetUser() loginUser: LoginUser,
   ): Promise<UserPagerbleResponseDto> {
-    // const userPagerbleResponseDto = await this.followService.getFollowingList({
-    //   userIdx: userIdx,
-    //   page: page || 1,
-    //   size: size || 20,
-    // });
-
-    console.log('함수시작');
-
     const userPagerbleResponseDto = await this.userService.getFollowingList({
       page: page || 1,
       size: size || 10,
@@ -330,12 +322,6 @@ export class UserController {
     @Query('size') size: number,
     @GetUser() loginUser: LoginUser,
   ): Promise<UserPagerbleResponseDto> {
-    // const userPagerbleResponseDto = await this.followService.getFollowerList({
-    //   userIdx: userIdx,
-    //   page: page || 1,
-    //   size: size || 20,
-    // });
-
     const userPagerbleResponseDto = await this.userService.getFollowingList({
       userIdx: userIdx,
       page: page || 1,

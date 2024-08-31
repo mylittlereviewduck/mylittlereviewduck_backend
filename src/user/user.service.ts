@@ -10,10 +10,8 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateMyInfoDto } from './dto/update-my-info.dto';
 import { GetUserDto } from './dto/get-user.dto';
 import { UserWithProvider } from './model/user-with-provider.model';
-import { AccountTb, ProfileImgTb } from '@prisma/client';
 import { UserSearchPagerbleDto } from './dto/user-search-pagerble.dto';
 import { UserSearchResponseDto } from './dto/response/user-search-response.dto';
-import { UserPagerbleDto } from './dto/user-pagerble.dto';
 import { UserPagerbleResponseDto } from './dto/response/user-pagerble-response.dto';
 import { UserFollowPagerbleDto } from './dto/user-follow-pagerble.dto';
 
@@ -142,26 +140,18 @@ export class UserService {
           email: createUserDto.email,
           pw: createUserDto.pw,
           provider: 'local',
+          profileImgTb: {
+            create: {},
+          },
         },
       });
 
       newUser = await tx.accountTb.update({
         data: {
           nickname: newUser.serialNumber + '번째 오리',
-
-          //이미지 자동생성되는지 확인
-          profileImgTb: {
-            create: {},
-          },
         },
         where: {
           idx: newUser.idx,
-        },
-      });
-
-      newProfileImg = await tx.profileImgTb.create({
-        data: {
-          accountIdx: newUser.idx,
         },
       });
     });
@@ -172,45 +162,28 @@ export class UserService {
   async createUserWithOAuth(
     createUserOAuthDto: CreateUserOAtuhDto,
   ): Promise<UserEntity> {
-    let userData, userEntityData;
+    let userData;
 
-    await this.prismaService.$transaction(async (tx) => {
-      userData = await tx.accountTb.create({
-        data: {
-          email: createUserOAuthDto.email,
-          nickname: createUserOAuthDto.nickname,
-          provider: createUserOAuthDto.provider,
-          providerKey: createUserOAuthDto.providerKey,
+    userData = await this.prismaService.accountTb.create({
+      data: {
+        email: createUserOAuthDto.email,
+        nickname: createUserOAuthDto.nickname,
+        provider: createUserOAuthDto.provider,
+        providerKey: createUserOAuthDto.providerKey,
 
-          profileImgTb: {
-            create: {},
+        profileImgTb: {
+          create: {},
+        },
+      },
+      include: {
+        profileImgTb: true,
+        _count: {
+          select: {
+            followee: true,
+            follower: true,
           },
         },
-        include: {
-          profileImgTb: true,
-          _count: {
-            select: {
-              followee: true,
-              follower: true,
-            },
-          },
-        },
-      });
-
-      const userEntityData = tx.accountTb.findUnique({
-        include: {
-          profileImgTb: true,
-          _count: {
-            select: {
-              followee: true,
-              follower: true,
-            },
-          },
-        },
-        where: {
-          idx: userData.idx,
-        },
-      });
+      },
     });
 
     return new UserEntity(userData);

@@ -14,7 +14,7 @@ const user = Prisma.validator<Prisma.AccountTbDefaultArgs>()({
   },
 });
 
-type User = Prisma.AccountTbGetPayload<typeof user>;
+export type User = Prisma.AccountTbGetPayload<typeof user>;
 
 export class UserEntity {
   @ApiProperty({

@@ -34,9 +34,9 @@ export class NotificationService {
     if (createNotificationDto.type == 1) {
       message = `${sender.nickname}님이 회원님을 팔로우하기 시작했습니다.`;
     } else if (createNotificationDto.type == 2) {
-      message = `${sender.nickname} 님이 내 리뷰를 좋아합니다.`;
+      message = `${sender.nickname}님이 내 리뷰를 좋아합니다.`;
     } else if (createNotificationDto.type == 3) {
-      message = `${sender.nickname} 님이 댓글을 남겼습니다. ${createNotificationDto.content}`;
+      message = `${sender.nickname}님이 댓글을 남겼습니다. ${createNotificationDto.content}`;
     }
 
     await this.prismaService.notificationTb.create({
@@ -44,6 +44,7 @@ export class NotificationService {
         senderIdx: createNotificationDto.senderIdx,
         recipientIdx: createNotificationDto.recipientIdx,
         type: createNotificationDto.type,
+        reviewIdx: createNotificationDto.reviewIdx,
         message: message,
       },
     });
@@ -52,18 +53,31 @@ export class NotificationService {
   async getMyNotificationAll(
     getNotificationDto: GetNotificationDto,
   ): Promise<NotificationPagerbleResponseDto> {
-    const totalCount = await this.prismaService.notificationTb.count({
-      where: {
-        recipientIdx: getNotificationDto.userIdx,
-      },
-    });
+    let totalCount, notificationData;
 
-    const notificationData = await this.prismaService.notificationTb.findMany({
-      where: {
-        recipientIdx: getNotificationDto.userIdx,
-      },
-      take: getNotificationDto.size,
-      skip: (getNotificationDto.page - 1) * getNotificationDto.size,
+    await this.prismaService.$transaction(async (tx) => {
+      totalCount = await tx.notificationTb.count({
+        where: {
+          recipientIdx: getNotificationDto.userIdx,
+        },
+      });
+
+      notificationData = await tx.notificationTb.findMany({
+        where: {
+          recipientIdx: getNotificationDto.userIdx,
+        },
+        take: getNotificationDto.size,
+        skip: (getNotificationDto.page - 1) * getNotificationDto.size,
+      });
+
+      await tx.notificationTb.updateMany({
+        data: {
+          readAt: new Date(),
+        },
+        where: {
+          recipientIdx: getNotificationDto.userIdx,
+        },
+      });
     });
 
     return {

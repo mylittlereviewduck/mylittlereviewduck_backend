@@ -37,6 +37,8 @@ export class FollowService {
       },
     });
 
+    console.log('existingFollow: ', existingFollow);
+
     if (existingFollow) {
       throw new ConflictException('Already Followed');
     }
@@ -61,6 +63,9 @@ export class FollowService {
     const existingFollow = await this.followCheckService.isFollow(userIdx, [
       user,
     ]);
+
+    console.log('userIdx: ', userIdx);
+    console.log('toUserIdx: ', toUserIdx);
 
     if (!existingFollow) {
       throw new ConflictException('Already Not Followed');

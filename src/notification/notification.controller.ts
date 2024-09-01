@@ -30,7 +30,7 @@ export class NotificationController {
     description: '페이지크기, 기본값 10',
   })
   @Exception(400, '유효하지않은 요청')
-  @ApiResponse({ status: 200, type: UserPagerbleResponseDto })
+  @ApiResponse({ status: 200, type: NotificationPagerbleResponseDto })
   async getMyNotifications(
     @Query('page') page: number,
     @Query('size') size: number,

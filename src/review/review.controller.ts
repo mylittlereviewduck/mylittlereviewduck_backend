@@ -341,6 +341,7 @@ export class ReviewController {
         senderIdx: loginUser.idx,
         recipientIdx: reviewEntity.user.idx,
         type: 2,
+        reviewIdx: reviewIdx,
       });
     }
     return reviewLikeEntity;

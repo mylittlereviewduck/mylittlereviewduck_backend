@@ -1,8 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
   ArrayMaxSize,
+  ArrayMinSize,
   IsArray,
-  IsNumber,
+  IsInt,
   IsOptional,
   IsString,
   Length,
@@ -22,7 +23,7 @@ export class CreateReviewDto {
   content: string;
 
   @ApiProperty({ example: '3', description: '별점 0-5점' })
-  @IsNumber({ maxDecimalPlaces: 1 })
+  @IsInt()
   @Min(1)
   @Max(6)
   score: number;
@@ -33,7 +34,7 @@ export class CreateReviewDto {
   })
   @IsArray()
   @IsString({ each: true })
-  @IsOptional()
+  @ArrayMinSize(1)
   tags: string[];
 
   @ApiProperty({

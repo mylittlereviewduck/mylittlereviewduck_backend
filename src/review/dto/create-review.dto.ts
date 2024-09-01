@@ -9,7 +9,9 @@ import {
   Length,
   Max,
   Min,
+  Validate,
 } from 'class-validator';
+import { IsEqualLength } from '../review-img-content.validator';
 
 export class CreateReviewDto {
   @ApiProperty({ example: '제목입니다', description: '리뷰 제목' })
@@ -47,6 +49,20 @@ export class CreateReviewDto {
   @IsArray()
   @IsString({ each: true })
   @ArrayMaxSize(6)
-  @IsOptional()
+  // @IsOptional()
   images: string[];
+
+  @ApiProperty({
+    example: [
+      'https://s3.ap-northeast-2.amazonaws.com/todayreview/1723963141509',
+      'https://s3.ap-northeast-2.amazonaws.com/todayreview/1723963141509',
+    ],
+    description: '이미지 주소 리스트, 6개 제한',
+  })
+  @IsArray()
+  @IsString({ each: true })
+  @ArrayMaxSize(6)
+  // @IsOptional()
+  @Validate(IsEqualLength, ['images'])
+  imgContent: string[];
 }

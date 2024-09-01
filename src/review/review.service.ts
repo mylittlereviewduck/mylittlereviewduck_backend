@@ -74,11 +74,10 @@ export class ReviewService {
         },
         reviewImgTb: {
           createMany: {
-            data: createDto.images.map((image) => {
-              return {
-                imgPath: image,
-              };
-            }),
+            data: createDto.images.map((image, index) => ({
+              imgPath: image,
+              content: createDto.imgContent[index],
+            })),
           },
         },
       },
@@ -160,11 +159,10 @@ export class ReviewService {
             },
 
             createMany: {
-              data: updateReviewDto.images.map((image) => {
-                return {
-                  imgPath: image,
-                };
-              }),
+              data: updateReviewDto.images.map((image, index) => ({
+                imgPath: image,
+                content: updateReviewDto.imgContent[index],
+              })),
             },
           },
         },

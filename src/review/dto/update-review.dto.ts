@@ -3,12 +3,13 @@ import {
   ArrayMaxSize,
   IsArray,
   IsNumber,
-  IsOptional,
   IsString,
   Length,
   Max,
   Min,
+  Validate,
 } from 'class-validator';
+import { IsEqualLength } from '../review-img-content.validator';
 
 export class UpdateReviewDto {
   @ApiProperty({ example: '제목', description: '리뷰 제목' })
@@ -46,4 +47,18 @@ export class UpdateReviewDto {
   @IsString({ each: true })
   @ArrayMaxSize(6)
   images: string[];
+
+  @ApiProperty({
+    example: [
+      'https://s3.ap-northeast-2.amazonaws.com/todayreview/1723963141509',
+      'https://s3.ap-northeast-2.amazonaws.com/todayreview/1723963141509',
+    ],
+    description: '이미지 주소 리스트, 6개 제한',
+  })
+  @IsArray()
+  @IsString({ each: true })
+  @ArrayMaxSize(6)
+  // @IsOptional()
+  @Validate(IsEqualLength, ['images'])
+  imgContent: string[];
 }

@@ -25,18 +25,18 @@ export class NotificationService {
   async createNotification(
     createNotificationDto: CreateNotificationDto,
   ): Promise<void> {
-    let message: string;
+    let content: string;
 
     const sender = await this.userService.getUser({
       idx: createNotificationDto.senderIdx,
     });
 
     if (createNotificationDto.type == 1) {
-      message = `${sender.nickname}님이 회원님을 팔로우하기 시작했습니다.`;
+      content = `${sender.nickname}님이 회원님을 팔로우하기 시작했습니다.`;
     } else if (createNotificationDto.type == 2) {
-      message = `${sender.nickname}님이 내 리뷰를 좋아합니다.`;
+      content = `${sender.nickname}님이 내 리뷰를 좋아합니다.`;
     } else if (createNotificationDto.type == 3) {
-      message = `${sender.nickname}님이 댓글을 남겼습니다. ${createNotificationDto.content}`;
+      content = `${sender.nickname}님이 댓글을 남겼습니다. ${createNotificationDto.commentContent}`;
     }
 
     await this.prismaService.notificationTb.create({
@@ -45,7 +45,7 @@ export class NotificationService {
         recipientIdx: createNotificationDto.recipientIdx,
         type: createNotificationDto.type,
         reviewIdx: createNotificationDto.reviewIdx,
-        message: message,
+        content: content,
       },
     });
   }

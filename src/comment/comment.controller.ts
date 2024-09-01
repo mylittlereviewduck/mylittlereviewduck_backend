@@ -114,7 +114,7 @@ export class CommentController {
       await this.notificationService.createNotification({
         senderIdx: loginUser.idx,
         recipientIdx: reviewEntity.user.idx,
-        content: commentEntity.content,
+        commentContent: commentEntity.content,
         type: 3,
         reviewIdx: reviewIdx,
       });

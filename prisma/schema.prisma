@@ -242,11 +242,11 @@ model NotificationTb {
   readAt                                         DateTime?          @map("read_at") @db.Timestamptz(6)
   createdAt                                      DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
   deletedAt                                      DateTime?          @map("deleted_at") @db.Timestamptz(6)
-  message                                        String             @db.VarChar(100)
+  content                                        String             @db.VarChar
   idx                                            Int                @id(map: "notification_pkey") @default(autoincrement())
-  accountTbNotificationTbSenderIdxToaccountTb    AccountTb          @relation("notification_tb_sender_idxToaccount_tb", fields: [senderIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "account_tb_to_notification_2")
-  accountTbNotificationTbRecipientIdxToaccountTb AccountTb          @relation("notification_tb_recipient_idxToaccount_tb", fields: [recipientIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "account_tb_to_notification_fk_1")
-  notificationTypeTb                             NotificationTypeTb @relation(fields: [type], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "notification_type_to_notification")
+  accountTbNotificationTbSenderIdxToaccountTb    AccountTb          @relation("notification_tb_sender_idxToaccount_tb", fields: [senderIdx], references: [idx], onDelete: Cascade, map: "account_tb_to_notification_2")
+  accountTbNotificationTbRecipientIdxToaccountTb AccountTb          @relation("notification_tb_recipient_idxToaccount_tb", fields: [recipientIdx], references: [idx], onDelete: Cascade, map: "account_tb_to_notification_fk_1")
+  notificationTypeTb                             NotificationTypeTb @relation(fields: [type], references: [idx], onDelete: Cascade, map: "notification_type_to_notification")
 
   @@map("notification_tb")
 }

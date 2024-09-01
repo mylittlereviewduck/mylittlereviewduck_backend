@@ -36,7 +36,7 @@ export class NotificationEntity {
     example: 1,
     description: '알림 메시지',
   })
-  message: string;
+  content: string;
 
   @ApiProperty({
     example: 1,
@@ -56,7 +56,7 @@ export class NotificationEntity {
     this.senderIdx = data.senderIdx;
     this.type = data.type;
     this.reviewIdx = data.reviewIdx;
-    this.message = data.message;
+    this.content = data.content;
     this.createdAt = data.createdAt;
     this.readAt = data.readAt;
   }

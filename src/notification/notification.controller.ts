@@ -1,6 +1,7 @@
 import { AuthGuard } from './../auth/auth.guard';
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiOperation,
   ApiParam,
   ApiQuery,
@@ -21,6 +22,7 @@ export class NotificationController {
 
   @Get('/user/notification/all')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: '내 알림목록보기' })
   @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
   @ApiQuery({ name: 'page', example: 1, description: '페이지, 기본값 1' })

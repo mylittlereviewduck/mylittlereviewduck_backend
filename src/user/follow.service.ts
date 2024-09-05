@@ -60,12 +60,14 @@ export class FollowService {
       throw new NotFoundException('Not Found User');
     }
 
-    const existingFollow = await this.followCheckService.isFollow(userIdx, [
-      user,
-    ]);
-
-    console.log('userIdx: ', userIdx);
-    console.log('toUserIdx: ', toUserIdx);
+    const existingFollow = await this.prismaService.followTb.findUnique({
+      where: {
+        followerIdx_followeeIdx: {
+          followerIdx: userIdx,
+          followeeIdx: toUserIdx,
+        },
+      },
+    });
 
     if (!existingFollow) {
       throw new ConflictException('Already Not Followed');

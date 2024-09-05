@@ -71,6 +71,13 @@ export class ReviewEntity {
   images: string[];
 
   @ApiProperty({
+    example: ['이미지 설명1', '이미지 설명2', '이미지 설명3'],
+    description: '이미지 설명, 이미지 개수와 일치',
+    nullable: true,
+  })
+  imgContent: string[];
+
+  @ApiProperty({
     example: '2024-08-01Tq07:58:57.844Z',
     description: '작성일 타임스탬프',
   })
@@ -138,6 +145,7 @@ export class ReviewEntity {
     this.score = data.score;
     this.tags = data.tagTb.map((tag) => tag.tagName);
     this.images = data.reviewImgTb.map((img) => img.imgPath);
+    this.imgContent = data.reviewImgTb.map((img) => img.content);
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
     this.viewCount = data.viewCount;

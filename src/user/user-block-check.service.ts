@@ -26,7 +26,7 @@ export class UserBlockCheckService {
 
     for (let i = 0; i < toUsers.length; i++) {
       if (blockedUserList.includes(toUsers[i].idx)) {
-        toUsers[i].isBlocked = true;
+        toUsers[i].isMyBlock = true;
       }
     }
 

@@ -13,8 +13,8 @@ import { PrismaService } from '../../src/prisma/prisma.service';
 export class FollowService {
   constructor(
     private readonly prismaService: PrismaService,
-    private readonly followCheckService: FollowCheckService,
     private readonly userService: UserService,
+    private readonly followCheckService: FollowCheckService,
   ) {}
 
   async followUser(userIdx: string, toUserIdx: string): Promise<FollowEntity> {
@@ -28,18 +28,9 @@ export class FollowService {
       throw new NotFoundException('Not Found User');
     }
 
-    const existingFollow = await this.prismaService.followTb.findUnique({
-      where: {
-        followerIdx_followeeIdx: {
-          followerIdx: userIdx,
-          followeeIdx: toUserIdx,
-        },
-      },
-    });
+    await this.followCheckService.isFollow(userIdx, [user]);
 
-    console.log('existingFollow: ', existingFollow);
-
-    if (existingFollow) {
+    if (user.isMyFollowing === true) {
       throw new ConflictException('Already Followed');
     }
 
@@ -60,16 +51,9 @@ export class FollowService {
       throw new NotFoundException('Not Found User');
     }
 
-    const existingFollow = await this.prismaService.followTb.findUnique({
-      where: {
-        followerIdx_followeeIdx: {
-          followerIdx: userIdx,
-          followeeIdx: toUserIdx,
-        },
-      },
-    });
+    await this.followCheckService.isFollow(userIdx, [user]);
 
-    if (!existingFollow) {
+    if (user.isMyFollowing === false) {
       throw new ConflictException('Already Not Followed');
     }
 

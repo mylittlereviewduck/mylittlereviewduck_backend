@@ -62,13 +62,13 @@ export class UserEntity {
     example: 'true',
     description: '팔로우여부',
   })
-  isFollowing: boolean = false;
+  isMyFollowing: boolean = false;
 
   @ApiProperty({
     example: 'false',
     description: '차단여부',
   })
-  isBlocked: boolean = false;
+  isMyBlock: boolean = false;
 
   constructor(data: User) {
     this.idx = data.idx;

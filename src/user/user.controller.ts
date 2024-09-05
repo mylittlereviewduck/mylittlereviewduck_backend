@@ -114,7 +114,7 @@ export class UserController {
 
   //논의후에 서비스로직 추가
   @Post('/pw/reset')
-  @ApiOperation({ summary: ' 비밀번호 초기화 / 이메일 전송' })
+  @ApiOperation({ summary: '비밀번호 초기화 / 이메일 전송' })
   @Exception(400, '유효하지않은 요청')
   @ApiResponse({ status: 200 })
   async resetPassword(
@@ -227,6 +227,7 @@ export class UserController {
   }
 
   @Get('')
+  @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '유저검색하기 닉네임, 관심사' })
   @ApiQuery({ name: 'search', description: '검색 키워드, 검색어 2글자 이상' })
   @ApiQuery({
@@ -243,6 +244,7 @@ export class UserController {
   @Exception(404, 'Not Found Page')
   @ApiResponse({ status: 200, type: UserSearchResponseDto })
   async getUserWithSearch(
+    @GetUser() loginUser: LoginUser,
     @Query('search') search: string,
     @Query('page') page: number,
     @Query('size') size: number,
@@ -251,11 +253,27 @@ export class UserController {
       throw new BadRequestException('검색어는 2글자이상');
     }
 
-    return await this.userService.getUserWithSearch({
+    const userSearchResponseDto = await this.userService.getUserWithSearch({
       search: search,
       size: size || 10,
       page: page || 1,
     });
+
+    if (!loginUser) {
+      return userSearchResponseDto;
+    }
+
+    await this.followCheckService.isFollow(
+      loginUser.idx,
+      userSearchResponseDto.users,
+    );
+
+    await this.userBlockCheckService.isBlocked(
+      loginUser.idx,
+      userSearchResponseDto.users,
+    );
+
+    return userSearchResponseDto;
   }
 
   @Delete('')

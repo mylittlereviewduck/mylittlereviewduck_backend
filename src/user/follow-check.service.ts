@@ -26,7 +26,7 @@ export class FollowCheckService {
 
     for (let i = 0; i < toUsers.length; i++) {
       if (followingUserList.includes(toUsers[i].idx)) {
-        toUsers[i].isFollowing = true;
+        toUsers[i].isMyFollowing = true;
       }
     }
 

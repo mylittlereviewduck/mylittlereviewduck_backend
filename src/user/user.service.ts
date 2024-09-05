@@ -123,7 +123,6 @@ export class UserService {
   //이메일인증 확인 로직추가
   async createUser(createUserDto: CreateUserDto): Promise<UserEntity> {
     let newUser;
-    let newProfileImg;
     await this.prismaService.$transaction(async (tx) => {
       const emailDuplicatedUser = await tx.accountInfoView.findFirst({
         where: {

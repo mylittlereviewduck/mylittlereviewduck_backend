@@ -25,6 +25,6 @@ import { NotificationModule } from 'src/notification/notification.module';
     FollowCheckService,
     UserBlockCheckService,
   ],
-  exports: [UserService, UserBlockService],
+  exports: [UserService, UserBlockService, FollowCheckService],
 })
 export class UserModule {}

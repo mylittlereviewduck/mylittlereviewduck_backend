@@ -245,8 +245,8 @@ model NotificationTb {
   deletedAt                                      DateTime?          @map("deleted_at") @db.Timestamptz(6)
   content                                        String             @db.VarChar
   idx                                            Int                @id(map: "notification_pkey") @default(autoincrement())
-  accountTbNotificationTbSenderIdxToaccountTb    AccountTb          @relation("notification_tb_sender_idxToaccount_tb", fields: [senderIdx], references: [idx], onDelete: Cascade, map: "account_tb_to_notification_2")
-  accountTbNotificationTbRecipientIdxToaccountTb AccountTb          @relation("notification_tb_recipient_idxToaccount_tb", fields: [recipientIdx], references: [idx], onDelete: Cascade, map: "account_tb_to_notification_fk_1")
+  senderAccountTb    AccountTb          @relation("notification_tb_sender_idxToaccount_tb", fields: [senderIdx], references: [idx], onDelete: Cascade, map: "account_tb_to_notification_2")
+  recipientAccounTb  AccountTb          @relation("notification_tb_recipient_idxToaccount_tb", fields: [recipientIdx], references: [idx], onDelete: Cascade, map: "account_tb_to_notification_fk_1")
   notificationTypeTb                             NotificationTypeTb @relation(fields: [type], references: [idx], onDelete: Cascade, map: "notification_type_to_notification")
 
   @@map("notification_tb")

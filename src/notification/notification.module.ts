@@ -5,7 +5,11 @@ import { NotificationService } from './notification.service';
 import { NotificationController } from './notification.controller';
 
 @Module({
-  imports: [PrismaModule, forwardRef(() => UserModule)],
+  imports: [
+    PrismaModule,
+    forwardRef(() => UserModule),
+    forwardRef(() => UserModule),
+  ],
   controllers: [NotificationController],
   providers: [NotificationService],
   exports: [NotificationService],

@@ -63,6 +63,13 @@ export class NotificationService {
       });
 
       notificationData = await tx.notificationTb.findMany({
+        include: {
+          senderAccountTb: {
+            include: {
+              profileImgTb: true,
+            },
+          },
+        },
         where: {
           recipientIdx: getNotificationDto.userIdx,
         },

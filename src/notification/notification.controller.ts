@@ -1,3 +1,4 @@
+import { FollowCheckService } from './../user/follow-check.service';
 import { AuthGuard } from './../auth/auth.guard';
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import {
@@ -11,14 +12,16 @@ import {
 import { GetUser } from 'src/auth/get-user.decorator';
 import { LoginUser } from 'src/auth/model/login-user.model';
 import { Exception } from 'src/decorator/exception.decorator';
-import { UserPagerbleResponseDto } from 'src/user/dto/response/user-pagerble-response.dto';
 import { NotificationPagerbleResponseDto } from './dto/response/notification-pagerble-response.dto';
 import { NotificationService } from './notification.service';
 
 @Controller('')
 @ApiTags('user')
 export class NotificationController {
-  constructor(private readonly notificationService: NotificationService) {}
+  constructor(
+    private readonly notificationService: NotificationService,
+    private readonly followCheckService: FollowCheckService,
+  ) {}
 
   @Get('/user/notification/all')
   @UseGuards(AuthGuard)
@@ -38,13 +41,20 @@ export class NotificationController {
     @Query('size') size: number,
     @GetUser() loginUser: LoginUser,
   ): Promise<NotificationPagerbleResponseDto> {
-    const userPagerbleResponseDto =
+    const notificationPagerbleResponseDto =
       await this.notificationService.getMyNotificationAll({
         userIdx: loginUser.idx,
         page: page || 1,
         size: size || 20,
       });
 
-    return userPagerbleResponseDto;
+    await this.followCheckService.isFollow(
+      loginUser.idx,
+      notificationPagerbleResponseDto.notifications.map(
+        (notification) => notification.sender,
+      ),
+    );
+
+    return notificationPagerbleResponseDto;
   }
 }

@@ -8,23 +8,20 @@ const user = Prisma.validator<Prisma.AccountTbDefaultArgs>()({
   },
 });
 
-type ReviewUser = Prisma.AccountTbGetPayload<typeof user>;
+type NotificationUser = Prisma.AccountTbGetPayload<typeof user>;
 
-export class ReviewUserEntity extends PickType(UserEntity, [
+export class NotificationUserEntity extends PickType(UserEntity, [
   'idx',
   'email',
   'nickname',
   'profileImg',
-  'interest1',
-  'interest2',
+  'isMyFollowing',
 ]) {
-  constructor(data: ReviewUser) {
+  constructor(data: NotificationUser) {
     super();
     this.idx = data.idx;
     this.email = data.email;
     this.nickname = data.nickname;
     this.profileImg = data.profileImgTb[0].imgPath;
-    this.interest1 = data.interest1;
-    this.interest2 = data.interest2;
   }
 }

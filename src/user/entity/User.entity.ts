@@ -35,10 +35,10 @@ export class UserEntity {
   @ApiProperty({ example: '닉네임', description: '닉네임' })
   nickname: string;
 
-  @ApiProperty({ example: '스포츠', description: '관심사1' })
+  @ApiProperty({ example: '스포츠', description: '관심사1, 없으면 null' })
   interest1: string | null;
 
-  @ApiProperty({ example: '여행', description: '관심사2' })
+  @ApiProperty({ example: '여행', description: '관심사2, 없으면 null' })
   interest2: string | null;
 
   @ApiProperty({ example: '2024-08-01T07:58:57.844Z', description: '가입일' })

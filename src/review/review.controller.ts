@@ -1,4 +1,3 @@
-import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
 import { AwsService } from '../aws/aws.service';
 import { ReviewShareCheckService } from './review-share-check.service';
 import { ReviewShareService } from './review-share.service';
@@ -118,8 +117,8 @@ export class ReviewController {
     return reviewPagerbleResponseDto;
   }
 
-  @Get('/review/popular')
-  @ApiOperation({ summary: '인기 리뷰목록보기' })
+  @Get('/review/hot')
+  @ApiOperation({ summary: '좋아요 많이 받은 리뷰목록보기' })
   @ApiQuery({
     name: 'size',
     example: 10,
@@ -131,11 +130,34 @@ export class ReviewController {
     description: '가져올 페이지, 기본값 1',
   })
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
-  async getReviewPopular(
+  async getHotReview(
     @Query('size') size: number,
     @Query('page') page: number,
   ): Promise<ReviewPagerbleResponseDto> {
     return await this.reviewService.getHotReviewAll({
+      size: size || 10,
+      page: page || 1,
+    });
+  }
+
+  @Get('/review/cold')
+  @ApiOperation({ summary: '싫어요 많이 받은 리뷰목록보기' })
+  @ApiQuery({
+    name: 'size',
+    example: 10,
+    description: '한 페이지에 담긴 리뷰수, 기본값 10',
+  })
+  @ApiQuery({
+    name: 'page',
+    example: 1,
+    description: '가져올 페이지, 기본값 1',
+  })
+  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
+  async getColdReview(
+    @Query('size') size: number,
+    @Query('page') page: number,
+  ): Promise<ReviewPagerbleResponseDto> {
+    return await this.reviewService.getColdReviewAll({
       size: size || 10,
       page: page || 1,
     });
@@ -337,12 +359,14 @@ export class ReviewController {
     );
 
     if (loginUser.idx != reviewEntity.user.idx) {
-      await this.notificationService.createNotification({
+      const notification = await this.notificationService.createNotification({
         senderIdx: loginUser.idx,
         recipientIdx: reviewEntity.user.idx,
         type: 2,
         reviewIdx: reviewIdx,
       });
+
+      this.notificationService.sendNotification(notification);
     }
     return reviewLikeEntity;
   }

@@ -18,13 +18,19 @@ type Notification = Prisma.NotificationTbGetPayload<typeof notification>;
 export class NotificationEntity {
   @ApiProperty({
     example: 1,
-    description: '알림보낸 유저 idx',
+    description: '알림받은 유저 idx',
   })
   recipientIdx: string;
 
   @ApiProperty({
-    example: 1,
-    description: '알림받은 유저 idx',
+    example: {
+      idx: 'a3a066c8-845a-41d5-9862-54ea1a918a29',
+      email: 'test2@a.com',
+      nickname: 'nickname1',
+      profileImg: 'default_img',
+      isMyFollowing: true,
+    },
+    description: '알림보낸 유저 정보',
   })
   sender: NotificationUserEntity;
 

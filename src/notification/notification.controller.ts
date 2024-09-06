@@ -1,6 +1,6 @@
 import { FollowCheckService } from './../user/follow-check.service';
 import { AuthGuard } from './../auth/auth.guard';
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, Sse, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -14,6 +14,8 @@ import { LoginUser } from 'src/auth/model/login-user.model';
 import { Exception } from 'src/decorator/exception.decorator';
 import { NotificationPagerbleResponseDto } from './dto/response/notification-pagerble-response.dto';
 import { NotificationService } from './notification.service';
+import { Observable } from 'rxjs';
+import { NotificationEntity } from './entity/Notification.entity';
 
 @Controller('')
 @ApiTags('user')
@@ -56,5 +58,13 @@ export class NotificationController {
     );
 
     return notificationPagerbleResponseDto;
+  }
+
+  @Sse('/sse')
+  @UseGuards(AuthGuard)
+  sendClientNotification(
+    @GetUser() loginUser: LoginUser,
+  ): Observable<NotificationEntity> {
+    return this.notificationService.getNotification(loginUser.idx);
   }
 }

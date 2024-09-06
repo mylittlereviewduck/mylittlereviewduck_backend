@@ -489,6 +489,8 @@ export class ReviewService {
   // 메모리에 저장하는 함수, 12시간마다 실행되는 함수
   @Cron(' 0 0 0,12 * * *')
   async setHotReviewAll(): Promise<void> {
+    console.log('데이터 캐싱해놓기');
+
     const mostRecentNoon = this.getMostRecentNoon();
 
     const reviewData = await this.prismaService.reviewTb.findMany({
@@ -517,11 +519,11 @@ export class ReviewService {
           some: {
             createdAt: {
               // 12시간마다 업데이트 버전
-              gte: new Date(mostRecentNoon.getTime() - 12 * 60 * 60 * 1000),
-              lte: mostRecentNoon,
+              // gte: new Date(mostRecentNoon.getTime() - 12 * 60 * 60 * 1000),
+              // lte: mostRecentNoon,
               // 실시간 업데이트 버전
-              // gte: mostRecentNoon,
-              // lte: new Date(),
+              gte: mostRecentNoon,
+              lte: new Date(),
             },
           },
         },
@@ -535,17 +537,76 @@ export class ReviewService {
 
     const hotReviews = reviewData.map((review) => new ReviewListEntity(review));
 
-    await this.cacheManager.set('hotReviews', hotReviews);
+    await this.cacheManager.set('hotReviews', hotReviews, 12 * 3600 * 1000);
+  }
+
+  @Cron(' 0 0 0,12 * * *')
+  async setColdReviewAll(): Promise<void> {
+    const mostRecentNoon = this.getMostRecentNoon();
+
+    const reviewData = await this.prismaService.reviewTb.findMany({
+      include: {
+        accountTb: {
+          include: {
+            profileImgTb: true,
+          },
+        },
+        tagTb: true,
+        reviewImgTb: {
+          where: {
+            deletedAt: null,
+          },
+        },
+        _count: {
+          select: {
+            commentTb: true,
+            reviewLikeTb: true,
+            reviewDislikeTb: true,
+          },
+        },
+      },
+      where: {
+        reviewDislikeTb: {
+          some: {
+            createdAt: {
+              // 12시간마다 업데이트 버전
+              // gte: new Date(mostRecentNoon.getTime() - 12 * 60 * 60 * 1000),
+              // lte: mostRecentNoon,
+              // 실시간 업데이트 버전
+              gte: mostRecentNoon,
+              lte: new Date(),
+            },
+          },
+        },
+      },
+      orderBy: {
+        reviewDislikeTb: {
+          _count: 'desc',
+        },
+      },
+    });
+
+    const coldReviews = reviewData.map(
+      (review) => new ReviewListEntity(review),
+    );
+
+    await this.cacheManager.set('coldReviews', coldReviews, 12 * 3600 * 1000);
   }
 
   async getHotReviewAll(
     reviewPagerbleDto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
+    console.log('캐시된데이터 가져오기');
     const hotReviews =
       await this.cacheManager.get<Array<ReviewEntity>>('hotReviews');
 
+    // console.log('hotReviews: ', hotReviews);
+
     if (!hotReviews) {
-      return;
+      return {
+        totalPage: 0,
+        reviews: [],
+      };
     }
 
     const startIndex = reviewPagerbleDto.size * (reviewPagerbleDto.page - 1);
@@ -553,6 +614,31 @@ export class ReviewService {
     return {
       totalPage: Math.ceil(hotReviews.length / reviewPagerbleDto.size),
       reviews: hotReviews.slice(
+        startIndex,
+        startIndex + reviewPagerbleDto.size,
+      ),
+    };
+  }
+
+  async getColdReviewAll(
+    reviewPagerbleDto: ReviewPagerbleDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    const coldReviews =
+      await this.cacheManager.get<Array<ReviewEntity>>('coldReviews');
+    console.log('coldReviews: ', coldReviews);
+
+    if (!coldReviews) {
+      return {
+        totalPage: 0,
+        reviews: [],
+      };
+    }
+
+    const startIndex = reviewPagerbleDto.size * (reviewPagerbleDto.page - 1);
+
+    return {
+      totalPage: Math.ceil(coldReviews.length / reviewPagerbleDto.size),
+      reviews: coldReviews.slice(
         startIndex,
         startIndex + reviewPagerbleDto.size,
       ),
@@ -696,6 +782,9 @@ export class ReviewService {
 
   async onModuleInit() {
     console.log('setHotReviewAll() Method Start');
+    console.log('setColdReviewAll() Method Start');
+
     await this.setHotReviewAll();
+    await this.setColdReviewAll();
   }
 }

@@ -111,13 +111,15 @@ export class CommentController {
     );
 
     if (loginUser.idx !== reviewEntity.user.idx) {
-      await this.notificationService.createNotification({
+      const notification = await this.notificationService.createNotification({
         senderIdx: loginUser.idx,
         recipientIdx: reviewEntity.user.idx,
         commentContent: commentEntity.content,
         type: 3,
         reviewIdx: reviewIdx,
       });
+
+      this.notificationService.sendNotification(notification);
     }
 
     return commentEntity;

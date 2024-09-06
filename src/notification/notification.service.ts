@@ -5,9 +5,12 @@ import { CreateNotificationDto } from './dto/create-notification.dto';
 import { UserService } from 'src/user/user.service';
 import { NotificationEntity } from './entity/Notification.entity';
 import { NotificationPagerbleResponseDto } from './dto/response/notification-pagerble-response.dto';
+import { Observable, Subject } from 'rxjs';
 
 @Injectable()
 export class NotificationService {
+  private notification$ = new Subject<NotificationEntity>();
+
   constructor(
     private readonly prismaService: PrismaService,
     private readonly userService: UserService,
@@ -24,7 +27,7 @@ export class NotificationService {
    */
   async createNotification(
     createNotificationDto: CreateNotificationDto,
-  ): Promise<void> {
+  ): Promise<NotificationEntity> {
     let content: string;
 
     const sender = await this.userService.getUser({
@@ -39,7 +42,7 @@ export class NotificationService {
       content = `${sender.nickname}님이 댓글을 남겼습니다. ${createNotificationDto.commentContent}`;
     }
 
-    await this.prismaService.notificationTb.create({
+    const notificationData = await this.prismaService.notificationTb.create({
       data: {
         senderIdx: createNotificationDto.senderIdx,
         recipientIdx: createNotificationDto.recipientIdx,
@@ -47,7 +50,16 @@ export class NotificationService {
         reviewIdx: createNotificationDto.reviewIdx,
         content: content,
       },
+      include: {
+        senderAccountTb: {
+          include: {
+            profileImgTb: true,
+          },
+        },
+      },
     });
+
+    return new NotificationEntity(notificationData);
   }
 
   async getMyNotificationAll(
@@ -93,5 +105,14 @@ export class NotificationService {
         (notification) => new NotificationEntity(notification),
       ),
     };
+  }
+
+  getNotification(userIdx: string): Observable<any> {
+    return this.notification$.asObservable();
+  }
+
+  async sendNotification(notification: NotificationEntity): Promise<void> {
+    console.log('Sending notification:', notification);
+    this.notification$.next(notification);
   }
 }

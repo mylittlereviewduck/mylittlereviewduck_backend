@@ -382,11 +382,13 @@ export class UserController {
       userIdx,
     );
 
-    await this.notificationService.createNotification({
+    const notification = await this.notificationService.createNotification({
       senderIdx: followEntity.followerIdx,
       recipientIdx: followEntity.followeeIdx,
       type: 1,
     });
+
+    this.notificationService.sendNotification(notification);
 
     return followEntity;
   }

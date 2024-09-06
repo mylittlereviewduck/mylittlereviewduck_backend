@@ -112,7 +112,6 @@ export class NotificationService {
   }
 
   async sendNotification(notification: NotificationEntity): Promise<void> {
-    console.log('Sending notification:', notification);
     this.notification$.next(notification);
   }
 }

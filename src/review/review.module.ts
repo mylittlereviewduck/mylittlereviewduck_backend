@@ -1,4 +1,4 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { ConsoleLogger, Module, forwardRef } from '@nestjs/common';
 import { ReviewController } from './review.controller';
 import { ReviewService } from './review.service';
 import { ReviewBookmarkService } from './review-bookmark.service';
@@ -28,6 +28,7 @@ import { NotificationModule } from 'src/notification/notification.module';
   ],
   controllers: [ReviewController],
   providers: [
+    ConsoleLogger,
     ReviewService,
     ReviewLikeService,
     ReviewLikeCheckService,

@@ -1,4 +1,5 @@
 import {
+  ConsoleLogger,
   Inject,
   Injectable,
   NotFoundException,
@@ -19,6 +20,7 @@ import { ReviewListEntity } from './entity/ReviewList.entity';
 @Injectable()
 export class ReviewService {
   constructor(
+    private readonly logger: ConsoleLogger,
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
     private readonly prismaService: PrismaService,
     private readonly userService: UserService,
@@ -489,8 +491,6 @@ export class ReviewService {
   // 메모리에 저장하는 함수, 12시간마다 실행되는 함수
   @Cron(' 0 0 0,12 * * *')
   async setHotReviewAll(): Promise<void> {
-    console.log('데이터 캐싱해놓기');
-
     const mostRecentNoon = this.getMostRecentNoon();
 
     const reviewData = await this.prismaService.reviewTb.findMany({
@@ -596,11 +596,8 @@ export class ReviewService {
   async getHotReviewAll(
     reviewPagerbleDto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    console.log('캐시된데이터 가져오기');
     const hotReviews =
       await this.cacheManager.get<Array<ReviewEntity>>('hotReviews');
-
-    // console.log('hotReviews: ', hotReviews);
 
     if (!hotReviews) {
       return {
@@ -625,7 +622,6 @@ export class ReviewService {
   ): Promise<ReviewPagerbleResponseDto> {
     const coldReviews =
       await this.cacheManager.get<Array<ReviewEntity>>('coldReviews');
-    console.log('coldReviews: ', coldReviews);
 
     if (!coldReviews) {
       return {
@@ -781,8 +777,8 @@ export class ReviewService {
   }
 
   async onModuleInit() {
-    console.log('setHotReviewAll() Method Start');
-    console.log('setColdReviewAll() Method Start');
+    this.logger.log('setHotReviewAll Method Start');
+    this.logger.log('setColdReviewAll() Method Start');
 
     await this.setHotReviewAll();
     await this.setColdReviewAll();

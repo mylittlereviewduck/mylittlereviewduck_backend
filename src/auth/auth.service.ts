@@ -77,25 +77,4 @@ export class AuthService {
 
     return strategy.socialLogin(query);
   }
-
-  async verifyCode(verifyEmailDto: VerifyEmailDto): Promise<boolean> {
-    const verifiedEmail = await this.prismaService.verifiedEmailTb.findFirst({
-      where: {
-        email: verifyEmailDto.email,
-        code: verifyEmailDto.code,
-        createdAt: {
-          gte: new Date(Date.now() - 5 * 60 * 1000),
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
-
-    if (!verifiedEmail) {
-      throw new UnauthorizedException('Unauthorized email');
-    }
-
-    return true;
-  }
 }

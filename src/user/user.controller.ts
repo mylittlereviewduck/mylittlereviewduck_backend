@@ -64,21 +64,6 @@ export class UserController {
     private readonly notificationService: NotificationService,
   ) {}
 
-  @Post('/check-email')
-  @HttpCode(200)
-  @ApiOperation({ summary: '이메일 중복검사 / 인증번호 전송' })
-  @Exception(400, '유효하지않은 요청')
-  @Exception(409, '이메일 중복')
-  @ApiResponse({
-    status: 200,
-    description: '사용가능한 이메일일경우 상태코드 200반환',
-  })
-  async checkEmailDulicate(
-    @Body() checkDto: CheckEmailDuplicateDto,
-  ): Promise<void> {
-    await this.userService.sendEmailVerificationCode(checkDto.email);
-  }
-
   @Post('/check-nickname')
   @HttpCode(200)
   @ApiOperation({ summary: '닉네임 중복검사' })

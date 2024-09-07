@@ -8,7 +8,7 @@ import { CommentModule } from './comment/comment.module';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
 import { CacheModule } from '@nestjs/cache-manager';
-import { MailModule } from './email/Email.module';
+import { EmailModule } from './email/Email.module';
 import { NotificationModule } from './notification/notification.module';
 
 @Module({
@@ -19,7 +19,7 @@ import { NotificationModule } from './notification/notification.module';
     CommentModule,
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
-    MailModule,
+    EmailModule,
     CacheModule.register(),
     NotificationModule,
   ],

@@ -12,7 +12,7 @@ import { NaverStrategy } from './strategy/naver.strategy';
 import { KakaoStrategy } from './strategy/kakao.strategy';
 import { EmailAuthService } from './email-auth.service';
 import { ConfigService } from '@nestjs/config';
-import { MailModule } from 'src/email/Email.module';
+import { EmailModule } from 'src/email/Email.module';
 
 @Module({
   imports: [
@@ -26,7 +26,7 @@ import { MailModule } from 'src/email/Email.module';
       }),
       inject: [ConfigService],
     }),
-    MailModule,
+    EmailModule,
     HttpModule,
   ],
   controllers: [AuthController],

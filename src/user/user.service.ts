@@ -346,27 +346,4 @@ export class UserService {
       users: followList.map((elem) => new UserEntity(elem)),
     };
   }
-
-  async sendEmailVerificationCode(email: string): Promise<void> {
-    const user = await this.getUser({ email: email });
-
-    if (user) {
-      throw new ConflictException('Duplicated Email');
-    }
-
-    const verificationCode = Math.floor(Math.random() * 900000 + 100000);
-
-    await this.prismaService.verifiedEmailTb.create({
-      data: {
-        email: email,
-        code: verificationCode,
-      },
-    });
-
-    this.emailService.sendEmail({
-      title: '오늘도리뷰 이메일 인증번호',
-      content: `인증번호: ${verificationCode} `,
-      toEmail: email,
-    });
-  }
 }

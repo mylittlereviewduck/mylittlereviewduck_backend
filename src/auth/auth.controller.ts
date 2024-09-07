@@ -1,5 +1,4 @@
 import { EmailAuthService } from './email-auth.service';
-import { PrismaService } from './../prisma/prisma.service';
 import {
   Body,
   Controller,
@@ -14,7 +13,6 @@ import {
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Exception } from '../../src/decorator/exception.decorator';
-import { SendEmailVerificationResponseDto } from './dto/response/send-email-verification-response.dto';
 import { VerifyEmailResponseDto } from './dto/response/verify-email-response.dto';
 import { LoginDto } from './dto/signIn.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
@@ -37,9 +35,11 @@ export class AuthController {
 
   //이메일 인증번호전송
   @Post('/email/send-verification')
-  @ApiOperation({ summary: '이메일 인증 전송' })
+  @HttpCode(200)
+  @ApiOperation({ summary: '이메일 중복검사 / 인증번호 전송' })
   @Exception(400, '유효하지않은 요청')
-  @ApiResponse({ status: 200, type: SendEmailVerificationResponseDto })
+  @Exception(409, '이메일 중복')
+  @ApiResponse({ status: 200 })
   async sendEmailWithVerification(
     @Body() sendEmailVerificationDto: SendEmailVerificationDto,
   ): Promise<void> {
@@ -53,10 +53,19 @@ export class AuthController {
   @HttpCode(200)
   @Exception(400, '유효하지않은 요청')
   @Exception(409, '이미 인증된 이메일')
-  @ApiResponse({ status: 200, type: VerifyEmailResponseDto })
-  async verifyEmail(@Body() verifyEmailDto: VerifyEmailDto): Promise<boolean> {
-    //true면 이메일 db저장
-    return this.authService.verifyCode(verifyEmailDto);
+  @ApiResponse({ status: 200 })
+  async verifyEmail(@Body() verifyEmailDto: VerifyEmailDto): Promise<void> {
+    const verifiedEmail =
+      await this.emailAuthService.getEmailWithVerificationCode(
+        verifyEmailDto.email,
+        verifyEmailDto.verificationCode,
+      );
+
+    if (!verifiedEmail) {
+      throw new UnauthorizedException('Unauthorized email');
+    }
+
+    this.emailAuthService.verifyEmail(verifiedEmail.email);
   }
 
   @Post('/login')

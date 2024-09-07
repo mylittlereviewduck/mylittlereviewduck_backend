@@ -49,6 +49,7 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { AwsService } from 'src/aws/aws.service';
 import { FileValidationPipe } from 'src/common/fileValidation.pipe';
 import { UserSearchResponseDto } from './dto/response/user-search-response.dto';
+import { EmailService } from 'src/email/email.service';
 
 @Controller('user')
 @ApiTags('user')
@@ -65,7 +66,7 @@ export class UserController {
 
   @Post('/check-email')
   @HttpCode(200)
-  @ApiOperation({ summary: '이메일 중복검사' })
+  @ApiOperation({ summary: '이메일 중복검사 / 인증번호 전송' })
   @Exception(400, '유효하지않은 요청')
   @Exception(409, '이메일 중복')
   @ApiResponse({
@@ -75,11 +76,7 @@ export class UserController {
   async checkEmailDulicate(
     @Body() checkDto: CheckEmailDuplicateDto,
   ): Promise<void> {
-    const user = await this.userService.getUser({ email: checkDto.email });
-
-    if (user) {
-      throw new ConflictException('Duplicated Email');
-    }
+    await this.userService.sendEmailVerificationCode(checkDto.email);
   }
 
   @Post('/check-nickname')

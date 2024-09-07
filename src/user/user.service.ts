@@ -14,10 +14,14 @@ import { UserSearchPagerbleDto } from './dto/user-search-pagerble.dto';
 import { UserSearchResponseDto } from './dto/response/user-search-response.dto';
 import { UserPagerbleResponseDto } from './dto/response/user-pagerble-response.dto';
 import { UserFollowPagerbleDto } from './dto/user-follow-pagerble.dto';
+import { EmailService } from 'src/email/email.service';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly emailService: EmailService,
+  ) {}
 
   async getUser(getUserDto: GetUserDto): Promise<UserEntity | undefined> {
     const userData = await this.prismaService.accountTb.findFirst({
@@ -341,5 +345,28 @@ export class UserService {
       totalPage: Math.ceil(getFollowingCount / userPagerbleDto.size),
       users: followList.map((elem) => new UserEntity(elem)),
     };
+  }
+
+  async sendEmailVerificationCode(email: string): Promise<void> {
+    const user = await this.getUser({ email: email });
+
+    if (user) {
+      throw new ConflictException('Duplicated Email');
+    }
+
+    const verificationCode = Math.floor(Math.random() * 900000 + 100000);
+
+    await this.prismaService.verifiedEmailTb.create({
+      data: {
+        email: email,
+        code: verificationCode,
+      },
+    });
+
+    this.emailService.sendEmail({
+      title: '오늘도리뷰 이메일 인증번호',
+      content: `인증번호: ${verificationCode} `,
+      toEmail: email,
+    });
   }
 }

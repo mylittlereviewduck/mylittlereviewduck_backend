@@ -1,6 +1,6 @@
 import { MailerModule } from '@nestjs-modules/mailer';
 import { Module } from '@nestjs/common';
-import { MailService } from './email.service';
+import { EmailService } from './email.service';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { PrismaModule } from 'src/prisma/prisma.module';
 
@@ -29,7 +29,7 @@ import { PrismaModule } from 'src/prisma/prisma.module';
     }),
     PrismaModule,
   ],
-  providers: [MailService],
-  exports: [MailService],
+  providers: [EmailService],
+  exports: [EmailService],
 })
-export class MailModule {}
+export class EmailModule {}

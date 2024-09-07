@@ -6,7 +6,7 @@ import { SendEmailVerificationDto } from 'src/auth/dto/send-email-verification.d
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
-export class MailService {
+export class EmailService {
   constructor(
     private readonly mailerService: MailerService,
     private readonly prismaService: PrismaService,

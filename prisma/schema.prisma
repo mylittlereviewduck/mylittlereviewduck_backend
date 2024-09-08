@@ -149,25 +149,26 @@ model ReviewShareTb {
 }
 
 model ReviewTb {
-  idx              Int                @id @default(autoincrement())
-  title            String             @db.VarChar
-  content          String             @db.VarChar
-  viewCount        Int                @default(0) @map("view_count")
-  createdAt        DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
-  deletedAt        DateTime?          @map("deleted_at") @db.Timestamptz(6)
-  updatedAt        DateTime?          @map("updated_at") @db.Timestamptz(6)
-  score            Int
-  accountIdx       String             @default(dbgenerated("uuid_generate_v4()")) @map("account_idx") @db.VarChar
-  commentTb        CommentTb[]
-  reviewBlockTb    ReviewBlockTb[]
-  reviewBookmarkTb ReviewBookmarkTb[]
-  reviewDislikeTb  ReviewDislikeTb[]
-  reviewImgTb      ReviewImgTb[]
-  reviewLikeTb     ReviewLikeTb[]
-  reviewReportTb   ReviewReportTb[]
-  reviewShareTb    ReviewShareTb[]
-  accountTb        AccountTb          @relation(fields: [accountIdx], references: [idx], onDelete: Cascade, map: "fk_account_tb_to_review_tb")
-  tagTb            TagTb[]
+  idx               Int                @id @default(autoincrement())
+  title             String             @db.VarChar
+  content           String             @db.VarChar
+  viewCount         Int                @default(0) @map("view_count")
+  createdAt         DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt         DateTime?          @map("deleted_at") @db.Timestamptz(6)
+  updatedAt         DateTime?          @map("updated_at") @db.Timestamptz(6)
+  score             Int
+  accountIdx        String             @default(dbgenerated("uuid_generate_v4()")) @map("account_idx") @db.VarChar
+  commentTb         CommentTb[]
+  reviewBlockTb     ReviewBlockTb[]
+  reviewBookmarkTb  ReviewBookmarkTb[]
+  reviewDislikeTb   ReviewDislikeTb[]
+  reviewImgTb       ReviewImgTb[]
+  reviewLikeTb      ReviewLikeTb[]
+  reviewReportTb    ReviewReportTb[]
+  reviewShareTb     ReviewShareTb[]
+  accountTb         AccountTb          @relation(fields: [accountIdx], references: [idx], onDelete: Cascade, map: "fk_account_tb_to_review_tb")
+  reviewThumbnailTb ReviewThumbnailTb?
+  tagTb             TagTb[]
 
   @@map("review_tb")
 }
@@ -236,18 +237,18 @@ model CommentLikeTb {
 }
 
 model NotificationTb {
-  recipientIdx                                   String             @map("recipient_idx") @db.VarChar
-  senderIdx                                      String             @map("sender_idx") @db.VarChar
-  type                                           Int
-  reviewIdx                                      Int?               @map("review_idx")
-  readAt                                         DateTime?          @map("read_at") @db.Timestamptz(6)
-  createdAt                                      DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
-  deletedAt                                      DateTime?          @map("deleted_at") @db.Timestamptz(6)
-  content                                        String             @db.VarChar
-  idx                                            Int                @id(map: "notification_pkey") @default(autoincrement())
+  recipientIdx       String             @map("recipient_idx") @db.VarChar
+  senderIdx          String             @map("sender_idx") @db.VarChar
+  type               Int
+  reviewIdx          Int?               @map("review_idx")
+  readAt             DateTime?          @map("read_at") @db.Timestamptz(6)
+  createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt          DateTime?          @map("deleted_at") @db.Timestamptz(6)
+  content            String             @db.VarChar
+  idx                Int                @id(map: "notification_pkey") @default(autoincrement())
   senderAccountTb    AccountTb          @relation("notification_tb_sender_idxToaccount_tb", fields: [senderIdx], references: [idx], onDelete: Cascade, map: "account_tb_to_notification_2")
   recipientAccounTb  AccountTb          @relation("notification_tb_recipient_idxToaccount_tb", fields: [recipientIdx], references: [idx], onDelete: Cascade, map: "account_tb_to_notification_fk_1")
-  notificationTypeTb                             NotificationTypeTb @relation(fields: [type], references: [idx], onDelete: Cascade, map: "notification_type_to_notification")
+  notificationTypeTb NotificationTypeTb @relation(fields: [type], references: [idx], onDelete: Cascade, map: "notification_type_to_notification")
 
   @@map("notification_tb")
 }
@@ -258,6 +259,16 @@ model NotificationTypeTb {
   notificationTb NotificationTb[]
 
   @@map("notification_type_tb")
+}
+
+model ReviewThumbnailTb {
+  reviewIdx Int       @id @map("review_idx")
+  imgPath   String    @map("img_path") @db.VarChar
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  reviewTb  ReviewTb  @relation(fields: [reviewIdx], references: [idx], onDelete: Cascade, map: "review_thumbnail_review_fk")
+
+  @@map("review_thumbnail_tb")
 }
 
 view AccountInfoView {

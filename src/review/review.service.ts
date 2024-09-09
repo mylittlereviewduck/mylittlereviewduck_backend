@@ -28,7 +28,7 @@ export class ReviewService {
 
   async createReview(
     userIdx: string,
-    createDto: CreateReviewDto,
+    dto: CreateReviewDto,
   ): Promise<ReviewEntity> {
     let reviewData;
 
@@ -62,12 +62,12 @@ export class ReviewService {
 
       data: {
         accountIdx: userIdx,
-        title: createDto.title,
-        content: createDto.content,
-        score: createDto.score,
+        title: dto.title,
+        content: dto.content,
+        score: dto.score,
         tagTb: {
           createMany: {
-            data: createDto.tags.map((tag) => {
+            data: dto.tags.map((tag) => {
               return {
                 tagName: tag,
               };
@@ -75,10 +75,16 @@ export class ReviewService {
           },
         },
         reviewImgTb: {
+          create: {
+            imgPath: dto.thumbnail,
+            content: dto.content,
+            isThumbnail: true,
+          },
           createMany: {
-            data: createDto.images.map((image, index) => ({
+            data: dto.images.map((image, index) => ({
               imgPath: image,
-              content: createDto.imgContent[index],
+              content: dto.imgContent[index],
+              isThumbnail: false,
             })),
           },
         },
@@ -91,7 +97,7 @@ export class ReviewService {
   async updateReview(
     userIdx: string,
     reviewIdx: number,
-    updateReviewDto: UpdateReviewDto,
+    dto: UpdateReviewDto,
   ): Promise<ReviewEntity> {
     let data;
 
@@ -132,9 +138,9 @@ export class ReviewService {
         },
 
         data: {
-          title: updateReviewDto.title,
-          score: updateReviewDto.score,
-          content: updateReviewDto.content,
+          title: dto.title,
+          score: dto.score,
+          content: dto.content,
           updatedAt: new Date(),
 
           tagTb: {
@@ -142,7 +148,7 @@ export class ReviewService {
               reviewIdx: reviewIdx,
             },
             createMany: {
-              data: updateReviewDto.tags.map((tag) => {
+              data: dto.tags.map((tag) => {
                 return {
                   tagName: tag,
                 };
@@ -160,10 +166,17 @@ export class ReviewService {
               },
             },
 
+            create: {
+              imgPath: dto.thumbnail,
+              content: dto.thumbnailContent,
+              isThumbnail: true,
+            },
+
             createMany: {
-              data: updateReviewDto.images.map((image, index) => ({
+              data: dto.images.map((image, index) => ({
                 imgPath: image,
-                content: updateReviewDto.imgContent[index],
+                content: dto.imgContent[index],
+                isThumbnail: false,
               })),
             },
           },

@@ -37,6 +37,21 @@ export class UpdateReviewDto {
   tags: string[];
 
   @ApiProperty({
+    example:
+      'https://s3.ap-northeast-2.amazonaws.com/todayreview/1723963141509',
+    description: '썸네일 이미지',
+  })
+  @IsString()
+  thumbnail: string;
+
+  @ApiProperty({
+    example: '썸네일 이미지 설명',
+    description: '썸네일 이미지 설명',
+  })
+  @IsString()
+  thumbnailContent: string;
+
+  @ApiProperty({
     example: [
       'https://s3.ap-northeast-2.amazonaws.com/todayreview/1723962576545',
       'https://s3.ap-northeast-2.amazonaws.com/todayreview/1723962576545',

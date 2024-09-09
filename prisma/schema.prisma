@@ -114,13 +114,14 @@ model ReviewBookmarkTb {
 }
 
 model ReviewImgTb {
-  idx       Int       @id @default(autoincrement())
-  reviewIdx Int       @map("review_idx")
-  imgPath   String    @map("img_path") @db.VarChar
-  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
-  content   String    @db.VarChar
-  reviewTb  ReviewTb  @relation(fields: [reviewIdx], references: [idx], onDelete: Cascade, map: "fk_review_tb_to_review_img_tb")
+  idx         Int       @id @default(autoincrement())
+  reviewIdx   Int       @map("review_idx")
+  imgPath     String    @map("img_path") @db.VarChar
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(6)
+  content     String    @db.VarChar
+  isThumbnail Boolean?  @map("is_thumbnail")
+  reviewTb    ReviewTb  @relation(fields: [reviewIdx], references: [idx], onDelete: Cascade, map: "fk_review_tb_to_review_img_tb")
 
   @@map("review_img_tb")
 }

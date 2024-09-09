@@ -1,16 +1,12 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { UserService } from 'src/user/user.service';
 import { GetReportDto } from './dto/get-report.dto';
 import { ReportEntity } from './entity/Report.entity';
 import { CreateReportDto } from './dto/create-report.dto';
 
 @Injectable()
 export class ReportService {
-  constructor(
-    private readonly prismaService: PrismaService,
-    private readonly userService: UserService,
-  ) {}
+  constructor(private readonly prismaService: PrismaService) {}
 
   async getReportByIdx(dto: GetReportDto): Promise<ReportEntity | undefined> {
     const reportData = await this.prismaService.reportTb.findFirst({

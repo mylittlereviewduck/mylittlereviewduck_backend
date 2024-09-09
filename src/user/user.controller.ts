@@ -34,7 +34,6 @@ import { CheckNicknameDuplicateDto } from './dto/check-nickname-duplicate.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserEntity } from './entity/User.entity';
 import { UpdateMyInfoDto } from './dto/update-my-info.dto';
-import { CheckEmailDuplicateDto } from './dto/check-email-duplicate.dto';
 import { AuthGuard } from '../../src/auth/auth.guard';
 import { GetUser } from '../../src/auth/get-user.decorator';
 import { LoginUser } from '../../src/auth/model/login-user.model';
@@ -49,7 +48,6 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { AwsService } from 'src/aws/aws.service';
 import { FileValidationPipe } from 'src/common/fileValidation.pipe';
 import { UserSearchResponseDto } from './dto/response/user-search-response.dto';
-import { EmailService } from 'src/email/email.service';
 
 @Controller('user')
 @ApiTags('user')

@@ -40,6 +40,21 @@ export class CreateReviewDto {
   tags: string[];
 
   @ApiProperty({
+    example:
+      'https://s3.ap-northeast-2.amazonaws.com/todayreview/1723963141509',
+    description: '썸네일 이미지',
+  })
+  @IsString()
+  thumbnail: string;
+
+  @ApiProperty({
+    example: '썸네일 이미지 설명',
+    description: '썸네일 이미지 설명',
+  })
+  @IsString()
+  thumbnailContent: string;
+
+  @ApiProperty({
     example: [
       'https://s3.ap-northeast-2.amazonaws.com/todayreview/1723963141509',
       'https://s3.ap-northeast-2.amazonaws.com/todayreview/1723963141509',
@@ -49,7 +64,6 @@ export class CreateReviewDto {
   @IsArray()
   @IsString({ each: true })
   @ArrayMaxSize(6)
-  // @IsOptional()
   images: string[];
 
   @ApiProperty({
@@ -62,7 +76,6 @@ export class CreateReviewDto {
   @IsArray()
   @IsString({ each: true })
   @ArrayMaxSize(6)
-  // @IsOptional()
   @Validate(IsEqualLength, ['images'])
   imgContent: string[];
 }

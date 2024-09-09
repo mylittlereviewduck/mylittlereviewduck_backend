@@ -25,7 +25,7 @@ import { ReportModule } from 'src/report/report.module';
     UserModule,
     AwsModule,
     NotificationModule,
-    ReportModule,
+    forwardRef(() => ReportModule),
   ],
   controllers: [ReviewController],
   providers: [

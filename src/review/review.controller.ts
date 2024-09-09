@@ -511,7 +511,6 @@ export class ReviewController {
     await this.reviewBlockService.unblockReview(loginUser.idx, reviewIdx);
   }
 
-  //데이터 추가될 수 있음
   @Post('/review/:reviewIdx/report')
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '리뷰 신고하기' })

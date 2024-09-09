@@ -1,3 +1,4 @@
+import { ReportService } from 'src/report/report.service';
 import { CommentLikeService } from './comment-like.service';
 import { CommentService } from './comment.service';
 import {
@@ -33,6 +34,8 @@ import { OptionalAuthGuard } from 'src/auth/optional-auth.guard';
 import { CommentPagerbleResponseDto } from './dto/response/comment-pagerble-response.dto';
 import { NotificationService } from 'src/notification/notification.service';
 import { ReviewService } from 'src/review/review.service';
+import { ReportEntity } from 'src/report/entity/Report.entity';
+import { ReportDto } from 'src/report/dto/report.dto';
 
 @ApiTags('comment')
 @Controller()
@@ -43,6 +46,7 @@ export class CommentController {
     private readonly commentLikeCheckService: CommentLikeCheckService,
     private readonly notificationService: NotificationService,
     private readonly reviewService: ReviewService,
+    private readonly reportService: ReportService,
   ) {}
 
   @Get('/review/:reviewIdx/comment/all')
@@ -220,5 +224,28 @@ export class CommentController {
       reviewIdx,
       commentIdx,
     );
+  }
+
+  @Post('/comment/:commentIdx/report')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: '댓글 신고하기' })
+  @ApiParam({ name: 'reviewIdx', type: 'number', example: 1 })
+  @ApiBearerAuth()
+  @Exception(400, '유효하지않은요청')
+  @Exception(401, '권한없음')
+  @Exception(404, '해당리소스 찾을 수 없음')
+  @Exception(409, '현재상태와 요청 충돌')
+  @ApiResponse({ status: 200, type: ReportEntity })
+  async reportReview(
+    @GetUser() loginUser: LoginUser,
+    @Body() dto: ReportDto,
+    @Param('commentIdx', ParseIntPipe) commentIdx: number,
+  ): Promise<ReportEntity> {
+    return await this.reportService.report({
+      reporterIdx: loginUser.idx,
+      commentIdx: commentIdx,
+      type: dto.type,
+      content: dto.content,
+    });
   }
 }

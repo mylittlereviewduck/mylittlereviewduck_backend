@@ -10,6 +10,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { EmailModule } from './email/Email.module';
 import { NotificationModule } from './notification/notification.module';
+import { ReportModule } from './report/report.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { NotificationModule } from './notification/notification.module';
     EmailModule,
     CacheModule.register(),
     NotificationModule,
+    ReportModule,
   ],
   controllers: [AppController],
   providers: [AppService],

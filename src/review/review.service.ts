@@ -234,8 +234,14 @@ export class ReviewService {
             reviewLikeTb: true,
             reviewDislikeTb: true,
             reviewBookmarkTb: true,
-            reviewReportTb: true,
             reviewShareTb: true,
+            reportTb: {
+              where: {
+                reviewIdx: {
+                  not: null,
+                },
+              },
+            },
           },
         },
       },

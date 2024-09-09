@@ -255,6 +255,7 @@ model ReportTb {
   commentIdx   Int?         @map("comment_idx")
   createdAt    DateTime?    @default(now()) @map("created_at") @db.Timestamptz(6)
   type         Int
+  content      String?      @db.VarChar
   accountTb    AccountTb    @relation(fields: [reporterIdx], references: [idx], onDelete: Cascade, map: "report_account_fk")
   commentTb    CommentTb?   @relation(fields: [commentIdx], references: [idx], onDelete: Cascade, map: "report_comment_fk")
   reportTypeTb ReportTypeTb @relation(fields: [type], references: [idx], onDelete: Cascade, map: "report_report_type_fk")

@@ -42,16 +42,17 @@ import { OptionalAuthGuard } from 'src/auth/optional-auth.guard';
 import { ReviewPagerbleResponseDto } from './dto/response/review-pagerble-response.dto';
 import { ReviewLikeCheckService } from './review-like-check.service';
 import { ReviewBookmarkService } from './review-bookmark.service';
-import { ReviewReportService } from './review-report.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileValidationPipe } from 'src/common/fileValidation.pipe';
 import { ReviewLikeEntity } from './entity/ReviewLike.entity';
 import { ReviewDislikeEntity } from './entity/ReviewDislike.entity';
 import { ReviewBlockEntity } from './entity/ReviewBlock.entity';
-import { ReviewReportEntity } from './entity/ReviewReport.entity';
 import { ReviewShareEntity } from './entity/ReviewShare.entity';
 import { ReviewBookmarkEntity } from './entity/Reviewbookmark.entity';
 import { NotificationService } from 'src/notification/notification.service';
+import { ReportEntity } from 'src/report/entity/Report.entity';
+import { ReportService } from 'src/report/report.service';
+import { ReportDto } from 'src/report/dto/report.dto';
 
 @Controller('')
 @ApiTags('review')
@@ -66,9 +67,9 @@ export class ReviewController {
     private readonly reviewShareCheckService: ReviewShareCheckService,
     private readonly reviewBlockService: ReviewBlockService,
     private readonly reviewBlockCheckService: ReviewBlockCheckService,
-    private readonly reviewReportService: ReviewReportService,
     private readonly awsService: AwsService,
     private readonly notificationService: NotificationService,
+    private readonly reportService: ReportService,
   ) {}
 
   @Get('/review/all')
@@ -520,15 +521,18 @@ export class ReviewController {
   @Exception(401, '권한없음')
   @Exception(404, '해당리소스 찾을 수 없음')
   @Exception(409, '현재상태와 요청 충돌')
-  @ApiResponse({ status: 200, type: ReviewReportEntity })
+  @ApiResponse({ status: 200, type: ReportEntity })
   async reportReview(
     @GetUser() loginUser: LoginUser,
+    @Body() dto: ReportDto,
     @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
-  ): Promise<ReviewReportEntity> {
-    return await this.reviewReportService.reportReview(
-      loginUser.idx,
-      reviewIdx,
-    );
+  ): Promise<ReportEntity> {
+    return await this.reportService.report({
+      reporterIdx: loginUser.idx,
+      reviewIdx: reviewIdx,
+      type: dto.type,
+      content: dto.content,
+    });
   }
 
   @Get('/user/:userIdx/review/all')

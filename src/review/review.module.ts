@@ -10,12 +10,12 @@ import { ReviewLikeCheckService } from './review-like-check.service';
 import { ReviewBookmarkCheckService } from './review-bookmark-check.service';
 import { ReviewBlockService } from './review-block.service';
 import { ReviewBlockCheckService } from './review-block-check.service';
-import { ReviewReportService } from './review-report.service';
 import { ReviewShareService } from './review-share.service';
 import { ReviewShareCheckService } from './review-share-check.service';
 import { UserModule } from 'src/user/user.module';
 import { AwsModule } from 'src/aws/aws.module';
 import { NotificationModule } from 'src/notification/notification.module';
+import { ReportModule } from 'src/report/report.module';
 
 @Module({
   imports: [
@@ -25,6 +25,7 @@ import { NotificationModule } from 'src/notification/notification.module';
     UserModule,
     AwsModule,
     NotificationModule,
+    ReportModule,
   ],
   controllers: [ReviewController],
   providers: [
@@ -38,7 +39,6 @@ import { NotificationModule } from 'src/notification/notification.module';
     ReviewShareCheckService,
     ReviewBlockService,
     ReviewBlockCheckService,
-    ReviewReportService,
   ],
   exports: [ReviewService],
 })

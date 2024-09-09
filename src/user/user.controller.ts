@@ -198,7 +198,7 @@ export class UserController {
 
     await this.followCheckService.isFollow(loginUser.idx, [user]);
 
-    await this.userBlockCheckService.isBlocked(loginUser.idx, [user]);
+    await this.userBlockCheckService.isBlockedUser(loginUser.idx, [user]);
 
     //유저신고, 유저신고여부확인기능은 논의하고 추가
     // await this.userReportCheckService.isReported(loginUser.idx, [user]);
@@ -248,7 +248,7 @@ export class UserController {
       userSearchResponseDto.users,
     );
 
-    await this.userBlockCheckService.isBlocked(
+    await this.userBlockCheckService.isBlockedUser(
       loginUser.idx,
       userSearchResponseDto.users,
     );

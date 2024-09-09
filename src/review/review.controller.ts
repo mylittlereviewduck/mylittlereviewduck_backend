@@ -1,3 +1,4 @@
+import { UserBlockCheckService } from './../user/user-block-check.service';
 import { AwsService } from '../aws/aws.service';
 import { ReviewShareCheckService } from './review-share-check.service';
 import { ReviewShareService } from './review-share.service';
@@ -70,6 +71,7 @@ export class ReviewController {
     private readonly awsService: AwsService,
     private readonly notificationService: NotificationService,
     private readonly reportService: ReportService,
+    private readonly userBlockCheckService: UserBlockCheckService,
   ) {}
 
   @Get('/review/all')
@@ -113,6 +115,16 @@ export class ReviewController {
     await this.reviewBlockCheckService.isReviewBlocked(
       loginUser.idx,
       reviewPagerbleResponseDto.reviews,
+    );
+
+    await this.reviewBlockCheckService.isReviewBlocked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
+
+    await this.userBlockCheckService.isBlockedUser(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews.map((elem) => elem.user),
     );
 
     return reviewPagerbleResponseDto;
@@ -243,6 +255,10 @@ export class ReviewController {
       reviewEntity,
     ]);
 
+    await this.userBlockCheckService.isBlockedUser(loginUser.idx, [
+      reviewEntity.user,
+    ]);
+
     return reviewEntity;
   }
 
@@ -308,7 +324,7 @@ export class ReviewController {
     if (search.length < 2) {
       throw new BadRequestException('검색어는 2글자이상');
     }
-
+    console.log('실행시작');
     const reviewPagerbleResponseDto =
       await this.reviewService.getReviewWithSearch({
         search: search,
@@ -334,6 +350,13 @@ export class ReviewController {
       loginUser.idx,
       reviewPagerbleResponseDto.reviews,
     );
+
+    await this.userBlockCheckService.isBlockedUser(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews.map((elem) => elem.user),
+    );
+
+    return reviewPagerbleResponseDto;
   }
 
   @Post('/review/:reviewIdx/like')
@@ -583,6 +606,11 @@ export class ReviewController {
       reviewPagerbleResponseDto.reviews,
     );
 
+    await this.userBlockCheckService.isBlockedUser(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews.map((elem) => elem.user),
+    );
+
     return reviewPagerbleResponseDto;
   }
 
@@ -631,6 +659,11 @@ export class ReviewController {
     await this.reviewBlockCheckService.isReviewBlocked(
       loginUser.idx,
       reviewPagerbleResponseDto.reviews,
+    );
+
+    await this.userBlockCheckService.isBlockedUser(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews.map((elem) => elem.user),
     );
 
     return reviewPagerbleResponseDto;
@@ -683,6 +716,11 @@ export class ReviewController {
       reviewPagerbleResponseDto.reviews,
     );
 
+    await this.userBlockCheckService.isBlockedUser(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews.map((elem) => elem.user),
+    );
+
     return reviewPagerbleResponseDto;
   }
 
@@ -731,6 +769,11 @@ export class ReviewController {
     await this.reviewBlockCheckService.isReviewBlocked(
       loginUser.idx,
       reviewPagerbleResponseDto.reviews,
+    );
+
+    await this.userBlockCheckService.isBlockedUser(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews.map((elem) => elem.user),
     );
 
     return reviewPagerbleResponseDto;

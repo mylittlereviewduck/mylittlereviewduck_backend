@@ -34,7 +34,7 @@ export class UserBlockService {
       throw new NotFoundException('Not Found User');
     }
 
-    await this.userBlockCheckService.isBlocked(userIdx, [user]);
+    await this.userBlockCheckService.isBlockedUser(userIdx, [user]);
 
     if (user.isMyBlock == true) {
       throw new ConflictException('Already Conflict');
@@ -57,7 +57,7 @@ export class UserBlockService {
       throw new NotFoundException('Not Found User');
     }
 
-    await this.userBlockCheckService.isBlocked(userIdx, [user]);
+    await this.userBlockCheckService.isBlockedUser(userIdx, [user]);
 
     if (user.isMyBlock == false) {
       throw new ConflictException('Already Not Conflict');

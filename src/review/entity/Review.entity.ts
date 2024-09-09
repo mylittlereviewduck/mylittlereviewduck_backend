@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Prisma } from '@prisma/client';
 import { ReviewUserEntity } from './ReviewUser.entity';
+import { IsString } from 'class-validator';
 
 const review = Prisma.validator<Prisma.ReviewTbDefaultArgs>()({
   include: {
@@ -57,6 +58,21 @@ export class ReviewEntity {
     description: '태그 개수 제한x, 최소1개',
   })
   tags: string[];
+
+  @ApiProperty({
+    example:
+      'https://s3.ap-northeast-2.amazonaws.com/todayreview/1723963141509',
+    description: '썸네일 이미지',
+  })
+  @IsString()
+  thumbnail: string;
+
+  @ApiProperty({
+    example: '썸네일 이미지 설명',
+    description: '썸네일 이미지 설명',
+  })
+  @IsString()
+  thumbnailContent: string;
 
   @ApiProperty({
     example: [

@@ -27,6 +27,11 @@ import { EmailModule } from 'src/email/Email.module';
     FollowCheckService,
     UserBlockCheckService,
   ],
-  exports: [UserService, UserBlockService, FollowCheckService],
+  exports: [
+    UserService,
+    UserBlockService,
+    FollowCheckService,
+    UserBlockCheckService,
+  ],
 })
 export class UserModule {}

@@ -14,6 +14,7 @@ export class ReviewListUserEntity extends PickType(UserEntity, [
   'idx',
   'email',
   'nickname',
+  'isMyBlock',
 ]) {
   constructor(data: ReviewListUser) {
     super();

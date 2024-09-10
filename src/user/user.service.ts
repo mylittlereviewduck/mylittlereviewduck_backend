@@ -38,6 +38,7 @@ export class UserService {
         idx: getUserDto.idx,
         email: getUserDto.email,
         nickname: getUserDto.nickname,
+        deletedAt: null,
       },
     });
 

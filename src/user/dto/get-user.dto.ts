@@ -3,5 +3,7 @@ export class GetUserDto {
 
   email?: string;
 
+  pw?: string;
+
   nickname?: string;
 }

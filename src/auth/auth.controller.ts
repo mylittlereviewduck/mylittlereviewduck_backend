@@ -75,8 +75,7 @@ export class AuthController {
   @Exception(401, '권한 없음')
   @ApiResponse({ status: 200, type: LoginResponseDto })
   async authUser(@Body() loginDto: LoginDto): Promise<LoginResponseDto> {
-    const accessToken = await this.authService.login(loginDto);
-    return { accessToken };
+    return await this.authService.login(loginDto);
   }
 
   @Get('/:provider')

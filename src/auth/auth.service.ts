@@ -1,5 +1,4 @@
 import { ConfigService } from '@nestjs/config';
-import { VerifyEmailDto } from './dto/verify-email.dto';
 import { LoginDto } from './dto/signIn.dto';
 import {
   Injectable,
@@ -14,6 +13,7 @@ import { GoogleStrategy } from './strategy/google.strategy';
 import { SocialLoginProvider } from './model/social-login-provider.model';
 import { NaverStrategy } from './strategy/naver.strategy';
 import { KakaoStrategy } from './strategy/kakao.strategy';
+import { LoginResponseDto } from './dto/response/Login-Response.dto';
 
 @Injectable()
 export class AuthService {
@@ -33,22 +33,39 @@ export class AuthService {
     this.strategy[SocialLoginProvider.KAKAO] = kakaoStrategy;
   }
 
-  async login(loginDto: LoginDto): Promise<string> {
-    const user = await this.prismaService.accountTb.findFirst({
-      where: {
-        email: loginDto.email,
-        pw: loginDto.pw,
-        deletedAt: null,
-      },
+  //액세스토큰, 리프레시 토큰 발급.
+  async login(dto: LoginDto): Promise<LoginResponseDto> {
+    const user = await this.userService.getUser({
+      email: dto.email,
+      pw: dto.pw,
     });
 
     if (!user) {
       throw new UnauthorizedException('Unauthorized');
     }
 
-    const payload = { idx: user.idx };
+    const accessToken = await this.generateToken('access', user.idx, 12 * 3600);
+    const refreshToken = await this.generateToken(
+      'refresh',
+      user.idx,
+      12 * 3600,
+    );
+    return { accessToken, refreshToken };
+  }
 
-    return await this.jwtService.signAsync(payload);
+  async generateToken(
+    type: 'access' | 'refresh',
+    userIdx: string,
+    exp: number,
+  ): Promise<string> {
+    const payload = {
+      idx: userIdx,
+      tokenType: type,
+    };
+
+    const token = this.jwtService.signAsync(payload, { expiresIn: exp });
+
+    return token;
   }
 
   async getToken(

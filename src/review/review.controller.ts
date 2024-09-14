@@ -324,7 +324,6 @@ export class ReviewController {
     if (search.length < 2) {
       throw new BadRequestException('검색어는 2글자이상');
     }
-    console.log('실행시작');
     const reviewPagerbleResponseDto =
       await this.reviewService.getReviewWithSearch({
         search: search,

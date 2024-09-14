@@ -25,8 +25,6 @@ export class UserBlockCheckService {
 
     const blockedUserList = sqlResult.map((elem) => elem.blockedIdx);
 
-    console.log('함수실행');
-
     for (let i = 0; i < toUsers.length; i++) {
       if (blockedUserList.includes(toUsers[i].idx)) {
         toUsers[i].isMyBlock = true;

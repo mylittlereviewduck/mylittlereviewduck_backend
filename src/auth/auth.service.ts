@@ -33,7 +33,6 @@ export class AuthService {
     this.strategy[SocialLoginProvider.KAKAO] = kakaoStrategy;
   }
 
-  //액세스토큰, 리프레시 토큰 발급.
   async login(dto: LoginDto): Promise<LoginResponseDto> {
     const user = await this.userService.getUser({
       email: dto.email,

@@ -1,3 +1,4 @@
+import { AuthGuard } from 'src/auth/auth.guard';
 import { EmailAuthService } from './email-auth.service';
 import {
   Body,
@@ -10,6 +11,7 @@ import {
   Req,
   Res,
   UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Exception } from '../../src/decorator/exception.decorator';
@@ -24,6 +26,8 @@ import { GoogleCallbackDto } from './dto/google-callback.dto';
 import { LoginResponseDto } from './dto/response/Login-Response.dto';
 import { NaverCallbackDto } from './dto/naver-callback.dto';
 import { KakaoCallbackDto } from './dto/kakao-callback.dto';
+import { GetUser } from './get-user.decorator';
+import { LoginUser } from './model/login-user.model';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -76,6 +80,25 @@ export class AuthController {
   @ApiResponse({ status: 200, type: LoginResponseDto })
   async authUser(@Body() loginDto: LoginDto): Promise<LoginResponseDto> {
     return await this.authService.login(loginDto);
+  }
+
+  @Post('/access-token')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: '액세스 토큰발급' })
+  @HttpCode(200)
+  @Exception(400, '유효하지않은 요청')
+  @Exception(401, '권한 없음')
+  @ApiResponse({ status: 200 })
+  async getAccessToken(
+    @GetUser() loginUser: LoginUser,
+  ): Promise<{ accessToken: string }> {
+    const accessToken = await this.authService.generateToken(
+      'access',
+      loginUser.idx,
+      5 * 60 * 1000,
+    );
+
+    return { accessToken };
   }
 
   @Get('/:provider')

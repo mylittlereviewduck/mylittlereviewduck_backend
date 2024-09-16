@@ -43,11 +43,15 @@ export class AuthService {
       throw new UnauthorizedException('Unauthorized');
     }
 
-    const accessToken = await this.generateToken('access', user.idx, 12 * 3600);
+    const accessToken = await this.generateToken(
+      'access',
+      user.idx,
+      5 * 60 * 1000,
+    );
     const refreshToken = await this.generateToken(
       'refresh',
       user.idx,
-      12 * 3600,
+      12 * 3600 * 1000,
     );
     return { accessToken, refreshToken };
   }

@@ -45,15 +45,11 @@ export class AuthService {
 
     //액세스 토큰 5분
     //리프레쉬 토큰 12시간
-    const accessToken = await this.generateToken(
-      'access',
-      user.idx,
-      5 * 60 * 1000,
-    );
+    const accessToken = await this.generateToken('access', user.idx, 1 * 60);
     const refreshToken = await this.generateToken(
       'refresh',
       user.idx,
-      12 * 3600 * 1000,
+      12 * 3600,
     );
     return { accessToken, refreshToken };
   }

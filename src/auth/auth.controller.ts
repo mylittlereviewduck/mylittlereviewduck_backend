@@ -95,7 +95,7 @@ export class AuthController {
     const accessToken = await this.authService.generateToken(
       'access',
       loginUser.idx,
-      5 * 60 * 1000,
+      5 * 60,
     );
 
     return { accessToken };

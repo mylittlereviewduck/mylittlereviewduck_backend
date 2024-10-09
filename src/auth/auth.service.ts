@@ -63,7 +63,7 @@ export class AuthService {
   ): Promise<string> {
     const payload = {
       idx: userIdx,
-      tokenType: type,
+      type: type,
     };
 
     const token = this.jwtService.signAsync(payload, { expiresIn: exp });

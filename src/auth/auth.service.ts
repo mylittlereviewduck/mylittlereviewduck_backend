@@ -43,6 +43,8 @@ export class AuthService {
       throw new UnauthorizedException('Unauthorized');
     }
 
+    //액세스 토큰 5분
+    //리프레쉬 토큰 12시간
     const accessToken = await this.generateToken(
       'access',
       user.idx,

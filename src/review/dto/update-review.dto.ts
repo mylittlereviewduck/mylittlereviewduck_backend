@@ -3,6 +3,7 @@ import {
   ArrayMaxSize,
   IsArray,
   IsNumber,
+  IsOptional,
   IsString,
   Length,
   Max,
@@ -61,6 +62,7 @@ export class UpdateReviewDto {
   @IsArray()
   @IsString({ each: true })
   @ArrayMaxSize(6)
+  @IsOptional()
   images: string[];
 
   @ApiProperty({
@@ -73,7 +75,7 @@ export class UpdateReviewDto {
   @IsArray()
   @IsString({ each: true })
   @ArrayMaxSize(6)
-  // @IsOptional()
+  @IsOptional()
   @Validate(IsEqualLength, ['images'])
   imgContent: string[];
 }

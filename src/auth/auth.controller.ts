@@ -28,6 +28,7 @@ import { NaverCallbackDto } from './dto/naver-callback.dto';
 import { KakaoCallbackDto } from './dto/kakao-callback.dto';
 import { GetUser } from './get-user.decorator';
 import { LoginUser } from './model/login-user.model';
+import { RefreshGuard } from './refresh.guard';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -83,7 +84,7 @@ export class AuthController {
   }
 
   @Post('/access-token')
-  @UseGuards(AuthGuard)
+  @UseGuards(RefreshGuard)
   @ApiOperation({ summary: '액세스 토큰발급' })
   @HttpCode(200)
   @Exception(400, '유효하지않은 요청')

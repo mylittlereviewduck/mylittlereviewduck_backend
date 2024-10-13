@@ -12,7 +12,7 @@ import { NaverStrategy } from './strategy/naver.strategy';
 import { KakaoStrategy } from './strategy/kakao.strategy';
 import { EmailAuthService } from './email-auth.service';
 import { ConfigService } from '@nestjs/config';
-import { EmailModule } from '../../src/email/email.module';
+import { EmailModule } from '../email/email.module';
 
 @Module({
   imports: [

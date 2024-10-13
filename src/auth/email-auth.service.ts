@@ -2,7 +2,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { AuthService } from './auth.service';
 import { SendEmailVerificationDto } from './dto/send-email-verification.dto';
 import { ConflictException, Injectable } from '@nestjs/common';
-import { EmailService } from '../email/Email.service';
+import { EmailService } from '../email/email.service';
 import { UserService } from 'src/user/user.service';
 import { VerifiedEmailTb } from '@prisma/client';
 

@@ -13,7 +13,7 @@ import { GoogleStrategy } from './strategy/google.strategy';
 import { SocialLoginProvider } from './model/social-login-provider.model';
 import { NaverStrategy } from './strategy/naver.strategy';
 import { KakaoStrategy } from './strategy/kakao.strategy';
-import { LoginResponseDto } from './dto/response/Login-Response.dto';
+import { LoginResponseDto } from '../../src/auth/dto/response/login-response.dto';
 
 @Injectable()
 export class AuthService {

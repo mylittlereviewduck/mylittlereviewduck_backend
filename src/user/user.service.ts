@@ -14,7 +14,7 @@ import { UserSearchPagerbleDto } from './dto/user-search-pagerble.dto';
 import { UserSearchResponseDto } from './dto/response/user-search-response.dto';
 import { UserPagerbleResponseDto } from './dto/response/user-pagerble-response.dto';
 import { UserFollowPagerbleDto } from './dto/user-follow-pagerble.dto';
-import { EmailService } from 'src/email/email.service';
+import { EmailService } from '../../src/email/email.service';
 
 @Injectable()
 export class UserService {

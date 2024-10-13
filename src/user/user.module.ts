@@ -9,7 +9,7 @@ import { FollowCheckService } from './follow-check.service';
 import { UserBlockCheckService } from './user-block-check.service';
 import { AwsModule } from 'src/aws/aws.module';
 import { NotificationModule } from 'src/notification/notification.module';
-import { EmailModule } from 'src/email/Email.module';
+import { EmailModule } from 'src/email/email.module';
 
 @Module({
   imports: [

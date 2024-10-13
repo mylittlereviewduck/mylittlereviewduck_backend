@@ -1,4 +1,3 @@
-import { AuthGuard } from 'src/auth/auth.guard';
 import { EmailAuthService } from './email-auth.service';
 import {
   Body,
@@ -15,15 +14,14 @@ import {
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Exception } from '../../src/decorator/exception.decorator';
-import { VerifyEmailResponseDto } from './dto/response/verify-email-response.dto';
-import { LoginDto } from './dto/signIn.dto';
+import { LoginDto } from './dto/login.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { SendEmailVerificationDto } from './dto/send-email-verification.dto';
 import { AuthService } from './auth.service';
 import { Request, Response } from 'express';
 import { SocialLoginProvider } from './model/social-login-provider.model';
 import { GoogleCallbackDto } from './dto/google-callback.dto';
-import { LoginResponseDto } from './dto/response/Login-Response.dto';
+import { LoginResponseDto } from './dto/response/login-response.dto';
 import { NaverCallbackDto } from './dto/naver-callback.dto';
 import { KakaoCallbackDto } from './dto/kakao-callback.dto';
 import { GetUser } from './get-user.decorator';

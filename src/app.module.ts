@@ -8,7 +8,7 @@ import { CommentModule } from './comment/comment.module';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
 import { CacheModule } from '@nestjs/cache-manager';
-import { EmailModule } from './email/Email.module';
+import { EmailModule } from './email/email.module';
 import { NotificationModule } from './notification/notification.module';
 import { ReportModule } from './report/report.module';
 

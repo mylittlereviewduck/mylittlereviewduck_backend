@@ -1,5 +1,5 @@
 import { ConfigService } from '@nestjs/config';
-import { LoginDto } from './dto/signIn.dto';
+import { LoginDto } from './dto/login.dto';
 import {
   Injectable,
   NotFoundException,

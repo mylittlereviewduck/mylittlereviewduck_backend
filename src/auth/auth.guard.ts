@@ -1,4 +1,4 @@
-import { JwtService } from '@nestjs/jwt';
+import { JwtService, TokenExpiredError } from '@nestjs/jwt';
 import {
   CanActivate,
   ExecutionContext,
@@ -33,8 +33,12 @@ export class AuthGuard implements CanActivate {
       }
 
       request.user = payload;
-    } catch {
-      throw new UnauthorizedException();
+    } catch (err) {
+      if (err instanceof TokenExpiredError) {
+        throw new UnauthorizedException('Authentication TimeOut');
+      }
+
+      throw new UnauthorizedException('Invalid Token');
     }
 
     return true;

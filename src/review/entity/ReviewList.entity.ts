@@ -8,14 +8,27 @@ const reivewList = Prisma.validator<Prisma.ReviewTbDefaultArgs>()({
     accountTb: {
       include: {
         profileImgTb: {
-          where: {
-            deletedAt: null,
+          select: {
+            imgPath: true,
           },
         },
       },
     },
-    tagTb: true,
-    reviewImgTb: true,
+    tagTb: {
+      select: {
+        tagName: true,
+      },
+    },
+    reviewImgTb: {
+      select: {
+        imgPath: true,
+      },
+    },
+    reviewThumbnailTb: {
+      select: {
+        imgPath: true,
+      },
+    },
 
     _count: {
       select: {

@@ -4,7 +4,11 @@ import { UserEntity } from 'src/user/entity/User.entity';
 
 const user = Prisma.validator<Prisma.AccountTbDefaultArgs>()({
   include: {
-    profileImgTb: true,
+    profileImgTb: {
+      select: {
+        imgPath: true,
+      },
+    },
   },
 });
 

@@ -303,13 +303,27 @@ export class ReviewService {
             },
           },
         },
-        tagTb: true,
+        tagTb: {
+          select: {
+            tagName: true,
+          },
+        },
         reviewImgTb: {
+          select: {
+            imgPath: true,
+          },
           where: {
             deletedAt: null,
           },
         },
-
+        reviewThumbnailTb: {
+          select: {
+            imgPath: true,
+          },
+          where: {
+            deletedAt: null,
+          },
+        },
         _count: {
           select: {
             commentTb: true,
@@ -379,11 +393,33 @@ export class ReviewService {
       include: {
         accountTb: {
           include: {
-            profileImgTb: true,
+            profileImgTb: {
+              select: {
+                imgPath: true,
+              },
+              where: {
+                deletedAt: null,
+              },
+            },
           },
         },
-        tagTb: true,
+        tagTb: {
+          select: {
+            tagName: true,
+          },
+        },
         reviewImgTb: {
+          select: {
+            imgPath: true,
+          },
+          where: {
+            deletedAt: null,
+          },
+        },
+        reviewThumbnailTb: {
+          select: {
+            imgPath: true,
+          },
           where: {
             deletedAt: null,
           },
@@ -468,11 +504,33 @@ export class ReviewService {
       include: {
         accountTb: {
           include: {
-            profileImgTb: true,
+            profileImgTb: {
+              select: {
+                imgPath: true,
+              },
+              where: {
+                deletedAt: null,
+              },
+            },
           },
         },
-        tagTb: true,
+        tagTb: {
+          select: {
+            tagName: true,
+          },
+        },
         reviewImgTb: {
+          select: {
+            imgPath: true,
+          },
+          where: {
+            deletedAt: null,
+          },
+        },
+        reviewThumbnailTb: {
+          select: {
+            imgPath: true,
+          },
           where: {
             deletedAt: null,
           },
@@ -516,11 +574,33 @@ export class ReviewService {
       include: {
         accountTb: {
           include: {
-            profileImgTb: true,
+            profileImgTb: {
+              select: {
+                imgPath: true,
+              },
+              where: {
+                deletedAt: null,
+              },
+            },
           },
         },
-        tagTb: true,
+        tagTb: {
+          select: {
+            tagName: true,
+          },
+        },
         reviewImgTb: {
+          select: {
+            imgPath: true,
+          },
+          where: {
+            deletedAt: null,
+          },
+        },
+        reviewThumbnailTb: {
+          select: {
+            imgPath: true,
+          },
           where: {
             deletedAt: null,
           },
@@ -567,11 +647,33 @@ export class ReviewService {
       include: {
         accountTb: {
           include: {
-            profileImgTb: true,
+            profileImgTb: {
+              select: {
+                imgPath: true,
+              },
+              where: {
+                deletedAt: null,
+              },
+            },
           },
         },
-        tagTb: true,
+        tagTb: {
+          select: {
+            tagName: true,
+          },
+        },
         reviewImgTb: {
+          select: {
+            imgPath: true,
+          },
+          where: {
+            deletedAt: null,
+          },
+        },
+        reviewThumbnailTb: {
+          select: {
+            imgPath: true,
+          },
           where: {
             deletedAt: null,
           },
@@ -685,11 +787,33 @@ export class ReviewService {
       include: {
         accountTb: {
           include: {
-            profileImgTb: true,
+            profileImgTb: {
+              select: {
+                imgPath: true,
+              },
+              where: {
+                deletedAt: null,
+              },
+            },
           },
         },
-        tagTb: true,
+        tagTb: {
+          select: {
+            tagName: true,
+          },
+        },
         reviewImgTb: {
+          select: {
+            imgPath: true,
+          },
+          where: {
+            deletedAt: null,
+          },
+        },
+        reviewThumbnailTb: {
+          select: {
+            imgPath: true,
+          },
           where: {
             deletedAt: null,
           },
@@ -758,11 +882,33 @@ export class ReviewService {
       include: {
         accountTb: {
           include: {
-            profileImgTb: true,
+            profileImgTb: {
+              select: {
+                imgPath: true,
+              },
+              where: {
+                deletedAt: null,
+              },
+            },
           },
         },
-        tagTb: true,
+        tagTb: {
+          select: {
+            tagName: true,
+          },
+        },
         reviewImgTb: {
+          select: {
+            imgPath: true,
+          },
+          where: {
+            deletedAt: null,
+          },
+        },
+        reviewThumbnailTb: {
+          select: {
+            imgPath: true,
+          },
           where: {
             deletedAt: null,
           },

@@ -32,6 +32,8 @@ model AccountTb {
   serialNumber                                        Int                @unique(map: "account_tb_serial_number_unique") @default(autoincrement()) @map("serial_number")
   interest1                                           String?            @map("interest_1") @db.VarChar(12)
   interest2                                           String?            @map("interest_2") @db.VarChar(12)
+  suspensionCount                                     Int                @default(0) @map("suspension_count")
+  isAdmin                                             Boolean            @default(false) @map("is_admin")
   blocker                                             AccountBlockTb[]   @relation("account_block_tb_blocker_idxToaccount_tb")
   blocked                                             AccountBlockTb[]   @relation("account_block_tb_blocked_idxToaccount_tb")
   commentLikeTb                                       CommentLikeTb[]
@@ -189,6 +191,7 @@ model ReviewDislikeTb {
   reviewTb   ReviewTb  @relation(fields: [reviewIdx], references: [idx], onDelete: Cascade)
 
   @@id([accountIdx, reviewIdx])
+  @@index([createdAt], map: "idx_review_dislike_created_at")
   @@map("review_dislike_tb")
 }
 
@@ -200,6 +203,7 @@ model ReviewLikeTb {
   reviewTb   ReviewTb  @relation(fields: [reviewIdx], references: [idx], onDelete: Cascade, map: "fk_review_tb_to_review_likes_tb")
 
   @@id([reviewIdx, accountIdx], map: "review_likes_tb_pk")
+  @@index([createdAt], map: "idx_review_like_created_at")
   @@map("review_like_tb")
 }
 

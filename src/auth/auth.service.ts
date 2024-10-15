@@ -45,10 +45,16 @@ export class AuthService {
 
     //액세스 토큰 5분
     //리프레쉬 토큰 12시간
-    const accessToken = await this.generateToken('access', user.idx, 5 * 60);
+    const accessToken = await this.generateToken(
+      'access',
+      user.idx,
+      user.isAdmin,
+      5 * 60,
+    );
     const refreshToken = await this.generateToken(
       'refresh',
       user.idx,
+      user.isAdmin,
       12 * 3600,
     );
     return { accessToken, refreshToken };
@@ -57,10 +63,12 @@ export class AuthService {
   async generateToken(
     type: 'access' | 'refresh',
     userIdx: string,
+    isAdmin: boolean,
     exp: number,
   ): Promise<string> {
     const payload = {
       idx: userIdx,
+      isAdmin: isAdmin,
       type: type,
     };
 

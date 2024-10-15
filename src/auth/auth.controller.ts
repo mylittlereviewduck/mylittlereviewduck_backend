@@ -26,7 +26,7 @@ import { NaverCallbackDto } from './dto/naver-callback.dto';
 import { KakaoCallbackDto } from './dto/kakao-callback.dto';
 import { GetUser } from './get-user.decorator';
 import { LoginUser } from './model/login-user.model';
-import { RefreshGuard } from './refresh.guard';
+import { RefreshGuard } from './guard/refresh.guard';
 
 @Controller('auth')
 @ApiTags('auth')

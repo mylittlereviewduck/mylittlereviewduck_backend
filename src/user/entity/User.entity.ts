@@ -41,8 +41,14 @@ export class UserEntity {
   @ApiProperty({ example: '여행', description: '관심사2, 없으면 null' })
   interest2: string | null;
 
+  @ApiProperty({ example: 'false', description: '관리자 여부' })
+  isAdmin: boolean;
+
   @ApiProperty({ example: '2024-08-01T07:58:57.844Z', description: '가입일' })
   createdAt: Date;
+
+  @ApiProperty({ example: '2024-08-01T07:58:57.844Z', description: '정지횟수' })
+  suspensionCount: number;
 
   @ApiProperty({
     example: '111',
@@ -78,6 +84,8 @@ export class UserEntity {
     this.nickname = data.nickname;
     this.interest1 = data.interest1;
     this.interest2 = data.interest2;
+    this.isAdmin = data.isAdmin;
+    this.suspensionCount = data.suspensionCount;
     this.createdAt = data.createdAt;
     this.followingCount = data._count.followee;
     this.followerCount = data._count.follower;

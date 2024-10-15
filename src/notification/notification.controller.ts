@@ -1,5 +1,5 @@
 import { FollowCheckService } from './../user/follow-check.service';
-import { AuthGuard } from './../auth/auth.guard';
+import { AuthGuard } from '../auth/guard/auth.guard';
 import { Controller, Get, Query, Sse, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,

@@ -429,6 +429,7 @@ export class UserController {
 
   @Get('blocked-user/all')
   @UseGuards(AuthGuard)
+  @HttpCode(200)
   @ApiOperation({ summary: '차단한 유저목록보기' })
   @ApiBearerAuth()
   @ApiQuery({ name: 'page', example: 1, description: '페이지, 기본값 1' })
@@ -464,6 +465,7 @@ export class UserController {
   @UseGuards(AdminGuard)
   @ApiOperation({ summary: '유저 정지하기' })
   @ApiBearerAuth()
+  @HttpCode(200)
   @ApiParam({ name: 'userIdx', description: '유저idx' })
   @Exception(401, '권한 없음')
   @Exception(403, '관리자 권한 필요')
@@ -475,5 +477,17 @@ export class UserController {
     return await this.userSuspensionService.suspendUser(userIdx, {
       suspendPeriod: dto.suspendPeriod,
     });
+  }
+
+  @Delete('/:userIdx/suspend')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: '유저 정지 해제하기' })
+  @ApiBearerAuth()
+  @ApiParam({ name: 'userIdx', description: '유저idx' })
+  @Exception(401, '권한 없음')
+  @Exception(403, '관리자 권한 필요')
+  @ApiResponse({ status: 200 })
+  async deleteUserSuspension(@Param('userIdx') userIdx: string): Promise<void> {
+    await this.userSuspensionService.deleteUserSuspension(userIdx);
   }
 }

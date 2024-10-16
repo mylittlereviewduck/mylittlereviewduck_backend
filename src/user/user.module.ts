@@ -10,6 +10,7 @@ import { UserBlockCheckService } from './user-block-check.service';
 import { AwsModule } from '../aws/aws.module';
 import { NotificationModule } from 'src/notification/notification.module';
 import { EmailModule } from '../email/email.module';
+import { UserSuspensionService } from './user-suspension.service';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { EmailModule } from '../email/email.module';
     UserBlockService,
     FollowCheckService,
     UserBlockCheckService,
+    UserSuspensionService,
   ],
   exports: [
     UserService,

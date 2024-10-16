@@ -61,5 +61,14 @@ export class UserSuspensionService {
     return new UserEntity(suspendedUser);
   }
 
-  async deleteUserSuspension(): Promise<void> {}
+  async deleteUserSuspension(userIdx: string): Promise<void> {
+    await this.prismaService.accountTb.update({
+      data: {
+        suspendExpireAt: null,
+      },
+      where: {
+        idx: userIdx,
+      },
+    });
+  }
 }

@@ -1,3 +1,4 @@
+import { UserSuspensionService } from './user-suspension.service';
 import { NotificationService } from './../notification/notification.service';
 import { UserBlockCheckService } from './user-block-check.service';
 import { UserBlockService } from './user-block.service';
@@ -62,6 +63,7 @@ export class UserController {
     private readonly userBlockCheckService: UserBlockCheckService,
     private readonly awsService: AwsService,
     private readonly notificationService: NotificationService,
+    private readonly userSuspensionService: UserSuspensionService,
   ) {}
 
   @Post('/check-nickname')
@@ -470,7 +472,7 @@ export class UserController {
     @Param('userIdx') userIdx: string,
     @Body() dto: SuspendUserDto,
   ) {
-    return await this.userService.suspendUser(userIdx, {
+    return await this.userSuspensionService.suspendUser(userIdx, {
       suspendPeriod: dto.suspendPeriod,
     });
   }

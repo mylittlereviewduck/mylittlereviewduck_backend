@@ -462,6 +462,7 @@ export class UserController {
   @UseGuards(AdminGuard)
   @ApiOperation({ summary: '유저 정지하기' })
   @ApiBearerAuth()
+  @ApiParam({ name: 'userIdx', description: '유저idx' })
   @Exception(401, '권한 없음')
   @Exception(403, '관리자 권한 필요')
   @ApiResponse({ status: 200 })

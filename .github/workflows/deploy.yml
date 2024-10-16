@@ -1,0 +1,21 @@
+name: 오늘도리뷰 배포스크립트
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - master
+
+jobs:
+  if_merged:
+    if: github.event.pull_request.merged == true
+    runs-on: self-hosted
+    steps:
+      -name: 코드 업데이트, 재실행
+      run: |
+        echo "PR was merged"
+        pwd
+        cd /home/ubuntu/mylittlereviewduck_backend
+        git pull origin main
+        sudo pm2 restart 1

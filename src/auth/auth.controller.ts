@@ -94,6 +94,7 @@ export class AuthController {
     const accessToken = await this.authService.generateToken(
       'access',
       loginUser.idx,
+      loginUser.isAdmin,
       5 * 60,
     );
 

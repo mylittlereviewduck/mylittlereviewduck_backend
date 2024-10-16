@@ -361,20 +361,53 @@ export class UserService {
     };
   }
 
-  async suspendUser(dto: SuspendUserDto): Promise<void> {
+  async suspendUser(userIdx: string, dto: SuspendUserDto): Promise<UserEntity> {
     const user = await this.getUser({
-      idx: dto.userIdx,
+      idx: userIdx,
     });
 
-    await this.prismaService.accountTb.update({
+    //기존정지기간 없다면 현재시간
+    let existingSuspendPeriod: Date;
+    if (!user.suspendExpireAt) {
+      existingSuspendPeriod = new Date();
+    } else {
+      existingSuspendPeriod = new Date(user.suspendExpireAt);
+    }
+
+    //추가될 정지기간
+    let plusSuspendPeriod: number;
+    if ((dto.suspendPeriod = '7D')) {
+      // 7일정지
+      plusSuspendPeriod = 7 * 24 * 60 * 60 * 1000;
+    } else if ((dto.suspendPeriod = '1M')) {
+      // 한달정지
+      plusSuspendPeriod = 30 * 24 * 60 * 60 * 1000;
+    } else if ((dto.suspendPeriod = 'forever')) {
+      //100년정지
+      plusSuspendPeriod = 100 * 365 * 24 * 60 * 60 * 1000;
+    }
+
+    const suspendedUser = await this.prismaService.accountTb.update({
+      include: {
+        profileImgTb: true,
+        _count: {
+          select: {
+            follower: true,
+            followee: true,
+          },
+        },
+      },
       data: {
         suspensionCount: user.suspensionCount + 1,
-        sus,
+        suspendExpireAt: new Date(
+          existingSuspendPeriod.getTime() + plusSuspendPeriod,
+        ),
       },
-
       where: {
-        idx: dto.userIdx,
+        idx: userIdx,
       },
     });
+
+    return new UserEntity(suspendedUser);
   }
 }

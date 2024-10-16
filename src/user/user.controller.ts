@@ -48,7 +48,8 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { AwsService } from 'src/aws/aws.service';
 import { FileValidationPipe } from 'src/common/fileValidation.pipe';
 import { UserSearchResponseDto } from './dto/response/user-search-response.dto';
-import { AdMinGuard } from 'src/auth/guard/admin.guard';
+import { AdminGuard } from 'src/auth/guard/admin.guard';
+import { SuspendUserDto } from './dto/suspend-user.dto';
 
 @Controller('user')
 @ApiTags('user')
@@ -458,11 +459,18 @@ export class UserController {
   }
 
   @Post('/:userIdx/suspend')
-  @UseGuards(AdMinGuard)
+  @UseGuards(AdminGuard)
   @ApiOperation({ summary: '유저 정지하기' })
   @ApiBearerAuth()
   @Exception(401, '권한 없음')
   @Exception(403, '관리자 권한 필요')
   @ApiResponse({ status: 200 })
-  async suspendUser() {}
+  async suspendUser(
+    @Param('userIdx') userIdx: string,
+    @Body() dto: SuspendUserDto,
+  ) {
+    return await this.userService.suspendUser(userIdx, {
+      suspendPeriod: dto.suspendPeriod,
+    });
+  }
 }

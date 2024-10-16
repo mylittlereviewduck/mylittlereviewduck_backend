@@ -10,7 +10,7 @@ import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
-export class AdMinGuard implements CanActivate {
+export class AdminGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
@@ -33,7 +33,7 @@ export class AdMinGuard implements CanActivate {
         throw new UnauthorizedException();
       }
 
-      if (payload.isAdmin == 'false') {
+      if (payload.isAdmin !== true) {
         throw new ForbiddenException('No Admin');
       }
 
@@ -43,7 +43,7 @@ export class AdMinGuard implements CanActivate {
         throw new UnauthorizedException('Authentication TimeOut');
       }
 
-      throw new UnauthorizedException('Invalid Token');
+      throw err;
     }
 
     return true;

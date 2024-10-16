@@ -1,4 +1,6 @@
+import { IsIn, IsString } from 'class-validator';
+
 export class SuspendUserDto {
-  userIdx: string;
-  suspendPeriod: '7d' | '1M' | 'forever';
+  @IsIn(['7D', '1M', 'forever'])
+  suspendPeriod: '7D' | '1M' | 'forever';
 }

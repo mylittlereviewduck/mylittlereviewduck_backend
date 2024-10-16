@@ -34,6 +34,7 @@ model AccountTb {
   interest2                                           String?            @map("interest_2") @db.VarChar(12)
   suspensionCount                                     Int                @default(0) @map("suspension_count")
   isAdmin                                             Boolean            @default(false) @map("is_admin")
+  suspendExpireAt                                     DateTime?          @map("suspend_expire_at") @db.Timestamptz(6)
   blocker                                             AccountBlockTb[]   @relation("account_block_tb_blocker_idxToaccount_tb")
   blocked                                             AccountBlockTb[]   @relation("account_block_tb_blocked_idxToaccount_tb")
   commentLikeTb                                       CommentLikeTb[]

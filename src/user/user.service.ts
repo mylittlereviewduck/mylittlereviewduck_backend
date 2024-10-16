@@ -15,6 +15,7 @@ import { UserSearchResponseDto } from './dto/response/user-search-response.dto';
 import { UserPagerbleResponseDto } from './dto/response/user-pagerble-response.dto';
 import { UserFollowPagerbleDto } from './dto/user-follow-pagerble.dto';
 import { EmailService } from '../email/email.service';
+import { SuspendUserDto } from './dto/suspend-user.dto';
 
 @Injectable()
 export class UserService {
@@ -358,5 +359,22 @@ export class UserService {
       totalPage: Math.ceil(getFollowingCount / userPagerbleDto.size),
       users: followList.map((elem) => new UserEntity(elem)),
     };
+  }
+
+  async suspendUser(dto: SuspendUserDto): Promise<void> {
+    const user = await this.getUser({
+      idx: dto.userIdx,
+    });
+
+    await this.prismaService.accountTb.update({
+      data: {
+        suspensionCount: user.suspensionCount + 1,
+        sus,
+      },
+
+      where: {
+        idx: dto.userIdx,
+      },
+    });
   }
 }

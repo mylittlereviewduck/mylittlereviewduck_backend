@@ -56,6 +56,12 @@ export class UserService {
       where: {
         OR: [
           {
+            email: {
+              contains: userSearchPagerbleDto.search,
+              mode: 'insensitive',
+            },
+          },
+          {
             nickname: {
               contains: userSearchPagerbleDto.search,
               mode: 'insensitive',
@@ -90,6 +96,12 @@ export class UserService {
       },
       where: {
         OR: [
+          {
+            email: {
+              contains: userSearchPagerbleDto.search,
+              mode: 'insensitive',
+            },
+          },
           {
             nickname: {
               contains: userSearchPagerbleDto.search,

@@ -48,7 +48,7 @@ import { UserBlockEntity } from './entity/UserBlock.entity';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { AwsService } from 'src/aws/aws.service';
 import { FileValidationPipe } from 'src/common/fileValidation.pipe';
-import { UserSearchResponseDto } from './dto/response/user-search-response.dto';
+import { UserListResponseDto } from './dto/response/user-list-response.dto';
 import { AdminGuard } from 'src/auth/guard/admin.guard';
 import { SuspendUserDto } from './dto/suspend-user.dto';
 
@@ -226,13 +226,13 @@ export class UserController {
   })
   @Exception(400, '유효하지않은 요청')
   @Exception(404, 'Not Found Page')
-  @ApiResponse({ status: 200, type: UserSearchResponseDto })
+  @ApiResponse({ status: 200, type: UserListResponseDto })
   async getUserWithSearch(
     @GetUser() loginUser: LoginUser,
     @Query('search') search: string,
     @Query('page') page: number,
     @Query('size') size: number,
-  ): Promise<UserSearchResponseDto> {
+  ): Promise<UserListResponseDto> {
     if (search.length < 2) {
       throw new BadRequestException('검색어는 2글자이상');
     }
@@ -492,5 +492,56 @@ export class UserController {
   @ApiResponse({ status: 200 })
   async deleteUserSuspension(@Param('userIdx') userIdx: string): Promise<void> {
     await this.userSuspensionService.deleteUserSuspension(userIdx);
+  }
+
+  @Get('/:status')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: '특정 상태 유저목록 보기' })
+  @ApiBearerAuth()
+  @ApiParam({
+    name: 'status',
+    description: '유저상태: valid | suspended | blacklist',
+  })
+  @ApiQuery({
+    name: 'size',
+    example: 1,
+    description: '한 페이지당 가져올 리뷰수, 기본값 10',
+  })
+  @ApiQuery({
+    name: 'page',
+    example: 1,
+    description: '가져올 페이지, 기본값 1',
+  })
+  @Exception(401, '권한 없음')
+  @Exception(403, '관리자 권한 필요')
+  @ApiResponse({ status: 200 })
+  async getUsersWithStatus(
+    @Param('status') status: string,
+    @Query('page') page: number,
+    @Query('size') size: number,
+  ): Promise<UserListResponseDto> {
+    let userListResponseDto: UserListResponseDto;
+
+    if (status == 'valid') {
+      userListResponseDto = await this.userService.getUsersAll({
+        isUserValid: true,
+        size: size || 10,
+        page: page || 1,
+      });
+    } else if (status == 'suspended') {
+      userListResponseDto = await this.userService.getUsersAll({
+        isUserSuspended: true,
+        size: size || 10,
+        page: page || 1,
+      });
+    } else if (status == 'blacklist') {
+      userListResponseDto = await this.userService.getUsersAll({
+        isUserBlackList: true,
+        size: size || 10,
+        page: page || 1,
+      });
+    }
+
+    return userListResponseDto;
   }
 }

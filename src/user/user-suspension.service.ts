@@ -32,7 +32,7 @@ export class UserSuspensionService {
     } else if ((dto.suspendPeriod = '1M')) {
       // 한달정지
       plusSuspendPeriod = 30 * 24 * 60 * 60 * 1000;
-    } else if ((dto.suspendPeriod = 'forever')) {
+    } else if ((dto.suspendPeriod = 'blackList')) {
       //100년정지
       plusSuspendPeriod = 100 * 365 * 24 * 60 * 60 * 1000;
     }

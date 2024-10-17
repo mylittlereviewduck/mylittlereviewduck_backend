@@ -16,6 +16,8 @@ import { UserPagerbleResponseDto } from './dto/response/user-pagerble-response.d
 import { UserFollowPagerbleDto } from './dto/user-follow-pagerble.dto';
 import { EmailService } from '../email/email.service';
 import { SuspendUserDto } from './dto/suspend-user.dto';
+import { GetUsersAllDto } from './dto/get-users-all.dto';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class UserService {
@@ -50,37 +52,19 @@ export class UserService {
     return new UserEntity(userData);
   }
 
-  async getUserWithSearch(
-    userSearchPagerbleDto: UserSearchPagerbleDto,
-  ): Promise<UserSearchResponseDto> {
+  async getUsersAll(dto: GetUsersAllDto): Promise<UserSearchResponseDto> {
+    //prettier-ignore
     const totalCount = await this.prismaService.accountTb.count({
       where: {
         OR: [
-          {
-            email: {
-              contains: userSearchPagerbleDto.search,
-              mode: 'insensitive',
-            },
-          },
-          {
-            nickname: {
-              contains: userSearchPagerbleDto.search,
-              mode: 'insensitive',
-            },
-          },
-          {
-            interest1: {
-              contains: userSearchPagerbleDto.search,
-              mode: 'insensitive',
-            },
-          },
-          {
-            interest2: {
-              contains: userSearchPagerbleDto.search,
-              mode: 'insensitive',
-            },
-          },
-        ],
+          dto.email ? { email: { contains: dto.email, mode: Prisma.QueryMode.insensitive } }: null,
+          dto.nickname ? { nickname: { contains: dto.nickname, mode: Prisma.QueryMode.insensitive } }: null,
+          dto.interest1 ? { interest1: { contains: dto.interest1, mode: Prisma.QueryMode.insensitive } }: null,
+          dto.interest2 ? { interest2: { contains: dto.interest2, mode: Prisma.QueryMode.insensitive } }: null,
+          dto.isUserValid ? { suspendExpireAt: null } : null,
+          dto.isUserSuspended ? { suspendExpireAt: { not: null } } : null,
+          dto.isUserBlackList ? { suspendExpireAt: { gte: new Date('2100-01-01') } } : null,
+        ].filter((x) => x !== null), // null 값 제거
         deletedAt: null,
       },
     });
@@ -95,45 +79,30 @@ export class UserService {
           },
         },
       },
+
+      // prettier-ignore
       where: {
         OR: [
-          {
-            email: {
-              contains: userSearchPagerbleDto.search,
-              mode: 'insensitive',
-            },
-          },
-          {
-            nickname: {
-              contains: userSearchPagerbleDto.search,
-              mode: 'insensitive',
-            },
-          },
-          {
-            interest1: {
-              contains: userSearchPagerbleDto.search,
-              mode: 'insensitive',
-            },
-          },
-          {
-            interest2: {
-              contains: userSearchPagerbleDto.search,
-              mode: 'insensitive',
-            },
-          },
-        ],
+          dto.email ? { email: { contains: dto.email, mode: Prisma.QueryMode.insensitive } }: null,
+          dto.nickname ? { nickname: { contains: dto.nickname, mode: Prisma.QueryMode.insensitive } }: null,
+          dto.interest1 ? { interest1: { contains: dto.interest1, mode: Prisma.QueryMode.insensitive } }: null,
+          dto.interest2 ? { interest2: { contains: dto.interest2, mode: Prisma.QueryMode.insensitive } }: null,
+          dto.isUserValid ? { suspendExpireAt: null } : null,
+          dto.isUserSuspended ? { suspendExpireAt: { not: null } } : null,
+          dto.isUserBlackList ? { suspendExpireAt: { gte: new Date('2100-01-01') } } : null,
+        ].filter((x) => x !== null), // null 값 제거
         deletedAt: null,
       },
 
       orderBy: {
         idx: 'desc',
       },
-      skip: userSearchPagerbleDto.size * (userSearchPagerbleDto.page - 1),
-      take: userSearchPagerbleDto.size,
+      skip: dto.size * (dto.page - 1),
+      take: dto.size,
     });
 
     return {
-      totalPage: Math.ceil(totalCount / userSearchPagerbleDto.size),
+      totalPage: Math.ceil(totalCount / dto.size),
       users: userData.map((elem) => new UserEntity(elem)),
     };
   }

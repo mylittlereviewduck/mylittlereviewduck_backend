@@ -237,8 +237,11 @@ export class UserController {
       throw new BadRequestException('검색어는 2글자이상');
     }
 
-    const userSearchResponseDto = await this.userService.getUserWithSearch({
-      search: search,
+    const userSearchResponseDto = await this.userService.getUsersAll({
+      email: search,
+      nickname: search,
+      interest1: search,
+      interest2: search,
       size: size || 10,
       page: page || 1,
     });

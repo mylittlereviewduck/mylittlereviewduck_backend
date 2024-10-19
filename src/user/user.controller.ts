@@ -1,6 +1,9 @@
+import { UserSuspensionService } from './user-suspension.service';
+import { NotificationService } from './../notification/notification.service';
 import { UserBlockCheckService } from './user-block-check.service';
 import { UserBlockService } from './user-block.service';
 import {
+  BadRequestException,
   Body,
   ConflictException,
   Controller,
@@ -9,7 +12,6 @@ import {
   HttpCode,
   NotFoundException,
   Param,
-  ParseIntPipe,
   ParseUUIDPipe,
   Post,
   Put,
@@ -33,18 +35,22 @@ import { CheckNicknameDuplicateDto } from './dto/check-nickname-duplicate.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserEntity } from './entity/User.entity';
 import { UpdateMyInfoDto } from './dto/update-my-info.dto';
-import { CheckEmailDuplicateDto } from './dto/check-email-duplicate.dto';
-import { AuthGuard } from '../../src/auth/auth.guard';
+import { AuthGuard } from '../auth/guard/auth.guard';
 import { GetUser } from '../../src/auth/get-user.decorator';
 import { LoginUser } from '../../src/auth/model/login-user.model';
 import { FollowService } from './follow.service';
 import { FollowEntity } from './entity/Follow.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { AwsService } from 'src/common/aws/aws.service';
-import { OptionalAuthGuard } from 'src/auth/optional-auth.guard';
+import { OptionalAuthGuard } from 'src/auth/guard/optional-auth.guard';
 import { UserPagerbleResponseDto } from './dto/response/user-pagerble-response.dto';
 import { FollowCheckService } from './follow-check.service';
 import { UserBlockEntity } from './entity/UserBlock.entity';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { AwsService } from 'src/aws/aws.service';
+import { FileValidationPipe } from 'src/common/fileValidation.pipe';
+import { UserListResponseDto } from './dto/response/user-list-response.dto';
+import { AdminGuard } from 'src/auth/guard/admin.guard';
+import { SuspendUserDto } from './dto/suspend-user.dto';
 
 @Controller('user')
 @ApiTags('user')
@@ -56,26 +62,9 @@ export class UserController {
     private readonly userBlockService: UserBlockService,
     private readonly userBlockCheckService: UserBlockCheckService,
     private readonly awsService: AwsService,
+    private readonly notificationService: NotificationService,
+    private readonly userSuspensionService: UserSuspensionService,
   ) {}
-
-  @Post('/check-email')
-  @HttpCode(200)
-  @ApiOperation({ summary: '이메일 중복검사' })
-  @Exception(400, '유효하지않은 요청')
-  @Exception(409, '이메일 중복')
-  @ApiResponse({
-    status: 200,
-    description: '사용가능한 이메일일경우 상태코드 200반환',
-  })
-  async checkEmailDulicate(
-    @Body() checkDto: CheckEmailDuplicateDto,
-  ): Promise<void> {
-    const user = await this.userService.getUser({ email: checkDto.email });
-
-    if (user) {
-      throw new ConflictException('Duplicated Email');
-    }
-  }
 
   @Post('/check-nickname')
   @HttpCode(200)
@@ -107,6 +96,17 @@ export class UserController {
     return await this.userService.createUser(createUserDto);
   }
 
+  //논의후에 서비스로직 추가
+  @Post('/pw/reset')
+  @ApiOperation({ summary: '비밀번호 초기화 / 이메일 전송' })
+  @Exception(400, '유효하지않은 요청')
+  @ApiResponse({ status: 200 })
+  async resetPassword(
+    @Body() resetPasswordDto: ResetPasswordDto,
+  ): Promise<void> {
+    return;
+  }
+
   @Get('myinfo')
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '내정보보기' })
@@ -127,20 +127,9 @@ export class UserController {
   async updateMyInfo(
     @GetUser() loginUser: LoginUser,
     @Body() updateMyInfoDto: UpdateMyInfoDto,
-  ): Promise<void> {
-    await this.userService.updateMyinfo(loginUser.idx, {
-      nickname: updateMyInfoDto.nickname,
-      profile: updateMyInfoDto.profile,
-    });
+  ): Promise<UserEntity> {
+    return await this.userService.updateMyinfo(loginUser.idx, updateMyInfoDto);
   }
-
-  // @Post('profile-img')
-  // @UseGuards(AuthGuard)
-  // @ApiOperation({ summary: '프로필 이미지 업로드' })
-  // @ApiBearerAuth()
-  // @Exception(400, '유효하지않은 요청')
-  // @Exception(401, '권한 없음')
-  // async uploadProfileImg(@GetUser() loginUser: LoginUser) {}
 
   @Put('profile-img')
   @UseGuards(AuthGuard)
@@ -166,11 +155,13 @@ export class UserController {
   @ApiResponse({ status: 200 })
   async updateMyProfileImg(
     @GetUser() loginUser: LoginUser,
-    @UploadedFile() image: Express.Multer.File,
-  ): Promise<void> {
+    @UploadedFile(FileValidationPipe) image: Express.Multer.File,
+  ): Promise<{ imgPath: string }> {
     const imgPath = await this.awsService.uploadImageToS3(image);
 
     await this.userService.updateMyProfileImg(loginUser.idx, imgPath);
+
+    return { imgPath: imgPath };
   }
 
   @Delete('profile-img')
@@ -211,12 +202,65 @@ export class UserController {
 
     await this.followCheckService.isFollow(loginUser.idx, [user]);
 
-    await this.userBlockCheckService.isBlocked(loginUser.idx, [user]);
+    await this.userBlockCheckService.isBlockedUser(loginUser.idx, [user]);
 
     //유저신고, 유저신고여부확인기능은 논의하고 추가
     // await this.userReportCheckService.isReported(loginUser.idx, [user]);
 
     return user;
+  }
+
+  @Get('')
+  @UseGuards(OptionalAuthGuard)
+  @ApiOperation({ summary: '유저검색하기 닉네임, 관심사' })
+  @ApiQuery({ name: 'search', description: '검색 키워드, 검색어 2글자 이상' })
+  @ApiQuery({
+    name: 'size',
+    example: 1,
+    description: '한 페이지당 가져올 리뷰수, 기본값 10',
+  })
+  @ApiQuery({
+    name: 'page',
+    example: 1,
+    description: '가져올 페이지, 기본값 1',
+  })
+  @Exception(400, '유효하지않은 요청')
+  @Exception(404, 'Not Found Page')
+  @ApiResponse({ status: 200, type: UserListResponseDto })
+  async getUserWithSearch(
+    @GetUser() loginUser: LoginUser,
+    @Query('search') search: string,
+    @Query('page') page: number,
+    @Query('size') size: number,
+  ): Promise<UserListResponseDto> {
+    if (search.length < 2) {
+      throw new BadRequestException('검색어는 2글자이상');
+    }
+
+    const userSearchResponseDto = await this.userService.getUsersAll({
+      email: search,
+      nickname: search,
+      interest1: search,
+      interest2: search,
+      size: size || 10,
+      page: page || 1,
+    });
+
+    if (!loginUser) {
+      return userSearchResponseDto;
+    }
+
+    await this.followCheckService.isFollow(
+      loginUser.idx,
+      userSearchResponseDto.users,
+    );
+
+    await this.userBlockCheckService.isBlockedUser(
+      loginUser.idx,
+      userSearchResponseDto.users,
+    );
+
+    return userSearchResponseDto;
   }
 
   @Delete('')
@@ -247,10 +291,11 @@ export class UserController {
     @Query('size') size: number,
     @GetUser() loginUser: LoginUser,
   ): Promise<UserPagerbleResponseDto> {
-    const userPagerbleResponseDto = await this.followService.getFollowingList({
-      userIdx: userIdx,
+    const userPagerbleResponseDto = await this.userService.getFollowingList({
       page: page || 1,
-      size: size || 20,
+      size: size || 10,
+      type: 'follower',
+      userIdx: userIdx,
     });
 
     if (!loginUser) {
@@ -283,10 +328,11 @@ export class UserController {
     @Query('size') size: number,
     @GetUser() loginUser: LoginUser,
   ): Promise<UserPagerbleResponseDto> {
-    const userPagerbleResponseDto = await this.followService.getFollowerList({
+    const userPagerbleResponseDto = await this.userService.getFollowingList({
       userIdx: userIdx,
       page: page || 1,
       size: size || 20,
+      type: 'followee',
     });
 
     if (!loginUser) {
@@ -316,9 +362,22 @@ export class UserController {
   })
   async followUser(
     @GetUser() loginUser: LoginUser,
-    @Param('userIdx', ParseIntPipe) userIdx: string,
+    @Param('userIdx', ParseUUIDPipe) userIdx: string,
   ): Promise<FollowEntity> {
-    return await this.followService.followUser(loginUser.idx, userIdx);
+    const followEntity = await this.followService.followUser(
+      loginUser.idx,
+      userIdx,
+    );
+
+    const notification = await this.notificationService.createNotification({
+      senderIdx: followEntity.followerIdx,
+      recipientIdx: followEntity.followeeIdx,
+      type: 1,
+    });
+
+    this.notificationService.sendNotification(notification);
+
+    return followEntity;
   }
 
   @Delete('/:userIdx/follow')
@@ -331,7 +390,7 @@ export class UserController {
   @ApiResponse({ status: 200, description: '언팔로우 성공 200 반환' })
   async UnfollowUser(
     @GetUser() loginUser: LoginUser,
-    @Param('userIdx', ParseIntPipe) userIdx: string,
+    @Param('userIdx', ParseUUIDPipe) userIdx: string,
   ): Promise<void> {
     await this.followService.unfollowUser(loginUser.idx, userIdx);
   }
@@ -373,6 +432,7 @@ export class UserController {
 
   @Get('blocked-user/all')
   @UseGuards(AuthGuard)
+  @HttpCode(200)
   @ApiOperation({ summary: '차단한 유저목록보기' })
   @ApiBearerAuth()
   @ApiQuery({ name: 'page', example: 1, description: '페이지, 기본값 1' })
@@ -402,5 +462,86 @@ export class UserController {
     //신고여부 신고기능 논의후 추가
 
     return userPagerbleResponseDto;
+  }
+
+  @Post('/:userIdx/suspend')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: '유저 정지하기' })
+  @ApiBearerAuth()
+  @HttpCode(200)
+  @ApiParam({ name: 'userIdx', description: '유저idx' })
+  @Exception(401, '권한 없음')
+  @Exception(403, '관리자 권한 필요')
+  @ApiResponse({ status: 200 })
+  async suspendUser(
+    @Param('userIdx') userIdx: string,
+    @Body() dto: SuspendUserDto,
+  ) {
+    return await this.userSuspensionService.suspendUser(userIdx, {
+      suspendPeriod: dto.suspendPeriod,
+    });
+  }
+
+  @Delete('/:userIdx/suspend')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: '유저 정지 해제하기' })
+  @ApiBearerAuth()
+  @ApiParam({ name: 'userIdx', description: '유저idx' })
+  @Exception(401, '권한 없음')
+  @Exception(403, '관리자 권한 필요')
+  @ApiResponse({ status: 200 })
+  async deleteUserSuspension(@Param('userIdx') userIdx: string): Promise<void> {
+    await this.userSuspensionService.deleteUserSuspension(userIdx);
+  }
+
+  @Get('/:status')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: '특정 상태 유저목록 보기' })
+  @ApiBearerAuth()
+  @ApiParam({
+    name: 'status',
+    description: '유저상태: valid | suspended | blacklist',
+  })
+  @ApiQuery({
+    name: 'size',
+    example: 1,
+    description: '한 페이지당 가져올 리뷰수, 기본값 10',
+  })
+  @ApiQuery({
+    name: 'page',
+    example: 1,
+    description: '가져올 페이지, 기본값 1',
+  })
+  @Exception(401, '권한 없음')
+  @Exception(403, '관리자 권한 필요')
+  @ApiResponse({ status: 200 })
+  async getUsersWithStatus(
+    @Param('status') status: string,
+    @Query('page') page: number,
+    @Query('size') size: number,
+  ): Promise<UserListResponseDto> {
+    let userListResponseDto: UserListResponseDto;
+
+    if (status == 'valid') {
+      userListResponseDto = await this.userService.getUsersAll({
+        isUserValid: true,
+        size: size || 10,
+        page: page || 1,
+      });
+    } else if (status == 'suspended') {
+      userListResponseDto = await this.userService.getUsersAll({
+        isUserSuspended: true,
+        size: size || 10,
+        page: page || 1,
+      });
+    } else if (status == 'blacklist') {
+      userListResponseDto = await this.userService.getUsersAll({
+        isUserBlackList: true,
+        size: size || 10,
+        page: page || 1,
+      });
+    }
+
+    return userListResponseDto;
   }
 }

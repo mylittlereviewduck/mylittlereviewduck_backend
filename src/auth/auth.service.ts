@@ -1,6 +1,5 @@
 import { ConfigService } from '@nestjs/config';
-import { VerifyEmailDto } from './dto/verify-email.dto';
-import { LoginDto } from './dto/signIn.dto';
+import { LoginDto } from './dto/login.dto';
 import {
   Injectable,
   NotFoundException,
@@ -14,6 +13,7 @@ import { GoogleStrategy } from './strategy/google.strategy';
 import { SocialLoginProvider } from './model/social-login-provider.model';
 import { NaverStrategy } from './strategy/naver.strategy';
 import { KakaoStrategy } from './strategy/kakao.strategy';
+import { LoginResponseDto } from '../../src/auth/dto/response/login-response.dto';
 
 @Injectable()
 export class AuthService {
@@ -33,22 +33,48 @@ export class AuthService {
     this.strategy[SocialLoginProvider.KAKAO] = kakaoStrategy;
   }
 
-  async login(loginDto: LoginDto): Promise<string> {
-    const user = await this.prismaService.accountTb.findFirst({
-      where: {
-        email: loginDto.email,
-        pw: loginDto.pw,
-        deletedAt: null,
-      },
+  async login(dto: LoginDto): Promise<LoginResponseDto> {
+    const user = await this.userService.getUser({
+      email: dto.email,
+      pw: dto.pw,
     });
 
     if (!user) {
       throw new UnauthorizedException('Unauthorized');
     }
 
-    const payload = { idx: user.idx };
+    //액세스 토큰 5분
+    //리프레쉬 토큰 12시간
+    const accessToken = await this.generateToken(
+      'access',
+      user.idx,
+      user.isAdmin,
+      5 * 60,
+    );
+    const refreshToken = await this.generateToken(
+      'refresh',
+      user.idx,
+      user.isAdmin,
+      12 * 3600,
+    );
+    return { accessToken, refreshToken };
+  }
 
-    return await this.jwtService.signAsync(payload);
+  async generateToken(
+    type: 'access' | 'refresh',
+    userIdx: string,
+    isAdmin: boolean,
+    exp: number,
+  ): Promise<string> {
+    const payload = {
+      idx: userIdx,
+      isAdmin: isAdmin,
+      type: type,
+    };
+
+    const token = this.jwtService.signAsync(payload, { expiresIn: exp });
+
+    return token;
   }
 
   async getToken(
@@ -76,26 +102,5 @@ export class AuthService {
     }
 
     return strategy.socialLogin(query);
-  }
-
-  async verifyCode(verifyEmailDto: VerifyEmailDto): Promise<boolean> {
-    const verifiedEmail = await this.prismaService.verifiedEmailTb.findFirst({
-      where: {
-        email: verifyEmailDto.email,
-        code: verifyEmailDto.code,
-        createdAt: {
-          gte: new Date(Date.now() - 5 * 60 * 1000),
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
-
-    if (!verifiedEmail) {
-      throw new UnauthorizedException('Unauthorized email');
-    }
-
-    return true;
   }
 }

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ReviewEntity } from './entity/Review.entity';
+import { ReviewListEntity } from './entity/ReviewList.entity';
 
 @Injectable()
 export class ReviewLikeCheckService {
@@ -8,9 +9,9 @@ export class ReviewLikeCheckService {
 
   async isReviewLiked(
     userIdx: string,
-    reviews: ReviewEntity[],
-  ): Promise<ReviewEntity[]> {
-    const sqlResult = await this.prismaService.reviewLikesTb.findMany({
+    reviews: ReviewListEntity[],
+  ): Promise<ReviewListEntity[]> {
+    const sqlResult = await this.prismaService.reviewLikeTb.findMany({
       where: {
         accountIdx: userIdx,
         reviewIdx: {
@@ -27,6 +28,37 @@ export class ReviewLikeCheckService {
     for (let i = 0; i < reviews.length; i++) {
       if (likedReviewIdxList.includes(reviews[i].idx)) {
         reviews[i].isMyLike = true;
+      } else {
+        reviews[i].isMyLike = false;
+      }
+    }
+
+    return reviews;
+  }
+
+  async isReviewDisliked(
+    userIdx: string,
+    reviews: ReviewListEntity[],
+  ): Promise<ReviewListEntity[]> {
+    const sqlResult = await this.prismaService.reviewDislikeTb.findMany({
+      where: {
+        accountIdx: userIdx,
+        reviewIdx: {
+          in: reviews.map((review) => review.idx),
+        },
+      },
+      select: {
+        reviewIdx: true,
+      },
+    });
+
+    const dislikedReviewIdxList = sqlResult.map((elem) => elem.reviewIdx);
+
+    for (let i = 0; i < reviews.length; i++) {
+      if (dislikedReviewIdxList.includes(reviews[i].idx)) {
+        reviews[i].isMyDislike = true;
+      } else {
+        reviews[i].isMyDislike = false;
       }
     }
 

@@ -27,6 +27,8 @@ export class ReviewBookmarkCheckService {
     for (let i = 0; i < reviews.length; i++) {
       if (bookmarkedReviewIdxList.includes(reviews[i].idx)) {
         reviews[i].isMyBookmark = true;
+      } else {
+        reviews[i].isMyBookmark = false;
       }
     }
 

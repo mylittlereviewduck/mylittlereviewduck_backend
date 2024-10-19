@@ -1,4 +1,5 @@
-import { AwsService } from './../common/aws/aws.service';
+import { UserBlockCheckService } from './../user/user-block-check.service';
+import { AwsService } from '../aws/aws.service';
 import { ReviewShareCheckService } from './review-share-check.service';
 import { ReviewShareService } from './review-share.service';
 import { ReviewBlockService } from './review-block.service';
@@ -11,14 +12,15 @@ import {
   Controller,
   Delete,
   Get,
-  Inject,
   Param,
   ParseIntPipe,
   ParseUUIDPipe,
   Post,
   Put,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -34,17 +36,24 @@ import { ReviewEntity } from './entity/Review.entity';
 import { UploadReviewImageResponseDto } from './dto/response/upload-review-image-response.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
 import { ReviewService } from './review.service';
-import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { LoginUser } from 'src/auth/model/login-user.model';
 import { GetUser } from 'src/auth/get-user.decorator';
-import { AuthGuard } from 'src/auth/auth.guard';
-import { ReviewSearchResponseDto } from './dto/response/review-search-response.dto';
-import { OptionalAuthGuard } from 'src/auth/optional-auth.guard';
+import { AuthGuard } from 'src/auth/guard/auth.guard';
+import { OptionalAuthGuard } from 'src/auth/guard/optional-auth.guard';
 import { ReviewPagerbleResponseDto } from './dto/response/review-pagerble-response.dto';
 import { ReviewLikeCheckService } from './review-like-check.service';
 import { ReviewBookmarkService } from './review-bookmark.service';
-import { ReviewReportService } from './review-report.service';
-import { ParseStringPipe } from '../common/parseString.pipe';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { FileValidationPipe } from 'src/common/fileValidation.pipe';
+import { ReviewLikeEntity } from './entity/ReviewLike.entity';
+import { ReviewDislikeEntity } from './entity/ReviewDislike.entity';
+import { ReviewBlockEntity } from './entity/ReviewBlock.entity';
+import { ReviewShareEntity } from './entity/ReviewShare.entity';
+import { ReviewBookmarkEntity } from './entity/Reviewbookmark.entity';
+import { NotificationService } from 'src/notification/notification.service';
+import { ReportEntity } from 'src/report/entity/Report.entity';
+import { ReportService } from 'src/report/report.service';
+import { ReportDto } from 'src/report/dto/report.dto';
 
 @Controller('')
 @ApiTags('review')
@@ -59,9 +68,10 @@ export class ReviewController {
     private readonly reviewShareCheckService: ReviewShareCheckService,
     private readonly reviewBlockService: ReviewBlockService,
     private readonly reviewBlockCheckService: ReviewBlockCheckService,
-    private readonly reviewReportService: ReviewReportService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly awsService: AwsService,
+    private readonly notificationService: NotificationService,
+    private readonly reportService: ReportService,
+    private readonly userBlockCheckService: UserBlockCheckService,
   ) {}
 
   @Get('/review/all')
@@ -80,8 +90,8 @@ export class ReviewController {
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
   async getReviewAll(
     @GetUser() loginUser: LoginUser,
-    @Query('page', ParseIntPipe) page: number,
-    @Query('size', ParseIntPipe) size: number,
+    @Query('page') page: number,
+    @Query('size') size: number,
   ): Promise<ReviewPagerbleResponseDto> {
     const reviewPagerbleResponseDto = await this.reviewService.getReviews({
       size: size || 10,
@@ -97,7 +107,7 @@ export class ReviewController {
       reviewPagerbleResponseDto.reviews,
     );
 
-    await this.reviewBookmarkCheckService.isReviewBookmarked(
+    await this.reviewLikeCheckService.isReviewDisliked(
       loginUser.idx,
       reviewPagerbleResponseDto.reviews,
     );
@@ -107,16 +117,21 @@ export class ReviewController {
       reviewPagerbleResponseDto.reviews,
     );
 
-    await this.reviewShareCheckService.isReviewShared(
+    await this.reviewBlockCheckService.isReviewBlocked(
       loginUser.idx,
       reviewPagerbleResponseDto.reviews,
+    );
+
+    await this.userBlockCheckService.isBlockedUser(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews.map((elem) => elem.user),
     );
 
     return reviewPagerbleResponseDto;
   }
 
-  @Get('/review/popular')
-  @ApiOperation({ summary: '인기 리뷰목록보기' })
+  @Get('/review/hot')
+  @ApiOperation({ summary: '좋아요 많이 받은 리뷰목록보기' })
   @ApiQuery({
     name: 'size',
     example: 10,
@@ -128,7 +143,38 @@ export class ReviewController {
     description: '가져올 페이지, 기본값 1',
   })
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
-  async getReviewPopular() {}
+  async getHotReview(
+    @Query('size') size: number,
+    @Query('page') page: number,
+  ): Promise<ReviewPagerbleResponseDto> {
+    return await this.reviewService.getHotReviewAll({
+      size: size || 10,
+      page: page || 1,
+    });
+  }
+
+  @Get('/review/cold')
+  @ApiOperation({ summary: '싫어요 많이 받은 리뷰목록보기' })
+  @ApiQuery({
+    name: 'size',
+    example: 10,
+    description: '한 페이지에 담긴 리뷰수, 기본값 10',
+  })
+  @ApiQuery({
+    name: 'page',
+    example: 1,
+    description: '가져올 페이지, 기본값 1',
+  })
+  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
+  async getColdReview(
+    @Query('size') size: number,
+    @Query('page') page: number,
+  ): Promise<ReviewPagerbleResponseDto> {
+    return await this.reviewService.getColdReviewAll({
+      size: size || 10,
+      page: page || 1,
+    });
+  }
 
   @Post('/review')
   @UseGuards(AuthGuard)
@@ -145,31 +191,33 @@ export class ReviewController {
     @GetUser() loginUser: LoginUser,
     @Body() createReviewDto: CreateReviewDto,
   ): Promise<ReviewEntity> {
-    return await this.reviewService.createReview(loginUser, createReviewDto);
+    return await this.reviewService.createReview(
+      loginUser.idx,
+      createReviewDto,
+    );
   }
 
-  //멀터생성하기
-  //멀터 정리하기
   @Post('/review/img')
   @UseGuards(AuthGuard)
+  @UseInterceptors(FileInterceptor('image'))
   @ApiOperation({ summary: '리뷰 이미지업로드' })
   @ApiBearerAuth()
-  @Exception(400, '유효하지않은 요청')
+  @Exception(
+    400,
+    '유효하지않은 요청(파일 없는경우, 파일크기 초과한경우(10MB), 허용되는 확장자(jpg, jpeg, png, gif)가 아닌경우)',
+  )
   @Exception(401, '권한없음')
   @ApiResponse({
     status: 201,
     description: '리뷰 이미지 업로드 성공시 201반환',
     type: UploadReviewImageResponseDto,
   })
-  async uploadReviewImage(): Promise<{ imgPath: string }> {
-    //리뷰당 이미지 6개 제한
-
-    // await this.awsService.uploadImageToS3(, )
-
-    return;
+  async uploadReviewImage(
+    @UploadedFile(FileValidationPipe) image: Express.Multer.File,
+  ): Promise<{ imgPath: string }> {
+    return { imgPath: await this.awsService.uploadImageToS3(image) };
   }
 
-  //getReview생성하기
   @Get('/review/:reviewIdx')
   @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '리뷰 자세히보기' })
@@ -191,6 +239,10 @@ export class ReviewController {
       reviewEntity,
     ]);
 
+    await this.reviewLikeCheckService.isReviewDisliked(loginUser.idx, [
+      reviewEntity,
+    ]);
+
     await this.reviewBookmarkCheckService.isReviewBookmarked(loginUser.idx, [
       reviewEntity,
     ]);
@@ -201,6 +253,10 @@ export class ReviewController {
 
     await this.reviewShareCheckService.isReviewShared(loginUser.idx, [
       reviewEntity,
+    ]);
+
+    await this.userBlockCheckService.isBlockedUser(loginUser.idx, [
+      reviewEntity.user,
     ]);
 
     return reviewEntity;
@@ -221,7 +277,7 @@ export class ReviewController {
     @Body() updateReviewDto: UpdateReviewDto,
   ): Promise<ReviewEntity> {
     return await this.reviewService.updateReview(
-      loginUser,
+      loginUser.idx,
       reviewIdx,
       updateReviewDto,
     );
@@ -238,17 +294,14 @@ export class ReviewController {
   async deleteReview(
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
-  ): Promise<ReviewEntity> {
-    const reviewEntity = await this.reviewService.deleteReview(
-      loginUser,
-      reviewIdx,
-    );
-    return reviewEntity;
+  ): Promise<void> {
+    await this.reviewService.deleteReview(loginUser.idx, reviewIdx);
   }
 
   @Get('/review')
-  @ApiOperation({ summary: '리뷰검색하기 닉네임, 태그, 제목,내용' })
-  @ApiQuery({ name: 'search', description: '검색 키워드' })
+  @UseGuards(OptionalAuthGuard)
+  @ApiOperation({ summary: '리뷰검색하기 닉네임, 태그, 제목, 내용' })
+  @ApiQuery({ name: 'search', description: '검색 키워드, 검색어 2글자 이상' })
   @ApiQuery({
     name: 'size',
     example: 1,
@@ -259,22 +312,50 @@ export class ReviewController {
     example: 1,
     description: '가져올 페이지, 기본값 1',
   })
+  @Exception(400, '유효하지않은 요청')
   @Exception(404, 'Not Found Page')
-  @ApiResponse({ status: 200, type: ReviewSearchResponseDto })
+  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
   async getReviewWithSearch(
+    @GetUser() loginUser: LoginUser,
     @Query('search') search: string,
     @Query('page') page: number,
     @Query('size') size: number,
-  ): Promise<ReviewSearchResponseDto> {
+  ): Promise<ReviewPagerbleResponseDto> {
     if (search.length < 2) {
-      throw new BadRequestException('Bad Request: 검색어는 2글자이상');
+      throw new BadRequestException('검색어는 2글자이상');
+    }
+    const reviewPagerbleResponseDto =
+      await this.reviewService.getReviewWithSearch({
+        search: search,
+        size: size || 10,
+        page: page || 1,
+      });
+
+    if (!loginUser) {
+      return reviewPagerbleResponseDto;
     }
 
-    return await this.reviewService.getReviewWithSearch({
-      search: search,
-      size: size || 10,
-      page: page || 1,
-    });
+    await this.reviewLikeCheckService.isReviewLiked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
+
+    await this.reviewLikeCheckService.isReviewDisliked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
+
+    await this.reviewBlockCheckService.isReviewBlocked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
+
+    await this.userBlockCheckService.isBlockedUser(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews.map((elem) => elem.user),
+    );
+
+    return reviewPagerbleResponseDto;
   }
 
   @Post('/review/:reviewIdx/like')
@@ -286,12 +367,31 @@ export class ReviewController {
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 찾을수 없음')
   @Exception(409, '현재상태와 요청 충돌')
-  @ApiResponse({ status: 201 })
+  @ApiResponse({ status: 201, type: ReviewLikeEntity })
   async likeReview(
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
-  ): Promise<void> {
-    await this.reviewLikeService.likeReview(loginUser.idx, reviewIdx);
+  ): Promise<ReviewLikeEntity> {
+    const reviewLikeEntity = await this.reviewLikeService.likeReview(
+      loginUser.idx,
+      reviewIdx,
+    );
+
+    const reviewEntity = await this.reviewService.getReviewByIdx(
+      reviewLikeEntity.reviewIdx,
+    );
+
+    if (loginUser.idx != reviewEntity.user.idx) {
+      const notification = await this.notificationService.createNotification({
+        senderIdx: loginUser.idx,
+        recipientIdx: reviewEntity.user.idx,
+        type: 2,
+        reviewIdx: reviewIdx,
+      });
+
+      this.notificationService.sendNotification(notification);
+    }
+    return reviewLikeEntity;
   }
 
   @Delete('/review/:reviewIdx/like')
@@ -311,6 +411,40 @@ export class ReviewController {
     await this.reviewLikeService.unlikeReview(loginUser.idx, reviewIdx);
   }
 
+  @Post('/review/:reviewIdx/dislike')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: '리뷰 싫어요하기' })
+  @ApiParam({ name: 'reviewIdx', type: 'number', example: 1 })
+  @ApiBearerAuth()
+  @Exception(400, '유효하지않은 요청')
+  @Exception(401, '권한 없음')
+  @Exception(404, '해당 리소스 찾을수 없음')
+  @Exception(409, '현재상태와 요청 충돌')
+  @ApiResponse({ status: 201, type: ReviewDislikeEntity })
+  async dislikeReview(
+    @GetUser() loginUser: LoginUser,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
+  ): Promise<ReviewDislikeEntity> {
+    return await this.reviewLikeService.dislikeReview(loginUser.idx, reviewIdx);
+  }
+
+  @Delete('/review/:reviewIdx/dislike')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: '리뷰 싫어요 해제하기' })
+  @ApiParam({ name: 'reviewIdx', type: 'number', example: 1 })
+  @ApiBearerAuth()
+  @Exception(400, '유효하지않은 요청')
+  @Exception(401, '권한 없음')
+  @Exception(404, '해당 리소스 찾을수 없음')
+  @Exception(409, '현재상태와 요청 충돌')
+  @ApiResponse({ status: 201 })
+  async undislikeReview(
+    @GetUser() loginUser: LoginUser,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
+  ): Promise<void> {
+    await this.reviewLikeService.undislikeReview(loginUser.idx, reviewIdx);
+  }
+
   @Post('/review/:reviewIdx/bookmark')
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '리뷰 북마크하기' })
@@ -320,12 +454,15 @@ export class ReviewController {
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 찾을수 없음')
   @Exception(409, '현재상태와 요청 충돌')
-  @ApiResponse({ status: 201 })
+  @ApiResponse({ status: 201, type: ReviewBookmarkEntity })
   async bookmarkReview(
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
-  ): Promise<void> {
-    await this.reviewBookmarkService.bookmarkReview(loginUser.idx, reviewIdx);
+  ): Promise<ReviewBookmarkEntity> {
+    return await this.reviewBookmarkService.bookmarkReview(
+      loginUser.idx,
+      reviewIdx,
+    );
   }
 
   @Delete('/review/:reviewIdx/bookmark')
@@ -354,12 +491,12 @@ export class ReviewController {
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 찾을수 없음')
   @Exception(409, '현재상태와 요청 충돌')
-  @ApiResponse({ status: 201 })
+  @ApiResponse({ status: 201, type: ReviewShareEntity })
   async shareReview(
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
-  ): Promise<void> {
-    await this.reviewShareService.shareReview(loginUser.idx, reviewIdx);
+  ): Promise<ReviewShareEntity> {
+    return await this.reviewShareService.shareReview(loginUser.idx, reviewIdx);
   }
 
   @Post('/review/:reviewIdx/block')
@@ -371,12 +508,12 @@ export class ReviewController {
   @Exception(401, '권한없음')
   @Exception(404, '해당리소스 찾을 수 없음')
   @Exception(409, '현재상태와 요청 충돌')
-  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 200, type: ReviewBlockEntity })
   async blockReview(
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
-  ): Promise<void> {
-    await this.reviewBlockService.blockReview(loginUser.idx, reviewIdx);
+  ): Promise<ReviewBlockEntity> {
+    return await this.reviewBlockService.blockReview(loginUser.idx, reviewIdx);
   }
 
   @Delete('/review/:reviewIdx/block')
@@ -396,7 +533,6 @@ export class ReviewController {
     await this.reviewBlockService.unblockReview(loginUser.idx, reviewIdx);
   }
 
-  //데이터 추가될 수 있음
   @Post('/review/:reviewIdx/report')
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '리뷰 신고하기' })
@@ -406,15 +542,22 @@ export class ReviewController {
   @Exception(401, '권한없음')
   @Exception(404, '해당리소스 찾을 수 없음')
   @Exception(409, '현재상태와 요청 충돌')
-  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 200, type: ReportEntity })
   async reportReview(
     @GetUser() loginUser: LoginUser,
+    @Body() dto: ReportDto,
     @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
-  ): Promise<void> {
-    await this.reviewReportService.reportReview(loginUser.idx, reviewIdx);
+  ): Promise<ReportEntity> {
+    return await this.reportService.report({
+      reporterIdx: loginUser.idx,
+      reviewIdx: reviewIdx,
+      type: dto.type,
+      content: dto.content,
+    });
   }
 
   @Get('/user/:userIdx/review/all')
+  @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '유저가 쓴 리뷰목록보기' })
   @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
   @ApiQuery({
@@ -430,17 +573,44 @@ export class ReviewController {
   @Exception(400, '유효하지않은 요청')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
   async getReviewAllByuserIdx(
+    @GetUser() loginUser: LoginUser,
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
     @Query('page') page: number,
     @Query('size') size: number,
   ): Promise<ReviewPagerbleResponseDto> {
-    return await this.reviewService.getReviews(
+    const reviewPagerbleResponseDto = await this.reviewService.getReviews(
       {
         page: page || 1,
         size: size || 10,
       },
       userIdx,
     );
+
+    if (!loginUser) {
+      return reviewPagerbleResponseDto;
+    }
+
+    await this.reviewLikeCheckService.isReviewLiked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
+
+    await this.reviewLikeCheckService.isReviewDisliked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
+
+    await this.reviewBlockCheckService.isReviewBlocked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
+
+    await this.userBlockCheckService.isBlockedUser(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews.map((elem) => elem.user),
+    );
+
+    return reviewPagerbleResponseDto;
   }
 
   @Get('/user/:userIdx/review/bookmark')
@@ -480,12 +650,7 @@ export class ReviewController {
       reviewPagerbleResponseDto.reviews,
     );
 
-    await this.reviewBookmarkCheckService.isReviewBookmarked(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
-
-    await this.reviewShareCheckService.isReviewShared(
+    await this.reviewLikeCheckService.isReviewDisliked(
       loginUser.idx,
       reviewPagerbleResponseDto.reviews,
     );
@@ -495,10 +660,16 @@ export class ReviewController {
       reviewPagerbleResponseDto.reviews,
     );
 
+    await this.userBlockCheckService.isBlockedUser(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews.map((elem) => elem.user),
+    );
+
     return reviewPagerbleResponseDto;
   }
 
   @Get('/user/:userIdx/review/commented')
+  @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '유저의 댓글단 리뷰목록보기' })
   @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
   @ApiQuery({
@@ -514,16 +685,96 @@ export class ReviewController {
   @Exception(400, '유효하지않은 요청')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
   async getReviewCommented(
+    @GetUser() loginUser: LoginUser,
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
     @Query('page') page: number,
     @Query('size') size: number,
   ): Promise<ReviewPagerbleResponseDto> {
-    return await this.reviewService.getReviewCommented(
-      {
+    const reviewPagerbleResponseDto =
+      await this.reviewService.getMyCommentedReviewAll(userIdx, {
         size: size || 10,
         page: page || 1,
-      },
-      userIdx,
+      });
+
+    if (!loginUser) {
+      return reviewPagerbleResponseDto;
+    }
+
+    await this.reviewLikeCheckService.isReviewLiked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
     );
+
+    await this.reviewLikeCheckService.isReviewDisliked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
+
+    await this.reviewBlockCheckService.isReviewBlocked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
+
+    await this.userBlockCheckService.isBlockedUser(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews.map((elem) => elem.user),
+    );
+
+    return reviewPagerbleResponseDto;
+  }
+
+  @Get('/user/:userIdx/review/like')
+  @UseGuards(OptionalAuthGuard)
+  @ApiOperation({ summary: '유저의 좋아요한 리뷰목록보기' })
+  @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
+  @ApiQuery({
+    name: 'size',
+    example: 10,
+    description: '한 페이지에 가져올 리뷰수, 기본값 10',
+  })
+  @ApiQuery({
+    name: 'page',
+    example: 1,
+    description: '가져올 페이지, 기본값 1',
+  })
+  @Exception(400, '유효하지않은 요청')
+  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
+  async getReviewLiked(
+    @GetUser() loginUser: LoginUser,
+    @Param('userIdx', ParseUUIDPipe) userIdx: string,
+    @Query('page') page: number,
+    @Query('size') size: number,
+  ): Promise<ReviewPagerbleResponseDto> {
+    const reviewPagerbleResponseDto =
+      await this.reviewService.getReviewLikedAll(userIdx, {
+        size: size || 10,
+        page: page || 1,
+      });
+
+    if (!loginUser) {
+      return reviewPagerbleResponseDto;
+    }
+
+    await this.reviewLikeCheckService.isReviewLiked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
+
+    await this.reviewLikeCheckService.isReviewDisliked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
+
+    await this.reviewBlockCheckService.isReviewBlocked(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews,
+    );
+
+    await this.userBlockCheckService.isBlockedUser(
+      loginUser.idx,
+      reviewPagerbleResponseDto.reviews.map((elem) => elem.user),
+    );
+
+    return reviewPagerbleResponseDto;
   }
 }

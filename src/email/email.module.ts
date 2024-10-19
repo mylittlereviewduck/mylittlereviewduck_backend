@@ -1,9 +1,8 @@
-import { MailerModule, MailerService } from '@nestjs-modules/mailer';
+import { MailerModule } from '@nestjs-modules/mailer';
 import { Module } from '@nestjs/common';
-import { MailService } from './email.service';
+import { EmailService } from '../email/email.service';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
-import { join } from 'path';
-import { PrismaModule } from '../../prisma/prisma.module';
+import { PrismaModule } from 'src/prisma/prisma.module';
 
 @Module({
   imports: [
@@ -30,7 +29,7 @@ import { PrismaModule } from '../../prisma/prisma.module';
     }),
     PrismaModule,
   ],
-  providers: [MailService],
-  exports: [MailService],
+  providers: [EmailService],
+  exports: [EmailService],
 })
-export class MailModule {}
+export class EmailModule {}

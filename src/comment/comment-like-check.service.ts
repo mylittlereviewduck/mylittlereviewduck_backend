@@ -11,7 +11,7 @@ export class CommentLikeCheckService {
     userIdx: string,
     comments: CommentEntity[],
   ): Promise<CommentEntity[]> {
-    const sqlResult = await this.prismaService.commentLikesTb.findMany({
+    const sqlResult = await this.prismaService.commentLikeTb.findMany({
       where: {
         accountIdx: userIdx,
         commentIdx: {
@@ -28,6 +28,8 @@ export class CommentLikeCheckService {
     for (let i = 0; i < comments.length; i++) {
       if (likedCommentList.includes(comments[i].idx)) {
         comments[i].isMyLike = true;
+      } else {
+        comments[i].isMyLike = false;
       }
     }
 

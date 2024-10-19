@@ -1,11 +1,10 @@
-import { AuthGuard } from './auth.guard';
+import { AuthGuard } from './guard/auth.guard';
 import { Module, forwardRef } from '@nestjs/common';
 import { PrismaModule } from '../../src/prisma/prisma.module';
 import { UserModule } from '../../src/user/user.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtModule } from '@nestjs/jwt';
-import { MailModule } from '../common/email/email.module';
 import { GoogleStrategy } from './strategy/google.strategy';
 import { HttpModule } from '@nestjs/axios';
 import { UserService } from '../../src/user/user.service';
@@ -13,6 +12,7 @@ import { NaverStrategy } from './strategy/naver.strategy';
 import { KakaoStrategy } from './strategy/kakao.strategy';
 import { EmailAuthService } from './email-auth.service';
 import { ConfigService } from '@nestjs/config';
+import { EmailModule } from '../email/email.module';
 
 @Module({
   imports: [
@@ -26,7 +26,7 @@ import { ConfigService } from '@nestjs/config';
       }),
       inject: [ConfigService],
     }),
-    MailModule,
+    EmailModule,
     HttpModule,
   ],
   controllers: [AuthController],

@@ -1,5 +1,6 @@
 import { UserPagerbleDto } from './dto/user-pagerble.dto';
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -23,17 +24,19 @@ export class UserBlockService {
     userIdx: string,
     toUserIdx: string,
   ): Promise<UserBlockEntity> {
+    if (userIdx == toUserIdx) {
+      throw new BadRequestException('Cannot Block Myself');
+    }
+
     const user = await this.userService.getUser({ idx: toUserIdx });
 
     if (!user) {
       throw new NotFoundException('Not Found User');
     }
 
-    const existingBlock = await this.userBlockCheckService.isBlocked(userIdx, [
-      user,
-    ]);
+    await this.userBlockCheckService.isBlockedUser(userIdx, [user]);
 
-    if (user.isBlocked == true) {
+    if (user.isMyBlock == true) {
       throw new ConflictException('Already Conflict');
     }
 
@@ -54,11 +57,9 @@ export class UserBlockService {
       throw new NotFoundException('Not Found User');
     }
 
-    const existingBlock = await this.userBlockCheckService.isBlocked(userIdx, [
-      user,
-    ]);
+    await this.userBlockCheckService.isBlockedUser(userIdx, [user]);
 
-    if (user.isBlocked == false) {
+    if (user.isMyBlock == false) {
       throw new ConflictException('Already Not Conflict');
     }
 
@@ -86,16 +87,11 @@ export class UserBlockService {
       include: {
         blocked: {
           include: {
-            profileImgTb: {
-              select: {
-                imgPath: true,
-              },
-            },
+            profileImgTb: true,
             _count: {
               select: {
                 follower: true,
                 followee: true,
-                reviewReportTb: true,
               },
             },
           },
@@ -111,10 +107,8 @@ export class UserBlockService {
     let blockedUserList = blockedList.map((elem) => {
       return {
         ...elem.blocked,
-        profileImg: elem.blocked.profileImgTb[0].imgPath,
         followingCount: elem.blocked._count.follower,
         followerCount: elem.blocked._count.followee,
-        reportCount: elem.blocked._count.reviewReportTb,
         isBlocked: true,
       };
     });

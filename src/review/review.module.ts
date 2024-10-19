@@ -1,4 +1,4 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { ConsoleLogger, Module, forwardRef } from '@nestjs/common';
 import { ReviewController } from './review.controller';
 import { ReviewService } from './review.service';
 import { ReviewBookmarkService } from './review-bookmark.service';
@@ -10,11 +10,12 @@ import { ReviewLikeCheckService } from './review-like-check.service';
 import { ReviewBookmarkCheckService } from './review-bookmark-check.service';
 import { ReviewBlockService } from './review-block.service';
 import { ReviewBlockCheckService } from './review-block-check.service';
-import { ReviewReportService } from './review-report.service';
 import { ReviewShareService } from './review-share.service';
 import { ReviewShareCheckService } from './review-share-check.service';
 import { UserModule } from 'src/user/user.module';
-import { AwsModule } from 'src/common/aws/aws.module';
+import { AwsModule } from 'src/aws/aws.module';
+import { NotificationModule } from 'src/notification/notification.module';
+import { ReportModule } from 'src/report/report.module';
 
 @Module({
   imports: [
@@ -23,9 +24,12 @@ import { AwsModule } from 'src/common/aws/aws.module';
     PrismaModule,
     UserModule,
     AwsModule,
+    NotificationModule,
+    forwardRef(() => ReportModule),
   ],
   controllers: [ReviewController],
   providers: [
+    ConsoleLogger,
     ReviewService,
     ReviewLikeService,
     ReviewLikeCheckService,
@@ -35,7 +39,6 @@ import { AwsModule } from 'src/common/aws/aws.module';
     ReviewShareCheckService,
     ReviewBlockService,
     ReviewBlockCheckService,
-    ReviewReportService,
   ],
   exports: [ReviewService],
 })

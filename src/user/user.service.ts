@@ -10,54 +10,106 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateMyInfoDto } from './dto/update-my-info.dto';
 import { GetUserDto } from './dto/get-user.dto';
 import { UserWithProvider } from './model/user-with-provider.model';
-import { AccountTb, ProfileImgTb } from '@prisma/client';
+import { UserPagerbleResponseDto } from './dto/response/user-pagerble-response.dto';
+import { UserFollowPagerbleDto } from './dto/user-follow-pagerble.dto';
+import { EmailService } from '../email/email.service';
+import { GetUsersAllDto } from './dto/get-users-all.dto';
+import { Prisma } from '@prisma/client';
+import { UserListResponseDto } from './dto/response/user-list-response.dto';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly emailService: EmailService,
+  ) {}
 
   async getUser(getUserDto: GetUserDto): Promise<UserEntity | undefined> {
-    const user = await this.prismaService.accountTb.findFirst({
+    const userData = await this.prismaService.accountTb.findFirst({
+      include: {
+        profileImgTb: true,
+        _count: {
+          select: {
+            followee: true,
+            follower: true,
+          },
+        },
+      },
       where: {
         idx: getUserDto.idx,
         email: getUserDto.email,
         nickname: getUserDto.nickname,
-      },
-      include: {
-        profileImgTb: {
-          where: {
-            deletedAt: null,
-          },
-        },
-        _count: {
-          select: {
-            follower: true,
-            followee: true,
-            reviewReportTb: true,
-          },
-        },
+        deletedAt: null,
       },
     });
 
-    if (!user) {
-      return;
+    if (!userData) {
+      return undefined;
     }
 
-    return new UserEntity({
-      ...user,
-      profileImg: user.profileImgTb[0].imgPath,
-      followingCount: user._count.follower,
-      followerCount: user._count.followee,
-      reportCount: user._count.reviewReportTb,
+    return new UserEntity(userData);
+  }
+
+  async getUsersAll(dto: GetUsersAllDto): Promise<UserListResponseDto> {
+    //prettier-ignore
+    const totalCount = await this.prismaService.accountTb.count({
+      where: {
+        OR: [
+          dto.email ? { email: { contains: dto.email, mode: Prisma.QueryMode.insensitive } }: null,
+          dto.nickname ? { nickname: { contains: dto.nickname, mode: Prisma.QueryMode.insensitive } }: null,
+          dto.interest1 ? { interest1: { contains: dto.interest1, mode: Prisma.QueryMode.insensitive } }: null,
+          dto.interest2 ? { interest2: { contains: dto.interest2, mode: Prisma.QueryMode.insensitive } }: null,
+          dto.isUserValid ? { suspendExpireAt: null } : null,
+          dto.isUserSuspended ? { suspendExpireAt: { not: null } } : null,
+          dto.isUserBlackList ? { suspendExpireAt: { gte: new Date('2100-01-01') } } : null,
+        ].filter((x) => x !== null), // null 값 제거
+        deletedAt: null,
+      },
     });
+
+    const userData = await this.prismaService.accountTb.findMany({
+      include: {
+        profileImgTb: true,
+        _count: {
+          select: {
+            followee: true,
+            follower: true,
+          },
+        },
+      },
+
+      // prettier-ignore
+      where: {
+        OR: [
+          dto.email ? { email: { contains: dto.email, mode: Prisma.QueryMode.insensitive } }: null,
+          dto.nickname ? { nickname: { contains: dto.nickname, mode: Prisma.QueryMode.insensitive } }: null,
+          dto.interest1 ? { interest1: { contains: dto.interest1, mode: Prisma.QueryMode.insensitive } }: null,
+          dto.interest2 ? { interest2: { contains: dto.interest2, mode: Prisma.QueryMode.insensitive } }: null,
+          dto.isUserValid ? { suspendExpireAt: null } : null,
+          dto.isUserSuspended ? { suspendExpireAt: { not: null } } : null,
+          dto.isUserBlackList ? { suspendExpireAt: { gte: new Date('2100-01-01') } } : null,
+        ].filter((x) => x !== null), // null 값 제거
+        deletedAt: null,
+      },
+
+      orderBy: {
+        idx: 'desc',
+      },
+      skip: dto.size * (dto.page - 1),
+      take: dto.size,
+    });
+
+    return {
+      totalPage: Math.ceil(totalCount / dto.size),
+      users: userData.map((elem) => new UserEntity(elem)),
+    };
   }
 
   //이메일인증 확인 로직추가
   async createUser(createUserDto: CreateUserDto): Promise<UserEntity> {
     let newUser;
-    let newProfileImg;
     await this.prismaService.$transaction(async (tx) => {
-      const emailDuplicatedUser = await tx.accountTb.findFirst({
+      const emailDuplicatedUser = await tx.accountInfoView.findFirst({
         where: {
           email: createUserDto.email,
         },
@@ -71,6 +123,10 @@ export class UserService {
         data: {
           email: createUserDto.email,
           pw: createUserDto.pw,
+          provider: 'local',
+          profileImgTb: {
+            create: {},
+          },
         },
       });
 
@@ -82,62 +138,45 @@ export class UserService {
           idx: newUser.idx,
         },
       });
-
-      newProfileImg = await tx.profileImgTb.create({
-        data: {
-          accountIdx: newUser.idx,
-        },
-      });
     });
 
-    const userData = {
-      ...newUser,
-      profileImg: newProfileImg.imgPath,
-      followingCount: 0,
-      followerCount: 0,
-      reportCount: 0,
-    };
-
-    return new UserEntity(userData);
+    return new UserEntity(newUser);
   }
 
   async createUserWithOAuth(
     createUserOAuthDto: CreateUserOAtuhDto,
   ): Promise<UserEntity> {
-    let userData: AccountTb, profileImgData: ProfileImgTb;
+    let userData;
 
-    await this.prismaService.$transaction(async (tx) => {
-      userData = await tx.accountTb.create({
-        data: {
-          email: createUserOAuthDto.email,
-          nickname: createUserOAuthDto.nickname,
-          provider: createUserOAuthDto.provider,
-          providerKey: createUserOAuthDto.providerKey,
-        },
-      });
+    userData = await this.prismaService.accountTb.create({
+      data: {
+        email: createUserOAuthDto.email,
+        nickname: createUserOAuthDto.nickname,
+        provider: createUserOAuthDto.provider,
+        providerKey: createUserOAuthDto.providerKey,
 
-      profileImgData = await tx.profileImgTb.create({
-        data: {
-          accountIdx: userData.idx,
+        profileImgTb: {
+          create: {},
         },
-      });
+      },
+      include: {
+        profileImgTb: true,
+        _count: {
+          select: {
+            followee: true,
+            follower: true,
+          },
+        },
+      },
     });
 
-    const userEntityData = {
-      ...userData,
-      profileImg: profileImgData.imgPath,
-      followingCount: 0,
-      followerCount: 0,
-      reportCount: 0,
-    };
-
-    return new UserEntity(userEntityData);
+    return new UserEntity(userData);
   }
 
   async updateMyinfo(
     userIdx: string,
     updateMyInfoDto: UpdateMyInfoDto,
-  ): Promise<void> {
+  ): Promise<UserEntity> {
     const user = await this.getUser({
       idx: userIdx,
     });
@@ -150,23 +189,32 @@ export class UserService {
       nickname: updateMyInfoDto.nickname,
     });
 
-    if (duplicatedUser) {
+    if (duplicatedUser && user.nickname != duplicatedUser.nickname) {
       throw new ConflictException('Duplicated Nickname');
     }
 
     const updatedUser = await this.prismaService.accountTb.update({
+      include: {
+        profileImgTb: true,
+        _count: {
+          select: {
+            followee: true,
+            follower: true,
+          },
+        },
+      },
       data: {
         nickname: updateMyInfoDto.nickname,
         profile: updateMyInfoDto.profile,
+        interest1: updateMyInfoDto.interest[0],
+        interest2: updateMyInfoDto.interest[1],
       },
       where: {
         idx: userIdx,
       },
     });
 
-    console.log(updatedUser);
-
-    return;
+    return new UserEntity(updatedUser);
   }
 
   async updateMyProfileImg(userIdx: string, imgPath: string): Promise<void> {
@@ -212,7 +260,7 @@ export class UserService {
     userIdx: string,
     provider: string,
   ): Promise<UserWithProvider> {
-    const userData = await this.prismaService.accountTb.findUnique({
+    const userData = await this.prismaService.accountInfoView.findUnique({
       where: {
         idx: userIdx,
         provider: provider,
@@ -235,5 +283,48 @@ export class UserService {
         deletedAt: new Date(),
       },
     });
+  }
+
+  async getFollowingList(
+    userPagerbleDto: UserFollowPagerbleDto,
+  ): Promise<UserPagerbleResponseDto> {
+    const getFollowingCount = await this.prismaService.followTb.count({
+      where: {
+        followerIdx: userPagerbleDto.userIdx,
+      },
+    });
+
+    const followList = await this.prismaService.accountTb.findMany({
+      include: {
+        profileImgTb: true,
+        _count: {
+          select: {
+            followee: true,
+            follower: true,
+          },
+        },
+      },
+
+      where: {
+        [userPagerbleDto.type === 'follower' ? 'followee' : 'follower']: {
+          some: {
+            [userPagerbleDto.type === 'follower'
+              ? 'followerIdx'
+              : 'followeeIdx']: userPagerbleDto.userIdx,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+
+      skip: (userPagerbleDto.page - 1) * userPagerbleDto.size,
+      take: userPagerbleDto.size,
+    });
+
+    return {
+      totalPage: Math.ceil(getFollowingCount / userPagerbleDto.size),
+      users: followList.map((elem) => new UserEntity(elem)),
+    };
   }
 }

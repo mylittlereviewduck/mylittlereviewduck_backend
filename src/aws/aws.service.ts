@@ -31,6 +31,6 @@ export class AwsService {
 
     await this.s3Client.send(command);
 
-    return `https://s3.${this.region}.amazonaws.com/${this.bucketName}/${fileName}`;
+    return `https://s3.${this.region}.amazonaws.com/${this.bucketName}/${fileName}.${ext}`;
   }
 }

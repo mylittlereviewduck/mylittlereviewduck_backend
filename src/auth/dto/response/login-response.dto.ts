@@ -5,4 +5,8 @@ export class LoginResponseDto {
   @ApiProperty()
   @IsString()
   accessToken: string;
+
+  @ApiProperty()
+  @IsString()
+  refreshToken: string;
 }

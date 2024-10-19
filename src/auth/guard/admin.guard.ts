@@ -1,7 +1,8 @@
-import { JwtService } from '@nestjs/jwt';
+import { JwtService, TokenExpiredError } from '@nestjs/jwt';
 import {
   CanActivate,
   ExecutionContext,
+  ForbiddenException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -9,7 +10,7 @@ import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
-export class AuthGuard implements CanActivate {
+export class AdminGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
@@ -28,9 +29,21 @@ export class AuthGuard implements CanActivate {
         secret: this.configService.get<string>('JWT_SECRET'),
       });
 
+      if (payload.type != 'access') {
+        throw new UnauthorizedException();
+      }
+
+      if (payload.isAdmin !== true) {
+        throw new ForbiddenException('No Admin');
+      }
+
       request.user = payload;
-    } catch {
-      throw new UnauthorizedException();
+    } catch (err) {
+      if (err instanceof TokenExpiredError) {
+        throw new UnauthorizedException('Authentication TimeOut');
+      }
+
+      throw err;
     }
 
     return true;

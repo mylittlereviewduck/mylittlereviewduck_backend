@@ -1,11 +1,41 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Prisma } from '@prisma/client';
+import { ReviewUserEntity } from 'src/review/entity/ReviewUser.entity';
+
+const comment = Prisma.validator<Prisma.CommentTbDefaultArgs>()({
+  include: {
+    accountTb: {
+      include: {
+        profileImgTb: true,
+      },
+    },
+    _count: {
+      select: {
+        commentLikeTb: true,
+      },
+    },
+  },
+});
+
+type Comment = Prisma.CommentTbGetPayload<typeof comment>;
 
 export class CommentEntity {
   @ApiProperty({ example: 1, description: '댓글 idx' })
   idx: number;
 
-  @ApiProperty({ example: 1, description: '유저 idx' })
-  userIdx: string;
+  @ApiProperty({
+    example: {
+      idx: '344e753e-9071-47b2-b651-bc32a0a92b1f',
+      email: 'test1@a.com',
+      nickname: '23번째 오리',
+      profileImg:
+        'https://s3.ap-northeast-2.amazonaws.com/todayreview/1724893124840.png',
+      interest1: '여행',
+      interest2: null,
+    },
+    description: '작성자',
+  })
+  user: ReviewUserEntity;
 
   @ApiProperty({ example: 1, description: '리뷰 idx' })
   reviewIdx: number;
@@ -31,14 +61,12 @@ export class CommentEntity {
   @ApiProperty({ example: true, description: '좋아요여부' })
   isMyLike: boolean = false;
 
-  constructor(data) {
+  constructor(data: Comment) {
     this.idx = data.idx;
-    this.userIdx = data.userIdx;
+    this.user = new ReviewUserEntity(data.accountTb);
     this.reviewIdx = data.reviewIdx;
     this.commentIdx = data.commentIdx;
     this.content = data.content;
     this.createdAt = data.createdAt;
-    this.isMyBlock = data.isMyBlock || false;
-    this.isMyLike = data.isMyLike || false;
   }
 }

@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { ReviewEntity } from 'src/review/entity/Review.entity';
+import { ReviewListEntity } from 'src/review/entity/ReviewList.entity';
 
 export class ReviewPagerbleResponseDto {
   @ApiProperty({ example: 9, description: '전체 페이지 수' })
@@ -8,44 +9,47 @@ export class ReviewPagerbleResponseDto {
   @ApiProperty({
     description: '리뷰리스트',
     isArray: true,
+    type: ReviewListEntity,
     example: [
       {
+        idx: 10118,
+        title: '리뷰제목',
+        score: 3,
+        createdAt: '2024-08-31T04:04:22.711Z',
+        user: {
+          idx: '344e753e-9071-47b2-b651-bc32a0a92b1f',
+          email: 'test1@a.com',
+          nickname: '23번째 오리',
+        },
+        tags: ['tag1', 'tag2'],
+        images: ['image1', 'image2', 'image3', 'image4', 'image5', 'image6'],
+        likeCount: 0,
+        dislikeCount: 0,
+        commentCount: 0,
         isMyLike: true,
-        isMyBookmark: true,
-        isMyShare: true,
+        isMyDislike: false,
         isMyBlock: false,
-        idx: 41,
-        accountIdx: 5,
-        title: '모델 X의 화면 해상도',
-        content:
-          '화면 해상도가 좋아서 영화 볼 때 생생해요. 하지만 무게가 좀 무거워요.',
-        tags: ['해상도', '영화', '무게'],
-        createdAt: '2024-08-06T06:25:28.788Z',
-        viewCount: 0,
-        likeCount: 1,
-        bookmarkCount: 1,
-        shareCount: 1,
-        reportCount: 1,
       },
       {
-        isMyLike: false,
-        isMyBookmark: false,
-        isMyShare: false,
-        isMyBlock: false,
-        idx: 40,
-        accountIdx: 4,
-        title: '모델 X의 배터리 수명이 짧아요',
-        content:
-          '사용한 지 몇 달 되지 않았는데, 배터리가 빨리 닳기 시작했어요. 실망입니다.',
-        tags: ['배터리', '수명', '실망'],
-        createdAt: '2024-08-06T06:25:28.788Z',
-        viewCount: 0,
+        idx: 10117,
+        title: '리뷰제목',
+        score: 3,
+        createdAt: '2024-08-31T04:00:36.784Z',
+        user: {
+          idx: '344e753e-9071-47b2-b651-bc32a0a92b1f',
+          email: 'test1@a.com',
+          nickname: '23번째 오리',
+        },
+        tags: ['tag1', 'tag2'],
+        images: ['image1', 'image2', 'image3', 'image4', 'image5', 'image6'],
         likeCount: 0,
-        bookmarkCount: 0,
-        shareCount: 0,
-        reportCount: 1,
+        dislikeCount: 0,
+        commentCount: 0,
+        isMyLike: false,
+        isMyDislike: false,
+        isMyBlock: true,
       },
     ],
   })
-  reviews: ReviewEntity[];
+  reviews: ReviewListEntity[];
 }

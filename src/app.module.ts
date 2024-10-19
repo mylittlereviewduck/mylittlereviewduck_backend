@@ -1,4 +1,4 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
@@ -7,8 +7,10 @@ import { ReviewModule } from './review/review.module';
 import { CommentModule } from './comment/comment.module';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
-import { MailModule } from './common/email/email.module';
 import { CacheModule } from '@nestjs/cache-manager';
+import { EmailModule } from '../src/email/email.module';
+import { NotificationModule } from './notification/notification.module';
+import { ReportModule } from './report/report.module';
 
 @Module({
   imports: [
@@ -18,8 +20,10 @@ import { CacheModule } from '@nestjs/cache-manager';
     CommentModule,
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
-    MailModule,
+    EmailModule,
     CacheModule.register(),
+    NotificationModule,
+    ReportModule,
   ],
   controllers: [AppController],
   providers: [AppService],

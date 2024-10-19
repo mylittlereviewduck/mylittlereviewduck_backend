@@ -5,9 +5,11 @@ import { CommentLikeService } from './comment-like.service';
 import { CommentLikeCheckService } from './comment-like-check.service';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { ReviewModule } from 'src/review/review.module';
+import { NotificationModule } from 'src/notification/notification.module';
+import { ReportModule } from 'src/report/report.module';
 
 @Module({
-  imports: [PrismaModule, ReviewModule],
+  imports: [PrismaModule, ReviewModule, NotificationModule, ReportModule],
   controllers: [CommentController],
   providers: [CommentService, CommentLikeService, CommentLikeCheckService],
   exports: [CommentService],

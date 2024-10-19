@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { FollowEntity } from './entity/Follow.entity';
 import { UserEntity } from './entity/User.entity';
+import { NotificationUserEntity } from 'src/notification/entity/NotificationUser.entity';
 
 @Injectable()
 export class FollowCheckService {
@@ -9,8 +9,8 @@ export class FollowCheckService {
 
   async isFollow(
     accountIdx: string,
-    toUsers: UserEntity[],
-  ): Promise<UserEntity[]> {
+    toUsers: UserEntity[] | NotificationUserEntity[],
+  ): Promise<UserEntity[] | NotificationUserEntity[]> {
     const sqlResult = await this.prismaService.followTb.findMany({
       select: {
         followee: true,
@@ -27,7 +27,9 @@ export class FollowCheckService {
 
     for (let i = 0; i < toUsers.length; i++) {
       if (followingUserList.includes(toUsers[i].idx)) {
-        toUsers[i].isFollowing = true;
+        toUsers[i].isMyFollowing = true;
+      } else {
+        toUsers[i].isMyFollowing = false;
       }
     }
 

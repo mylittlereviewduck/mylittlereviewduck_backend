@@ -13,7 +13,7 @@ jobs:
     runs-on: self-hosted
     steps:
       - name: 코드 업데이트, 재실행
-      run: |
+        run: |
         echo "PR was merged"
         pwd
         cd /home/ubuntu/mylittlereviewduck_backend

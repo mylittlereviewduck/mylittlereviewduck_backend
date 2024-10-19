@@ -14,8 +14,8 @@ jobs:
     steps:
       - name: 코드 업데이트, 재실행
         run: |
-        echo "PR was merged"
-        pwd
-        cd /home/ubuntu/mylittlereviewduck_backend
-        git pull origin main
-        sudo pm2 restart 1
+          echo "PR was merged"
+          pwd
+          cd /home/ubuntu/mylittlereviewduck_backend
+          git pull origin main
+          sudo pm2 restart 1

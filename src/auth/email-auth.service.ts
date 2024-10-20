@@ -1,7 +1,11 @@
 import { PrismaService } from 'src/prisma/prisma.service';
-import { AuthService } from './auth.service';
 import { SendEmailVerificationDto } from './dto/send-email-verification.dto';
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  forwardRef,
+} from '@nestjs/common';
 import { EmailService } from '../email/email.service';
 import { UserService } from 'src/user/user.service';
 import { VerifiedEmailTb } from '@prisma/client';
@@ -9,9 +13,9 @@ import { VerifiedEmailTb } from '@prisma/client';
 @Injectable()
 export class EmailAuthService {
   constructor(
-    private readonly authService: AuthService,
     private readonly emailService: EmailService,
     private readonly prismaService: PrismaService,
+    @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
   ) {}
 
@@ -50,24 +54,29 @@ export class EmailAuthService {
 
   async getEmailWithVerificationCode(
     email: string,
-    verificationCode: number,
+    verificationCode?: number,
   ): Promise<VerifiedEmailTb> {
-    return await this.prismaService.verifiedEmailTb.findFirst({
+    return await this.prismaService.verifiedEmailTb.findUnique({
       where: {
         email: email,
         code: verificationCode,
-        createdAt: {
-          gte: new Date(Date.now() - 5 * 60 * 1000),
-        },
       },
     });
   }
 
-  async verifyEmail(email: string): Promise<void> {
-    await this.prismaService.verifiedEmailTb.update({
+  async verifyEmail(email: string): Promise<VerifiedEmailTb> {
+    return await this.prismaService.verifiedEmailTb.update({
       data: {
         isVerified: true,
       },
+      where: {
+        email: email,
+      },
+    });
+  }
+
+  async deleteVerifiedEmail(email: string): Promise<void> {
+    await this.prismaService.verifiedEmailTb.delete({
       where: {
         email: email,
       },

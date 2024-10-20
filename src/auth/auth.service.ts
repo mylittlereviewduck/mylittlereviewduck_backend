@@ -1,9 +1,10 @@
-import { ConfigService } from '@nestjs/config';
 import { LoginDto } from './dto/login.dto';
 import {
+  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
+  forwardRef,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UserService } from '../../src/user/user.service';
@@ -20,10 +21,10 @@ export class AuthService {
   private strategy = {};
 
   constructor(
+    @Inject(forwardRef(() => UserService)) // forwardRef를 사용하여 순환 참조 해결
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly prismaService: PrismaService,
-    private readonly conifgService: ConfigService,
     private readonly googleStrategy: GoogleStrategy,
     private readonly naverStrategy: NaverStrategy,
     private readonly kakaoStrategy: KakaoStrategy,

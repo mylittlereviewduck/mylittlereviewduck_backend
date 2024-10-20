@@ -1,7 +1,10 @@
+import { GetUser } from './../auth/get-user.decorator';
+import { EmailAuthService } from './../auth/email-auth.service';
 import {
   ConflictException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { UserEntity } from './entity/User.entity';
 import { PrismaService } from '../../src/prisma/prisma.service';
@@ -22,6 +25,7 @@ export class UserService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly emailService: EmailService,
+    private readonly emailAuthService: EmailAuthService,
   ) {}
 
   async getUser(getUserDto: GetUserDto): Promise<UserEntity | undefined> {
@@ -106,23 +110,33 @@ export class UserService {
   }
 
   //이메일인증 확인 로직추가
-  async createUser(createUserDto: CreateUserDto): Promise<UserEntity> {
+  async createUser(dto: CreateUserDto): Promise<UserEntity> {
     let newUser;
     await this.prismaService.$transaction(async (tx) => {
-      const emailDuplicatedUser = await tx.accountInfoView.findFirst({
-        where: {
-          email: createUserDto.email,
-        },
-      });
+      const emailDuplicatedUser = await this.getUser({ email: dto.email });
 
       if (emailDuplicatedUser) {
         throw new ConflictException('Email Duplicated');
       }
 
+      const authenticatedEmail =
+        await this.emailAuthService.getEmailWithVerificationCode(dto.email);
+
+      if (!authenticatedEmail || authenticatedEmail.isVerified !== true) {
+        throw new UnauthorizedException('Unauthorized Email');
+      }
+
+      if (
+        new Date().getTime() - authenticatedEmail.createdAt.getTime() >
+        30 * 60 * 1000
+      ) {
+        throw new UnauthorizedException('Authentication TimeOut');
+      }
+
       newUser = await tx.accountTb.create({
         data: {
-          email: createUserDto.email,
-          pw: createUserDto.pw,
+          email: dto.email,
+          pw: dto.pw,
           provider: 'local',
           profileImgTb: {
             create: {},
@@ -138,7 +152,17 @@ export class UserService {
           idx: newUser.idx,
         },
       });
+
+      await tx.profileImgTb.create({
+        data: {
+          accountIdx,
+        },
+      });
     });
+
+    // await this.emailAuthService.deleteVerifiedEmail(dto.email);
+
+    console.log('newUser: ', newUser);
 
     return new UserEntity(newUser);
   }
@@ -217,6 +241,17 @@ export class UserService {
     return new UserEntity(updatedUser);
   }
 
+  async createMyProfileImg(userIdx: string, imgPath?: string): Promise<void> {
+    this.prismaService.profileImgTb.create({
+      data: {
+        accountIdx: userIdx,
+        imgPath:
+          imgPath ||
+          'https://todayreview.s3.ap-northeast-2.amazonaws.com/profileImg_default.png',
+      },
+    });
+  }
+
   async updateMyProfileImg(userIdx: string, imgPath: string): Promise<void> {
     await this.prismaService.$transaction([
       this.prismaService.profileImgTb.updateMany({
@@ -228,12 +263,7 @@ export class UserService {
         },
       }),
 
-      this.prismaService.profileImgTb.create({
-        data: {
-          accountIdx: userIdx,
-          imgPath: imgPath,
-        },
-      }),
+      await this.createMyProfileImg(userIdx, imgPath),
     ]);
   }
 
@@ -248,11 +278,7 @@ export class UserService {
         },
       }),
 
-      this.prismaService.profileImgTb.create({
-        data: {
-          accountIdx: userIdx,
-        },
-      }),
+      this.createMyProfileImg(userIdx),
     ]);
   }
 

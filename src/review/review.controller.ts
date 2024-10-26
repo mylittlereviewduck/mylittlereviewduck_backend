@@ -54,7 +54,7 @@ import { NotificationService } from 'src/notification/notification.service';
 import { ReportEntity } from 'src/report/entity/Report.entity';
 import { ReportService } from 'src/report/report.service';
 import { ReportDto } from 'src/report/dto/report.dto';
-import { ReviewTimeframe } from './type/review-timeframe.dto';
+import { GetReviewsAllPagerbleDto } from './dto/get-reviews-all-pagerble.dto';
 import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
 
 @Controller('')
@@ -92,10 +92,8 @@ export class ReviewController {
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
   async getReviewAll(
     @GetUser() loginUser: LoginUser,
-    @Query() dto: ReviewPagerbleDto,
+    @Query() dto: GetReviewsAllPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    console.log('dto.timeframe: ', dto.timeframe);
-
     const reviewPagerbleResponseDto = await this.reviewService.getReviewsAll({
       size: dto.size || 10,
       page: dto.page || 1,
@@ -153,7 +151,6 @@ export class ReviewController {
     return await this.reviewService.getHotReviewAll({
       size: dto.size || 10,
       page: dto.page || 1,
-      timeframe: dto.timeframe,
     });
   }
 
@@ -176,7 +173,6 @@ export class ReviewController {
     return await this.reviewService.getColdReviewAll({
       size: dto.size || 10,
       page: dto.page || 1,
-      timeframe: dto.timeframe,
     });
   }
 
@@ -585,7 +581,6 @@ export class ReviewController {
       page: dto.page || 1,
       size: dto.size || 10,
       userIdx: userIdx,
-      timeframe: dto.timeframe,
     });
 
     if (!loginUser) {
@@ -640,7 +635,6 @@ export class ReviewController {
       await this.reviewService.getBookmarkedReviewAll(userIdx, {
         size: dto.size || 10,
         page: dto.page || 1,
-        timeframe: dto.timeframe,
       });
 
     if (!loginUser) {
@@ -695,7 +689,6 @@ export class ReviewController {
       await this.reviewService.getMyCommentedReviewAll(userIdx, {
         size: dto.size || 10,
         page: dto.page || 1,
-        timeframe: dto.timeframe,
       });
 
     if (!loginUser) {
@@ -750,7 +743,6 @@ export class ReviewController {
       await this.reviewService.getReviewLikedAll(userIdx, {
         size: dto.size || 10,
         page: dto.page || 1,
-        timeframe: dto.timeframe,
       });
 
     if (!loginUser) {

@@ -8,7 +8,7 @@ import {
 import { CreateReviewDto } from './dto/create-review.dto';
 import { ReviewEntity } from './entity/Review.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
+import { ReviewPagerbleDto } from './dto/get-reviews-all-pagerble.dto';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { UpdateReviewDto } from './dto/update-review.dto';
 import { ReviewSearchPagerbleDto } from './dto/review-search-pagerble.dto';
@@ -316,10 +316,12 @@ export class ReviewService {
         accountTb: {
           include: {
             profileImgTb: {
-              orderBy: {
-                idx: 'desc',
+              select: {
+                imgPath: true,
               },
-              take: 1,
+              where: {
+                deletedAt: null,
+              },
             },
           },
         },

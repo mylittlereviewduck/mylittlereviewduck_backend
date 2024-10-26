@@ -274,13 +274,11 @@ export class ReviewController {
   async updateReview(
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
-    @Body() updateReviewDto: UpdateReviewDto,
+    @Body() dto: UpdateReviewDto,
   ): Promise<ReviewEntity> {
-    return await this.reviewService.updateReview(
-      loginUser.idx,
-      reviewIdx,
-      updateReviewDto,
-    );
+    dto.userIdx = loginUser.idx;
+    dto.reviewIdx = reviewIdx;
+    return await this.reviewService.updateReview(dto);
   }
 
   @Delete('/review/:reviewIdx')
@@ -575,13 +573,12 @@ export class ReviewController {
   async getReviewAllByUserIdx(
     @GetUser() loginUser: LoginUser,
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
-    @Query() dto: ReviewPagerbleDto,
+    @Query() dto: GetReviewsAllPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    const reviewPagerbleResponseDto = await this.reviewService.getReviewsAll({
-      page: dto.page || 1,
-      size: dto.size || 10,
-      userIdx: userIdx,
-    });
+    dto.userIdx = userIdx;
+
+    const reviewPagerbleResponseDto =
+      await this.reviewService.getReviewsAll(dto);
 
     if (!loginUser) {
       return reviewPagerbleResponseDto;
@@ -631,11 +628,10 @@ export class ReviewController {
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
     @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
+    dto.userIdx = userIdx;
+
     const reviewPagerbleResponseDto =
-      await this.reviewService.getBookmarkedReviewAll(userIdx, {
-        size: dto.size || 10,
-        page: dto.page || 1,
-      });
+      await this.reviewService.getBookmarkedReviewAll(dto);
 
     if (!loginUser) {
       return reviewPagerbleResponseDto;
@@ -685,11 +681,9 @@ export class ReviewController {
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
     @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
+    dto.userIdx = userIdx;
     const reviewPagerbleResponseDto =
-      await this.reviewService.getMyCommentedReviewAll(userIdx, {
-        size: dto.size || 10,
-        page: dto.page || 1,
-      });
+      await this.reviewService.getMyCommentedReviewAll(dto);
 
     if (!loginUser) {
       return reviewPagerbleResponseDto;
@@ -739,11 +733,9 @@ export class ReviewController {
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
     @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
+    dto.userIdx = userIdx;
     const reviewPagerbleResponseDto =
-      await this.reviewService.getReviewLikedAll(userIdx, {
-        size: dto.size || 10,
-        page: dto.page || 1,
-      });
+      await this.reviewService.getReviewLikedAll(dto);
 
     if (!loginUser) {
       return reviewPagerbleResponseDto;

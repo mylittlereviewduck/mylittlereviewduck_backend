@@ -22,6 +22,10 @@ export class GetReviewsAllPagerbleDto {
   @Transform(({ value }) => parseInt(value, 10) || 1)
   page: number = 1;
 
+  @ApiProperty({
+    description: '유저식별자',
+  })
+  @IsOptional()
   userIdx?: string;
 
   @ApiProperty({

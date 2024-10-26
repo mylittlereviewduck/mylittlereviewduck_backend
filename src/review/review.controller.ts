@@ -54,6 +54,8 @@ import { NotificationService } from 'src/notification/notification.service';
 import { ReportEntity } from 'src/report/entity/Report.entity';
 import { ReportService } from 'src/report/report.service';
 import { ReportDto } from 'src/report/dto/report.dto';
+import { ReviewTimeframe } from './type/review-timeframe.dto';
+import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
 
 @Controller('')
 @ApiTags('review')
@@ -90,12 +92,14 @@ export class ReviewController {
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
   async getReviewAll(
     @GetUser() loginUser: LoginUser,
-    @Query('page') page: number,
-    @Query('size') size: number,
+    @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    const reviewPagerbleResponseDto = await this.reviewService.getReviews({
-      size: size || 10,
-      page: page || 1,
+    console.log('dto.timeframe: ', dto.timeframe);
+
+    const reviewPagerbleResponseDto = await this.reviewService.getReviewsAll({
+      size: dto.size || 10,
+      page: dto.page || 1,
+      timeframe: dto.timeframe,
     });
 
     if (!loginUser) {
@@ -144,12 +148,12 @@ export class ReviewController {
   })
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
   async getHotReview(
-    @Query('size') size: number,
-    @Query('page') page: number,
+    @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
     return await this.reviewService.getHotReviewAll({
-      size: size || 10,
-      page: page || 1,
+      size: dto.size || 10,
+      page: dto.page || 1,
+      timeframe: dto.timeframe,
     });
   }
 
@@ -167,12 +171,12 @@ export class ReviewController {
   })
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
   async getColdReview(
-    @Query('size') size: number,
-    @Query('page') page: number,
+    @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
     return await this.reviewService.getColdReviewAll({
-      size: size || 10,
-      page: page || 1,
+      size: dto.size || 10,
+      page: dto.page || 1,
+      timeframe: dto.timeframe,
     });
   }
 
@@ -572,19 +576,17 @@ export class ReviewController {
   })
   @Exception(400, '유효하지않은 요청')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
-  async getReviewAllByuserIdx(
+  async getReviewAllByUserIdx(
     @GetUser() loginUser: LoginUser,
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
-    @Query('page') page: number,
-    @Query('size') size: number,
+    @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    const reviewPagerbleResponseDto = await this.reviewService.getReviews(
-      {
-        page: page || 1,
-        size: size || 10,
-      },
-      userIdx,
-    );
+    const reviewPagerbleResponseDto = await this.reviewService.getReviewsAll({
+      page: dto.page || 1,
+      size: dto.size || 10,
+      userIdx: userIdx,
+      timeframe: dto.timeframe,
+    });
 
     if (!loginUser) {
       return reviewPagerbleResponseDto;
@@ -632,13 +634,13 @@ export class ReviewController {
   async getBookmarkedReviewByuserIdx(
     @GetUser() loginUser: LoginUser,
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
-    @Query('size') size: number,
-    @Query('page') page: number,
+    @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
     const reviewPagerbleResponseDto =
       await this.reviewService.getBookmarkedReviewAll(userIdx, {
-        size: size || 10,
-        page: page || 1,
+        size: dto.size || 10,
+        page: dto.page || 1,
+        timeframe: dto.timeframe,
       });
 
     if (!loginUser) {
@@ -687,13 +689,13 @@ export class ReviewController {
   async getReviewCommented(
     @GetUser() loginUser: LoginUser,
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
-    @Query('page') page: number,
-    @Query('size') size: number,
+    @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
     const reviewPagerbleResponseDto =
       await this.reviewService.getMyCommentedReviewAll(userIdx, {
-        size: size || 10,
-        page: page || 1,
+        size: dto.size || 10,
+        page: dto.page || 1,
+        timeframe: dto.timeframe,
       });
 
     if (!loginUser) {
@@ -742,13 +744,13 @@ export class ReviewController {
   async getReviewLiked(
     @GetUser() loginUser: LoginUser,
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
-    @Query('page') page: number,
-    @Query('size') size: number,
+    @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
     const reviewPagerbleResponseDto =
       await this.reviewService.getReviewLikedAll(userIdx, {
-        size: size || 10,
-        page: page || 1,
+        size: dto.size || 10,
+        page: dto.page || 1,
+        timeframe: dto.timeframe,
       });
 
     if (!loginUser) {

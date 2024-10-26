@@ -270,25 +270,45 @@ export class ReviewService {
     return new ReviewEntity(reviewData);
   }
 
-  async getReviews(
-    reviewPagerbleDto: ReviewPagerbleDto,
-    userIdx?: string,
+  async getReviewsAll(
+    dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    if (userIdx) {
-      const user = await this.userService.getUser({ idx: userIdx });
+    if (dto.userIdx) {
+      const user = await this.userService.getUser({ idx: dto.userIdx });
 
       if (!user) {
         throw new NotFoundException('Not Found User');
       }
     }
 
+    const now = new Date();
+    let startDate: Date;
+
+    if (dto.timeframe == '1D') {
+      startDate = new Date(now.setHours(0, 0, 0, 0));
+      startDate.setHours(0, 0, 0);
+    } else if (dto.timeframe == '7D') {
+      startDate = new Date(now.setDate(now.getDate() - 6));
+      startDate.setHours(0, 0, 0);
+    } else if (dto.timeframe == '1M') {
+      startDate = new Date(now.setMonth(now.getMonth() - 1));
+      startDate.setHours(0, 0, 0);
+    } else if (dto.timeframe == '1Y') {
+      startDate = new Date(now.setFullYear(now.getFullYear() - 1));
+      startDate.setHours(0, 0, 0);
+    } else {
+      startDate = new Date(0);
+    }
+
     const reviewCount = await this.prismaService.reviewTb.count({
-      where: userIdx
-        ? {
-            accountIdx: userIdx,
-            deletedAt: null,
-          }
-        : {},
+      where: {
+        //문법공부
+        ...(dto.userIdx ? { accountIdx: dto.userIdx } : {}),
+        createdAt: {
+          gte: startDate,
+        },
+        deletedAt: null,
+      },
     });
 
     const reviewSQLResult = await this.prismaService.reviewTb.findMany({
@@ -332,18 +352,23 @@ export class ReviewService {
           },
         },
       },
-      where: userIdx
-        ? { accountIdx: userIdx, deletedAt: null }
-        : { deletedAt: null },
+      where: {
+        // prettier-ignore
+        ...(dto.userIdx ? { accountIdx: dto.userIdx  } : {}),
+        createdAt: {
+          gte: startDate,
+        },
+        deletedAt: null,
+      },
       orderBy: {
         idx: 'desc',
       },
-      take: reviewPagerbleDto.size,
-      skip: (reviewPagerbleDto.page - 1) * reviewPagerbleDto.size,
+      take: dto.size,
+      skip: (dto.page - 1) * dto.size,
     });
 
     return {
-      totalPage: Math.ceil(reviewCount / reviewPagerbleDto.size),
+      totalPage: Math.ceil(reviewCount / dto.size),
       reviews: reviewSQLResult.map((elem) => new ReviewListEntity(elem)),
     };
   }

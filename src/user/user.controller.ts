@@ -478,7 +478,7 @@ export class UserController {
     @Body() dto: SuspendUserDto,
   ) {
     return await this.userSuspensionService.suspendUser(userIdx, {
-      suspendPeriod: dto.suspendPeriod,
+      timeframe: dto.timeframe,
     });
   }
 

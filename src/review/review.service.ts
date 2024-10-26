@@ -27,10 +27,7 @@ export class ReviewService {
     private readonly userService: UserService,
   ) {}
 
-  async createReview(
-    userIdx: string,
-    dto: CreateReviewDto,
-  ): Promise<ReviewEntity> {
+  async createReview(dto: CreateReviewDto): Promise<ReviewEntity> {
     let reviewData;
 
     reviewData = await this.prismaService.reviewTb.create({
@@ -62,7 +59,7 @@ export class ReviewService {
       },
 
       data: {
-        accountIdx: userIdx,
+        accountIdx: dto.userIdx,
         title: dto.title,
         content: dto.content,
         score: dto.score,

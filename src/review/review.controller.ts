@@ -189,12 +189,10 @@ export class ReviewController {
   })
   async createReview(
     @GetUser() loginUser: LoginUser,
-    @Body() createReviewDto: CreateReviewDto,
+    @Body() dto: CreateReviewDto,
   ): Promise<ReviewEntity> {
-    return await this.reviewService.createReview(
-      loginUser.idx,
-      createReviewDto,
-    );
+    dto.userIdx = loginUser.idx;
+    return await this.reviewService.createReview(dto);
   }
 
   @Post('/review/img')

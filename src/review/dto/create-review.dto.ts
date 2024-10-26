@@ -14,6 +14,8 @@ import {
 import { IsEqualLength } from '../review-img-content.validator';
 
 export class CreateReviewDto {
+  userIdx?: string;
+
   @ApiProperty({ example: '제목입니다', description: '리뷰 제목' })
   @IsString()
   @Length(1, 100)

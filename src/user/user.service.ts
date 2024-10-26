@@ -1,4 +1,3 @@
-import { GetUser } from './../auth/get-user.decorator';
 import { EmailAuthService } from './../auth/email-auth.service';
 import {
   ConflictException,
@@ -138,9 +137,6 @@ export class UserService {
           email: dto.email,
           pw: dto.pw,
           provider: 'local',
-          profileImgTb: {
-            create: {},
-          },
         },
       });
 
@@ -152,15 +148,9 @@ export class UserService {
           idx: newUser.idx,
         },
       });
-
-      await tx.profileImgTb.create({
-        data: {
-          accountIdx,
-        },
-      });
     });
 
-    // await this.emailAuthService.deleteVerifiedEmail(dto.email);
+    await this.emailAuthService.deleteVerifiedEmail(dto.email);
 
     console.log('newUser: ', newUser);
 
@@ -241,17 +231,6 @@ export class UserService {
     return new UserEntity(updatedUser);
   }
 
-  async createMyProfileImg(userIdx: string, imgPath?: string): Promise<void> {
-    this.prismaService.profileImgTb.create({
-      data: {
-        accountIdx: userIdx,
-        imgPath:
-          imgPath ||
-          'https://todayreview.s3.ap-northeast-2.amazonaws.com/profileImg_default.png',
-      },
-    });
-  }
-
   async updateMyProfileImg(userIdx: string, imgPath: string): Promise<void> {
     await this.prismaService.$transaction([
       this.prismaService.profileImgTb.updateMany({
@@ -263,7 +242,12 @@ export class UserService {
         },
       }),
 
-      await this.createMyProfileImg(userIdx, imgPath),
+      this.prismaService.profileImgTb.create({
+        data: {
+          accountIdx: userIdx,
+          imgPath: imgPath,
+        },
+      }),
     ]);
   }
 
@@ -277,8 +261,6 @@ export class UserService {
           accountIdx: userIdx,
         },
       }),
-
-      this.createMyProfileImg(userIdx),
     ]);
   }
 

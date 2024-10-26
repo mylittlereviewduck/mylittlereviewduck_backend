@@ -152,9 +152,7 @@ export class UserService {
 
     await this.emailAuthService.deleteVerifiedEmail(dto.email);
 
-    console.log('newUser: ', newUser);
-
-    return new UserEntity(newUser);
+    return await this.getUser({ idx: newUser.idx });
   }
 
   async createUserWithOAuth(

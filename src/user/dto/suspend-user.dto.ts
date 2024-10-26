@@ -7,4 +7,6 @@ export class SuspendUserDto {
   })
   @IsIn(['7D', '1M', 'blackList'])
   timeframe: '7D' | '1M' | 'blackList';
+
+  userIdx?: string;
 }

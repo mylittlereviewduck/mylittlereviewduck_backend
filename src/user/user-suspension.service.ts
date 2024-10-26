@@ -11,9 +11,9 @@ export class UserSuspensionService {
     private readonly userService: UserService,
   ) {}
 
-  async suspendUser(userIdx: string, dto: SuspendUserDto): Promise<UserEntity> {
+  async suspendUser(dto: SuspendUserDto): Promise<UserEntity> {
     const user = await this.userService.getUser({
-      idx: userIdx,
+      idx: dto.userIdx,
     });
 
     //기존정지기간 없다면 현재시간
@@ -54,7 +54,7 @@ export class UserSuspensionService {
         ),
       },
       where: {
-        idx: userIdx,
+        idx: dto.userIdx,
       },
     });
 

@@ -1,3 +1,4 @@
+import { UserStatus } from './type/user-status.type';
 import { UserSuspensionService } from './user-suspension.service';
 import { NotificationService } from './../notification/notification.service';
 import { UserBlockCheckService } from './user-block-check.service';
@@ -51,6 +52,7 @@ import { FileValidationPipe } from 'src/common/fileValidation.pipe';
 import { UserListResponseDto } from './dto/response/user-list-response.dto';
 import { AdminGuard } from 'src/auth/guard/admin.guard';
 import { SuspendUserDto } from './dto/suspend-user.dto';
+import { GetUsersAllDto } from './dto/get-users-all.dto';
 
 @Controller('user')
 @ApiTags('user')
@@ -474,12 +476,11 @@ export class UserController {
   @Exception(403, '관리자 권한 필요')
   @ApiResponse({ status: 200 })
   async suspendUser(
-    @Param('userIdx') userIdx: string,
+    @Param('userIdx', ParseUUIDPipe) userIdx: string,
     @Body() dto: SuspendUserDto,
   ) {
-    return await this.userSuspensionService.suspendUser(userIdx, {
-      timeframe: dto.timeframe,
-    });
+    dto.userIdx = userIdx;
+    return await this.userSuspensionService.suspendUser(dto);
   }
 
   @Delete('/:userIdx/suspend')
@@ -490,17 +491,19 @@ export class UserController {
   @Exception(401, '권한 없음')
   @Exception(403, '관리자 권한 필요')
   @ApiResponse({ status: 200 })
-  async deleteUserSuspension(@Param('userIdx') userIdx: string): Promise<void> {
+  async deleteUserSuspension(
+    @Param('userIdx', ParseUUIDPipe) userIdx: string,
+  ): Promise<void> {
     await this.userSuspensionService.deleteUserSuspension(userIdx);
   }
 
-  @Get('/:status')
+  @Get('/status/:status')
   @UseGuards(AdminGuard)
   @ApiOperation({ summary: '특정 상태 유저목록 보기' })
   @ApiBearerAuth()
   @ApiParam({
     name: 'status',
-    description: '유저상태: valid | suspended | blacklist',
+    description: '유저상태: active | suspended | blacklist',
   })
   @ApiQuery({
     name: 'size',
@@ -516,32 +519,14 @@ export class UserController {
   @Exception(403, '관리자 권한 필요')
   @ApiResponse({ status: 200 })
   async getUsersWithStatus(
-    @Param('status') status: string,
+    @Param('status') status: UserStatus,
     @Query('page') page: number,
     @Query('size') size: number,
   ): Promise<UserListResponseDto> {
-    let userListResponseDto: UserListResponseDto;
-
-    if (status == 'valid') {
-      userListResponseDto = await this.userService.getUsersAll({
-        isUserValid: true,
-        size: size || 10,
-        page: page || 1,
-      });
-    } else if (status == 'suspended') {
-      userListResponseDto = await this.userService.getUsersAll({
-        isUserSuspended: true,
-        size: size || 10,
-        page: page || 1,
-      });
-    } else if (status == 'blacklist') {
-      userListResponseDto = await this.userService.getUsersAll({
-        isUserBlackList: true,
-        size: size || 10,
-        page: page || 1,
-      });
-    }
-
-    return userListResponseDto;
+    return await this.userService.getUsersAll({
+      status,
+      page: page || 1,
+      size: size || 10,
+    });
   }
 }

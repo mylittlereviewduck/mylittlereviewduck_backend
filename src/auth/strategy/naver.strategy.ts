@@ -3,9 +3,11 @@ import { Request, Response } from 'express';
 import { ISocialAuthStrategy } from '../interface/social-auth-strategy.interface';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
-import { v4 as uuidv4 } from 'uuid';
+import { AccountTb } from '@prisma/client';
+import { AuthService } from '../auth.service';
+import { LoginResponseDto } from '../dto/response/login-response.dto';
 
 @Injectable()
 export class NaverStrategy implements ISocialAuthStrategy {
@@ -14,6 +16,8 @@ export class NaverStrategy implements ISocialAuthStrategy {
     private readonly jwtService: JwtService,
     private readonly httpService: HttpService,
     private readonly userService: UserService,
+    @Inject(forwardRef(() => AuthService))
+    private readonly authService: AuthService,
   ) {}
 
   async getTokenRequest(req: Request, res: Response): Promise<void> {
@@ -26,7 +30,7 @@ export class NaverStrategy implements ISocialAuthStrategy {
     res.redirect(url);
   }
 
-  async socialLogin(query: any): Promise<{ accessToken: string }> {
+  async socialLogin(query: any): Promise<LoginResponseDto> {
     const { code, state } = query;
 
     let getTokenUrl = `https://nid.naver.com/oauth2.0/token`;
@@ -54,17 +58,32 @@ export class NaverStrategy implements ISocialAuthStrategy {
     });
 
     if (!user) {
-      user = await this.userService.createUserWithOAuth({
+      // 기존회원 아닌경우 네이버 회원가입
+      const newUser = await this.userService.createUserWithOAuth({
         email: userInfo.email,
-        nickname: uuidv4(),
         provider: 'naver',
         providerKey: userInfo.id,
       });
+
+      await this.userService.updateMyinfo(newUser.idx, {
+        nickname: `${newUser.serialNumber}번째 오리`,
+      });
     }
 
-    const payload = { idx: user.idx };
-    const accessToken = await this.jwtService.signAsync(payload);
+    const accessToken = await this.authService.generateToken(
+      'access',
+      user.idx,
+      user.isAdmin,
+      5 * 60,
+    );
 
-    return { accessToken };
+    const refreshToken = await this.authService.generateToken(
+      'refresh',
+      user.idx,
+      user.isAdmin,
+      12 * 3600,
+    );
+
+    return { accessToken, refreshToken };
   }
 }

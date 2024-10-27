@@ -44,6 +44,9 @@ export class UserEntity {
   @ApiProperty({ example: 'false', description: '관리자 여부' })
   isAdmin: boolean;
 
+  @ApiProperty({ example: '57', description: '시리얼넘버' })
+  serialNumber: number;
+
   @ApiProperty({ example: '2024-08-01T07:58:57.844Z', description: '가입일' })
   createdAt: Date;
 
@@ -89,6 +92,7 @@ export class UserEntity {
     this.interest1 = data.interest1;
     this.interest2 = data.interest2;
     this.isAdmin = data.isAdmin;
+    this.serialNumber = data.serialNumber;
     this.suspensionCount = data.suspensionCount;
     this.suspendExpireAt = data.suspendExpireAt;
     this.createdAt = data.createdAt;

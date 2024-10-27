@@ -1,12 +1,14 @@
 import { JwtService } from '@nestjs/jwt';
 import { Request, Response } from 'express';
 import { ISocialAuthStrategy } from '../interface/social-auth-strategy.interface';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { UserService } from '../../../src/user/user.service';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { GoogleCallbackDto } from '../dto/google-callback.dto';
-import { v4 as uuidv4 } from 'uuid';
+import { AccountTb } from '@prisma/client';
+import { AuthService } from '../auth.service';
+import { LoginResponseDto } from '../dto/response/login-response.dto';
 
 @Injectable()
 export class GoogleStrategy implements ISocialAuthStrategy {
@@ -15,6 +17,8 @@ export class GoogleStrategy implements ISocialAuthStrategy {
     private readonly jwtService: JwtService,
     private readonly httpService: HttpService,
     private readonly configServce: ConfigService,
+    @Inject(forwardRef(() => AuthService))
+    private readonly authService: AuthService,
   ) {}
 
   async getTokenRequest(req: Request, res: Response): Promise<void> {
@@ -27,9 +31,7 @@ export class GoogleStrategy implements ISocialAuthStrategy {
     res.redirect(url);
   }
 
-  async socialLogin(
-    query: GoogleCallbackDto,
-  ): Promise<{ accessToken: string }> {
+  async socialLogin(query: GoogleCallbackDto): Promise<LoginResponseDto> {
     const { code, scope, authuser, prompt } = query;
 
     const tokenRequestBody = {
@@ -59,18 +61,34 @@ export class GoogleStrategy implements ISocialAuthStrategy {
     );
 
     let user = await this.userService.getUser({ email: userData.email });
+
     if (!user) {
-      user = await this.userService.createUserWithOAuth({
+      // 기존회원 아닌경우 구글 회원가입
+      const newUser = await this.userService.createUserWithOAuth({
         email: userData.email,
-        nickname: uuidv4(),
         provider: 'google',
         providerKey: String(userData.id),
       });
+
+      await this.userService.updateMyinfo(newUser.idx, {
+        nickname: `${newUser.serialNumber}번째 오리`,
+      });
     }
 
-    const payload = { idx: user.idx };
-    const accessToken = await this.jwtService.signAsync(payload);
+    const accessToken = await this.authService.generateToken(
+      'access',
+      user.idx,
+      user.isAdmin,
+      5 * 60,
+    );
 
-    return { accessToken };
+    const refreshToken = await this.authService.generateToken(
+      'refresh',
+      user.idx,
+      user.isAdmin,
+      12 * 3600,
+    );
+
+    return { accessToken, refreshToken };
   }
 }

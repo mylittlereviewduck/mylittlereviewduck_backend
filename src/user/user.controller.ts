@@ -206,9 +206,6 @@ export class UserController {
 
     await this.userBlockCheckService.isBlockedUser(loginUser.idx, [user]);
 
-    //유저신고, 유저신고여부확인기능은 논의하고 추가
-    // await this.userReportCheckService.isReported(loginUser.idx, [user]);
-
     return user;
   }
 

@@ -11,7 +11,7 @@ export class GetReviewsAllPagerbleDto {
   @IsOptional()
   @IsInt()
   @Transform(({ value }) => parseInt(value, 10) || 10)
-  size: number = 10;
+  size: number;
 
   @ApiProperty({
     description: '가져올 페이지',
@@ -20,7 +20,7 @@ export class GetReviewsAllPagerbleDto {
   @IsOptional()
   @IsInt()
   @Transform(({ value }) => parseInt(value, 10) || 1)
-  page: number = 1;
+  page: number;
 
   userIdx?: string;
 

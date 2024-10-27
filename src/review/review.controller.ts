@@ -79,16 +79,6 @@ export class ReviewController {
   @Get('/review/all')
   @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '최신 리뷰목록보기' })
-  @ApiQuery({
-    name: 'size',
-    example: 10,
-    description: '한 페이지에 담긴 리뷰수, 기본값 10',
-  })
-  @ApiQuery({
-    name: 'page',
-    example: 1,
-    description: '가져올 페이지, 기본값 1',
-  })
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
   async getReviewAll(
     @GetUser() loginUser: LoginUser,
@@ -532,7 +522,12 @@ export class ReviewController {
   @Post('/review/:reviewIdx/report')
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '리뷰 신고하기' })
-  @ApiParam({ name: 'reviewIdx', type: 'number', example: 1 })
+  @ApiParam({
+    name: 'reviewIdx',
+    type: 'number',
+    example: 1,
+    description: '리뷰 식별자',
+  })
   @ApiBearerAuth()
   @Exception(400, '유효하지않은요청')
   @Exception(401, '권한없음')
@@ -556,16 +551,6 @@ export class ReviewController {
   @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '유저가 쓴 리뷰목록보기' })
   @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
-  @ApiQuery({
-    name: 'size',
-    example: 10,
-    description: '한 페이지에 가져올 리뷰수, 기본값 10',
-  })
-  @ApiQuery({
-    name: 'page',
-    example: 1,
-    description: '가져올 페이지, 기본값 1',
-  })
   @Exception(400, '유효하지않은 요청')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
   async getReviewAllByUserIdx(
@@ -608,17 +593,7 @@ export class ReviewController {
   @Get('/user/:userIdx/review/bookmark')
   @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '유저의 북마크한 리뷰목록보기' })
-  @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
-  @ApiQuery({
-    name: 'size',
-    example: 10,
-    description: '한 페이지에 가져올 리뷰수, 기본값 10',
-  })
-  @ApiQuery({
-    name: 'page',
-    example: 1,
-    description: '가져올 페이지, 기본값 1',
-  })
+  @ApiParam({ name: 'userIdx', type: 'number', description: '유저식별자' })
   @Exception(400, '유효하지않은 요청')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
   async getBookmarkedReviewByuserIdx(
@@ -662,16 +637,6 @@ export class ReviewController {
   @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '유저의 댓글단 리뷰목록보기' })
   @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
-  @ApiQuery({
-    name: 'size',
-    example: 10,
-    description: '한 페이지에 가져올 리뷰수, 기본값 10',
-  })
-  @ApiQuery({
-    name: 'page',
-    example: 1,
-    description: '가져올 페이지, 기본값 1',
-  })
   @Exception(400, '유효하지않은 요청')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
   async getReviewCommented(
@@ -714,16 +679,6 @@ export class ReviewController {
   @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '유저의 좋아요한 리뷰목록보기' })
   @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
-  @ApiQuery({
-    name: 'size',
-    example: 10,
-    description: '한 페이지에 가져올 리뷰수, 기본값 10',
-  })
-  @ApiQuery({
-    name: 'page',
-    example: 1,
-    description: '가져올 페이지, 기본값 1',
-  })
   @Exception(400, '유효하지않은 요청')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
   async getReviewLiked(

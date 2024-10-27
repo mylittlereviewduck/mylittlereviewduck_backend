@@ -1,8 +1,8 @@
 import { ConflictException, Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
 import { GetReportDto } from './dto/get-report.dto';
 import { ReportEntity } from './entity/Report.entity';
 import { CreateReportDto } from './dto/create-report.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class ReportService {

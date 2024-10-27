@@ -11,9 +11,9 @@ export class UserSuspensionService {
     private readonly userService: UserService,
   ) {}
 
-  async suspendUser(userIdx: string, dto: SuspendUserDto): Promise<UserEntity> {
+  async suspendUser(dto: SuspendUserDto): Promise<UserEntity> {
     const user = await this.userService.getUser({
-      idx: userIdx,
+      idx: dto.userIdx,
     });
 
     //기존정지기간 없다면 현재시간
@@ -26,13 +26,13 @@ export class UserSuspensionService {
 
     //추가될 정지기간
     let plusSuspendPeriod: number;
-    if (dto.suspendPeriod == '7D') {
+    if (dto.timeframe == '7D') {
       // 7일정지
       plusSuspendPeriod = 7 * 24 * 60 * 60 * 1000;
-    } else if (dto.suspendPeriod == '1M') {
+    } else if (dto.timeframe == '1M') {
       // 한달정지
       plusSuspendPeriod = 30 * 24 * 60 * 60 * 1000;
-    } else if (dto.suspendPeriod == 'blackList') {
+    } else if (dto.timeframe == 'blackList') {
       //100년정지
       plusSuspendPeriod = 100 * 365 * 24 * 60 * 60 * 1000;
     }
@@ -54,7 +54,7 @@ export class UserSuspensionService {
         ),
       },
       where: {
-        idx: userIdx,
+        idx: dto.userIdx,
       },
     });
 

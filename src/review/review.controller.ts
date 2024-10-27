@@ -51,9 +51,8 @@ import { ReviewBlockEntity } from './entity/ReviewBlock.entity';
 import { ReviewShareEntity } from './entity/ReviewShare.entity';
 import { ReviewBookmarkEntity } from './entity/Reviewbookmark.entity';
 import { NotificationService } from 'src/notification/notification.service';
-import { ReportEntity } from 'src/report/entity/Report.entity';
-import { ReportService } from 'src/report/report.service';
-import { ReportDto } from 'src/report/dto/report.dto';
+import { GetReviewsAllPagerbleDto } from './dto/get-reviews-all-pagerble.dto';
+import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
 
 @Controller('')
 @ApiTags('review')
@@ -70,32 +69,21 @@ export class ReviewController {
     private readonly reviewBlockCheckService: ReviewBlockCheckService,
     private readonly awsService: AwsService,
     private readonly notificationService: NotificationService,
-    private readonly reportService: ReportService,
     private readonly userBlockCheckService: UserBlockCheckService,
   ) {}
 
   @Get('/review/all')
   @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '최신 리뷰목록보기' })
-  @ApiQuery({
-    name: 'size',
-    example: 10,
-    description: '한 페이지에 담긴 리뷰수, 기본값 10',
-  })
-  @ApiQuery({
-    name: 'page',
-    example: 1,
-    description: '가져올 페이지, 기본값 1',
-  })
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
   async getReviewAll(
     @GetUser() loginUser: LoginUser,
-    @Query('page') page: number,
-    @Query('size') size: number,
+    @Query() dto: GetReviewsAllPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    const reviewPagerbleResponseDto = await this.reviewService.getReviews({
-      size: size || 10,
-      page: page || 1,
+    const reviewPagerbleResponseDto = await this.reviewService.getReviewsAll({
+      size: dto.size || 10,
+      page: dto.page || 1,
+      timeframe: dto.timeframe,
     });
 
     if (!loginUser) {
@@ -132,47 +120,25 @@ export class ReviewController {
 
   @Get('/review/hot')
   @ApiOperation({ summary: '좋아요 많이 받은 리뷰목록보기' })
-  @ApiQuery({
-    name: 'size',
-    example: 10,
-    description: '한 페이지에 담긴 리뷰수, 기본값 10',
-  })
-  @ApiQuery({
-    name: 'page',
-    example: 1,
-    description: '가져올 페이지, 기본값 1',
-  })
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
   async getHotReview(
-    @Query('size') size: number,
-    @Query('page') page: number,
+    @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
     return await this.reviewService.getHotReviewAll({
-      size: size || 10,
-      page: page || 1,
+      size: dto.size || 10,
+      page: dto.page || 1,
     });
   }
 
   @Get('/review/cold')
   @ApiOperation({ summary: '싫어요 많이 받은 리뷰목록보기' })
-  @ApiQuery({
-    name: 'size',
-    example: 10,
-    description: '한 페이지에 담긴 리뷰수, 기본값 10',
-  })
-  @ApiQuery({
-    name: 'page',
-    example: 1,
-    description: '가져올 페이지, 기본값 1',
-  })
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
   async getColdReview(
-    @Query('size') size: number,
-    @Query('page') page: number,
+    @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
     return await this.reviewService.getColdReviewAll({
-      size: size || 10,
-      page: page || 1,
+      size: dto.size || 10,
+      page: dto.page || 1,
     });
   }
 
@@ -189,12 +155,10 @@ export class ReviewController {
   })
   async createReview(
     @GetUser() loginUser: LoginUser,
-    @Body() createReviewDto: CreateReviewDto,
+    @Body() dto: CreateReviewDto,
   ): Promise<ReviewEntity> {
-    return await this.reviewService.createReview(
-      loginUser.idx,
-      createReviewDto,
-    );
+    dto.userIdx = loginUser.idx;
+    return await this.reviewService.createReview(dto);
   }
 
   @Post('/review/img')
@@ -274,13 +238,11 @@ export class ReviewController {
   async updateReview(
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
-    @Body() updateReviewDto: UpdateReviewDto,
+    @Body() dto: UpdateReviewDto,
   ): Promise<ReviewEntity> {
-    return await this.reviewService.updateReview(
-      loginUser.idx,
-      reviewIdx,
-      updateReviewDto,
-    );
+    dto.userIdx = loginUser.idx;
+    dto.reviewIdx = reviewIdx;
+    return await this.reviewService.updateReview(dto);
   }
 
   @Delete('/review/:reviewIdx')
@@ -302,24 +264,13 @@ export class ReviewController {
   @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '리뷰검색하기 닉네임, 태그, 제목, 내용' })
   @ApiQuery({ name: 'search', description: '검색 키워드, 검색어 2글자 이상' })
-  @ApiQuery({
-    name: 'size',
-    example: 1,
-    description: '한 페이지당 가져올 리뷰수, 기본값 10',
-  })
-  @ApiQuery({
-    name: 'page',
-    example: 1,
-    description: '가져올 페이지, 기본값 1',
-  })
   @Exception(400, '유효하지않은 요청')
   @Exception(404, 'Not Found Page')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
   async getReviewWithSearch(
     @GetUser() loginUser: LoginUser,
     @Query('search') search: string,
-    @Query('page') page: number,
-    @Query('size') size: number,
+    @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
     if (search.length < 2) {
       throw new BadRequestException('검색어는 2글자이상');
@@ -327,8 +278,8 @@ export class ReviewController {
     const reviewPagerbleResponseDto =
       await this.reviewService.getReviewWithSearch({
         search: search,
-        size: size || 10,
-        page: page || 1,
+        size: dto.size || 10,
+        page: dto.page || 1,
       });
 
     if (!loginUser) {
@@ -533,58 +484,21 @@ export class ReviewController {
     await this.reviewBlockService.unblockReview(loginUser.idx, reviewIdx);
   }
 
-  @Post('/review/:reviewIdx/report')
-  @UseGuards(AuthGuard)
-  @ApiOperation({ summary: '리뷰 신고하기' })
-  @ApiParam({ name: 'reviewIdx', type: 'number', example: 1 })
-  @ApiBearerAuth()
-  @Exception(400, '유효하지않은요청')
-  @Exception(401, '권한없음')
-  @Exception(404, '해당리소스 찾을 수 없음')
-  @Exception(409, '현재상태와 요청 충돌')
-  @ApiResponse({ status: 200, type: ReportEntity })
-  async reportReview(
-    @GetUser() loginUser: LoginUser,
-    @Body() dto: ReportDto,
-    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
-  ): Promise<ReportEntity> {
-    return await this.reportService.report({
-      reporterIdx: loginUser.idx,
-      reviewIdx: reviewIdx,
-      type: dto.type,
-      content: dto.content,
-    });
-  }
-
   @Get('/user/:userIdx/review/all')
   @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '유저가 쓴 리뷰목록보기' })
   @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
-  @ApiQuery({
-    name: 'size',
-    example: 10,
-    description: '한 페이지에 가져올 리뷰수, 기본값 10',
-  })
-  @ApiQuery({
-    name: 'page',
-    example: 1,
-    description: '가져올 페이지, 기본값 1',
-  })
   @Exception(400, '유효하지않은 요청')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
-  async getReviewAllByuserIdx(
+  async getReviewAllByUserIdx(
     @GetUser() loginUser: LoginUser,
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
-    @Query('page') page: number,
-    @Query('size') size: number,
+    @Query() dto: GetReviewsAllPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    const reviewPagerbleResponseDto = await this.reviewService.getReviews(
-      {
-        page: page || 1,
-        size: size || 10,
-      },
-      userIdx,
-    );
+    dto.userIdx = userIdx;
+
+    const reviewPagerbleResponseDto =
+      await this.reviewService.getReviewsAll(dto);
 
     if (!loginUser) {
       return reviewPagerbleResponseDto;
@@ -616,30 +530,18 @@ export class ReviewController {
   @Get('/user/:userIdx/review/bookmark')
   @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '유저의 북마크한 리뷰목록보기' })
-  @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
-  @ApiQuery({
-    name: 'size',
-    example: 10,
-    description: '한 페이지에 가져올 리뷰수, 기본값 10',
-  })
-  @ApiQuery({
-    name: 'page',
-    example: 1,
-    description: '가져올 페이지, 기본값 1',
-  })
+  @ApiParam({ name: 'userIdx', type: 'number', description: '유저식별자' })
   @Exception(400, '유효하지않은 요청')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
   async getBookmarkedReviewByuserIdx(
     @GetUser() loginUser: LoginUser,
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
-    @Query('size') size: number,
-    @Query('page') page: number,
+    @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
+    dto.userIdx = userIdx;
+
     const reviewPagerbleResponseDto =
-      await this.reviewService.getBookmarkedReviewAll(userIdx, {
-        size: size || 10,
-        page: page || 1,
-      });
+      await this.reviewService.getBookmarkedReviewAll(dto);
 
     if (!loginUser) {
       return reviewPagerbleResponseDto;
@@ -672,29 +574,16 @@ export class ReviewController {
   @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '유저의 댓글단 리뷰목록보기' })
   @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
-  @ApiQuery({
-    name: 'size',
-    example: 10,
-    description: '한 페이지에 가져올 리뷰수, 기본값 10',
-  })
-  @ApiQuery({
-    name: 'page',
-    example: 1,
-    description: '가져올 페이지, 기본값 1',
-  })
   @Exception(400, '유효하지않은 요청')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
   async getReviewCommented(
     @GetUser() loginUser: LoginUser,
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
-    @Query('page') page: number,
-    @Query('size') size: number,
+    @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
+    dto.userIdx = userIdx;
     const reviewPagerbleResponseDto =
-      await this.reviewService.getMyCommentedReviewAll(userIdx, {
-        size: size || 10,
-        page: page || 1,
-      });
+      await this.reviewService.getMyCommentedReviewAll(dto);
 
     if (!loginUser) {
       return reviewPagerbleResponseDto;
@@ -727,29 +616,16 @@ export class ReviewController {
   @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '유저의 좋아요한 리뷰목록보기' })
   @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
-  @ApiQuery({
-    name: 'size',
-    example: 10,
-    description: '한 페이지에 가져올 리뷰수, 기본값 10',
-  })
-  @ApiQuery({
-    name: 'page',
-    example: 1,
-    description: '가져올 페이지, 기본값 1',
-  })
   @Exception(400, '유효하지않은 요청')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
   async getReviewLiked(
     @GetUser() loginUser: LoginUser,
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
-    @Query('page') page: number,
-    @Query('size') size: number,
+    @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
+    dto.userIdx = userIdx;
     const reviewPagerbleResponseDto =
-      await this.reviewService.getReviewLikedAll(userIdx, {
-        size: size || 10,
-        page: page || 1,
-      });
+      await this.reviewService.getReviewLikedAll(dto);
 
     if (!loginUser) {
       return reviewPagerbleResponseDto;

@@ -8,7 +8,6 @@ import {
 import { CreateReviewDto } from './dto/create-review.dto';
 import { ReviewEntity } from './entity/Review.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { UpdateReviewDto } from './dto/update-review.dto';
 import { ReviewSearchPagerbleDto } from './dto/review-search-pagerble.dto';
@@ -16,6 +15,8 @@ import { ReviewPagerbleResponseDto } from './dto/response/review-pagerble-respon
 import { UserService } from 'src/user/user.service';
 import { Cron } from '@nestjs/schedule';
 import { ReviewListEntity } from './entity/ReviewList.entity';
+import { GetReviewsAllPagerbleDto } from './dto/get-reviews-all-pagerble.dto';
+import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
 
 @Injectable()
 export class ReviewService {
@@ -26,10 +27,7 @@ export class ReviewService {
     private readonly userService: UserService,
   ) {}
 
-  async createReview(
-    userIdx: string,
-    dto: CreateReviewDto,
-  ): Promise<ReviewEntity> {
+  async createReview(dto: CreateReviewDto): Promise<ReviewEntity> {
     let reviewData;
 
     reviewData = await this.prismaService.reviewTb.create({
@@ -61,7 +59,7 @@ export class ReviewService {
       },
 
       data: {
-        accountIdx: userIdx,
+        accountIdx: dto.userIdx,
         title: dto.title,
         content: dto.content,
         score: dto.score,
@@ -94,21 +92,17 @@ export class ReviewService {
     return new ReviewEntity(reviewData);
   }
 
-  async updateReview(
-    userIdx: string,
-    reviewIdx: number,
-    dto: UpdateReviewDto,
-  ): Promise<ReviewEntity> {
+  async updateReview(dto: UpdateReviewDto): Promise<ReviewEntity> {
     let data;
 
     await this.prismaService.$transaction(async (tx) => {
-      const review = await this.getReviewByIdx(reviewIdx);
+      const review = await this.getReviewByIdx(dto.reviewIdx);
 
       if (!review) {
         throw new NotFoundException('Not Found Review');
       }
 
-      if (review.user.idx !== userIdx) {
+      if (review.user.idx !== dto.userIdx) {
         throw new UnauthorizedException('Unauthorized User');
       }
 
@@ -145,7 +139,7 @@ export class ReviewService {
 
           tagTb: {
             deleteMany: {
-              reviewIdx: reviewIdx,
+              reviewIdx: dto.reviewIdx,
             },
             createMany: {
               data: dto.tags.map((tag) => {
@@ -162,7 +156,7 @@ export class ReviewService {
                 deletedAt: new Date(),
               },
               where: {
-                reviewIdx: reviewIdx,
+                reviewIdx: dto.reviewIdx,
               },
             },
 
@@ -182,7 +176,7 @@ export class ReviewService {
           },
         },
         where: {
-          idx: reviewIdx,
+          idx: dto.reviewIdx,
         },
       });
     });
@@ -270,25 +264,45 @@ export class ReviewService {
     return new ReviewEntity(reviewData);
   }
 
-  async getReviews(
-    reviewPagerbleDto: ReviewPagerbleDto,
-    userIdx?: string,
+  async getReviewsAll(
+    dto: GetReviewsAllPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    if (userIdx) {
-      const user = await this.userService.getUser({ idx: userIdx });
+    if (dto.userIdx) {
+      const user = await this.userService.getUser({ idx: dto.userIdx });
 
       if (!user) {
         throw new NotFoundException('Not Found User');
       }
     }
 
+    const now = new Date();
+    let startDate: Date;
+
+    if (dto.timeframe == '1D') {
+      startDate = new Date(now.setHours(0, 0, 0, 0));
+      startDate.setHours(0, 0, 0);
+    } else if (dto.timeframe == '7D') {
+      startDate = new Date(now.setDate(now.getDate() - 6));
+      startDate.setHours(0, 0, 0);
+    } else if (dto.timeframe == '1M') {
+      startDate = new Date(now.setMonth(now.getMonth() - 1));
+      startDate.setHours(0, 0, 0);
+    } else if (dto.timeframe == '1Y') {
+      startDate = new Date(now.setFullYear(now.getFullYear() - 1));
+      startDate.setHours(0, 0, 0);
+    } else {
+      startDate = new Date(0);
+    }
+
     const reviewCount = await this.prismaService.reviewTb.count({
-      where: userIdx
-        ? {
-            accountIdx: userIdx,
-            deletedAt: null,
-          }
-        : {},
+      where: {
+        //문법공부
+        ...(dto.userIdx ? { accountIdx: dto.userIdx } : {}),
+        createdAt: {
+          gte: startDate,
+        },
+        deletedAt: null,
+      },
     });
 
     const reviewSQLResult = await this.prismaService.reviewTb.findMany({
@@ -296,10 +310,12 @@ export class ReviewService {
         accountTb: {
           include: {
             profileImgTb: {
-              orderBy: {
-                idx: 'desc',
+              select: {
+                imgPath: true,
               },
-              take: 1,
+              where: {
+                deletedAt: null,
+              },
             },
           },
         },
@@ -332,44 +348,49 @@ export class ReviewService {
           },
         },
       },
-      where: userIdx
-        ? { accountIdx: userIdx, deletedAt: null }
-        : { deletedAt: null },
+      where: {
+        // prettier-ignore
+        ...(dto.userIdx ? { accountIdx: dto.userIdx  } : {}),
+        createdAt: {
+          gte: startDate,
+        },
+        deletedAt: null,
+      },
       orderBy: {
         idx: 'desc',
       },
-      take: reviewPagerbleDto.size,
-      skip: (reviewPagerbleDto.page - 1) * reviewPagerbleDto.size,
+      take: dto.size,
+      skip: (dto.page - 1) * dto.size,
     });
 
     return {
-      totalPage: Math.ceil(reviewCount / reviewPagerbleDto.size),
+      totalPage: Math.ceil(reviewCount / dto.size),
       reviews: reviewSQLResult.map((elem) => new ReviewListEntity(elem)),
     };
   }
 
   async getReviewWithSearch(
-    reviewSearchPagerbleDto: ReviewSearchPagerbleDto,
+    dto: ReviewSearchPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
     const totalCount = await this.prismaService.reviewTb.count({
       where: {
         OR: [
           {
             title: {
-              contains: reviewSearchPagerbleDto.search,
+              contains: dto.search,
               mode: 'insensitive',
             },
           },
           {
             content: {
-              contains: reviewSearchPagerbleDto.search,
+              contains: dto.search,
               mode: 'insensitive',
             },
           },
           {
             accountTb: {
               nickname: {
-                contains: reviewSearchPagerbleDto.search,
+                contains: dto.search,
                 mode: 'insensitive',
               },
             },
@@ -378,7 +399,7 @@ export class ReviewService {
             tagTb: {
               some: {
                 tagName: {
-                  contains: reviewSearchPagerbleDto.search,
+                  contains: dto.search,
                   mode: 'insensitive',
                 },
               },
@@ -436,20 +457,20 @@ export class ReviewService {
         OR: [
           {
             title: {
-              contains: reviewSearchPagerbleDto.search,
+              contains: dto.search,
               mode: 'insensitive',
             },
           },
           {
             content: {
-              contains: reviewSearchPagerbleDto.search,
+              contains: dto.search,
               mode: 'insensitive',
             },
           },
           {
             accountTb: {
               nickname: {
-                contains: reviewSearchPagerbleDto.search,
+                contains: dto.search,
                 mode: 'insensitive',
               },
             },
@@ -458,7 +479,7 @@ export class ReviewService {
             tagTb: {
               some: {
                 tagName: {
-                  contains: reviewSearchPagerbleDto.search,
+                  contains: dto.search,
                   mode: 'insensitive',
                 },
               },
@@ -470,21 +491,20 @@ export class ReviewService {
       orderBy: {
         idx: 'desc',
       },
-      take: reviewSearchPagerbleDto.size,
-      skip: reviewSearchPagerbleDto.size * (reviewSearchPagerbleDto.page - 1),
+      take: dto.size,
+      skip: dto.size * (dto.page - 1),
     });
 
     return {
-      totalPage: Math.ceil(totalCount / reviewSearchPagerbleDto.size),
+      totalPage: Math.ceil(totalCount / dto.size),
       reviews: reviewData.map((elem) => new ReviewListEntity(elem)),
     };
   }
 
   async getBookmarkedReviewAll(
-    userIdx: string,
-    reviewPagerbleDto: ReviewPagerbleDto,
+    dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    const user = await this.userService.getUser({ idx: userIdx });
+    const user = await this.userService.getUser({ idx: dto.userIdx });
 
     if (!user) {
       throw new NotFoundException('Not Found User');
@@ -494,7 +514,7 @@ export class ReviewService {
       where: {
         reviewBookmarkTb: {
           every: {
-            accountIdx: userIdx,
+            accountIdx: dto.userIdx,
           },
         },
       },
@@ -546,19 +566,19 @@ export class ReviewService {
       where: {
         reviewBookmarkTb: {
           every: {
-            accountIdx: userIdx,
+            accountIdx: dto.userIdx,
           },
         },
       },
       orderBy: {
         idx: 'desc',
       },
-      skip: (reviewPagerbleDto.page - 1) * reviewPagerbleDto.size,
-      take: reviewPagerbleDto.size,
+      skip: (dto.page - 1) * dto.size,
+      take: dto.size,
     });
 
     return {
-      totalPage: Math.ceil(totalCount / reviewPagerbleDto.size),
+      totalPage: Math.ceil(totalCount / dto.size),
       reviews: reviewData.map((elem) => new ReviewListEntity(elem)),
     };
   }
@@ -715,7 +735,7 @@ export class ReviewService {
   }
 
   async getHotReviewAll(
-    reviewPagerbleDto: ReviewPagerbleDto,
+    dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
     const hotReviews =
       await this.cacheManager.get<Array<ReviewEntity>>('hotReviews');
@@ -727,19 +747,16 @@ export class ReviewService {
       };
     }
 
-    const startIndex = reviewPagerbleDto.size * (reviewPagerbleDto.page - 1);
+    const startIndex = dto.size * (dto.page - 1);
 
     return {
-      totalPage: Math.ceil(hotReviews.length / reviewPagerbleDto.size),
-      reviews: hotReviews.slice(
-        startIndex,
-        startIndex + reviewPagerbleDto.size,
-      ),
+      totalPage: Math.ceil(hotReviews.length / dto.size),
+      reviews: hotReviews.slice(startIndex, startIndex + dto.size),
     };
   }
 
   async getColdReviewAll(
-    reviewPagerbleDto: ReviewPagerbleDto,
+    dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
     const coldReviews =
       await this.cacheManager.get<Array<ReviewEntity>>('coldReviews');
@@ -751,22 +768,18 @@ export class ReviewService {
       };
     }
 
-    const startIndex = reviewPagerbleDto.size * (reviewPagerbleDto.page - 1);
+    const startIndex = dto.size * (dto.page - 1);
 
     return {
-      totalPage: Math.ceil(coldReviews.length / reviewPagerbleDto.size),
-      reviews: coldReviews.slice(
-        startIndex,
-        startIndex + reviewPagerbleDto.size,
-      ),
+      totalPage: Math.ceil(coldReviews.length / dto.size),
+      reviews: coldReviews.slice(startIndex, startIndex + dto.size),
     };
   }
 
   async getMyCommentedReviewAll(
-    userIdx: string,
-    reviewPagerbleDto: ReviewPagerbleDto,
+    dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    const user = await this.userService.getUser({ idx: userIdx });
+    const user = await this.userService.getUser({ idx: dto.userIdx });
 
     if (!user) {
       throw new NotFoundException('Not Found User');
@@ -776,7 +789,7 @@ export class ReviewService {
       where: {
         commentTb: {
           some: {
-            accountIdx: userIdx,
+            accountIdx: dto.userIdx,
             deletedAt: null,
           },
         },
@@ -829,7 +842,7 @@ export class ReviewService {
       where: {
         commentTb: {
           some: {
-            accountIdx: userIdx,
+            accountIdx: dto.userIdx,
             deletedAt: null,
           },
         },
@@ -837,12 +850,12 @@ export class ReviewService {
       orderBy: {
         idx: 'desc',
       },
-      skip: (reviewPagerbleDto.page - 1) * reviewPagerbleDto.size,
-      take: reviewPagerbleDto.size,
+      skip: (dto.page - 1) * dto.size,
+      take: dto.size,
     });
 
     return {
-      totalPage: Math.ceil(totalCount / reviewPagerbleDto.size),
+      totalPage: Math.ceil(totalCount / dto.size),
       reviews: reviewData.map((elem) => new ReviewListEntity(elem)),
     };
   }
@@ -865,14 +878,13 @@ export class ReviewService {
   }
 
   async getReviewLikedAll(
-    userIdx: string,
-    reviewPagerbleDto: ReviewPagerbleDto,
+    dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
     const totalCount = await this.prismaService.reviewTb.count({
       where: {
         reviewLikeTb: {
           some: {
-            accountIdx: userIdx,
+            accountIdx: dto.userIdx,
           },
         },
       },
@@ -924,19 +936,19 @@ export class ReviewService {
       where: {
         reviewLikeTb: {
           some: {
-            accountIdx: userIdx,
+            accountIdx: dto.userIdx,
           },
         },
       },
       orderBy: {
         idx: 'desc',
       },
-      skip: (reviewPagerbleDto.page - 1) * reviewPagerbleDto.size,
-      take: reviewPagerbleDto.size,
+      skip: (dto.page - 1) * dto.size,
+      take: dto.size,
     });
 
     return {
-      totalPage: Math.ceil(totalCount / reviewPagerbleDto.size),
+      totalPage: Math.ceil(totalCount / dto.size),
       reviews: reviewData.map((elem) => new ReviewListEntity(elem)),
     };
   }

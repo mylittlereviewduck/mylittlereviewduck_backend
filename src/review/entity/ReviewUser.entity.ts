@@ -25,7 +25,8 @@ export class ReviewUserEntity extends PickType(UserEntity, [
     this.idx = data.idx;
     this.email = data.email;
     this.nickname = data.nickname;
-    this.profileImg = data.profileImgTb[0].imgPath;
+    // prettier-ignore
+    this.profileImg = data.profileImgTb[0] ? data.profileImgTb[0].imgPath : null;
     this.interest1 = data.interest1;
     this.interest2 = data.interest2;
   }

@@ -7,7 +7,6 @@ import { AuthService } from './auth.service';
 import { JwtModule } from '@nestjs/jwt';
 import { GoogleStrategy } from './strategy/google.strategy';
 import { HttpModule } from '@nestjs/axios';
-import { UserService } from '../../src/user/user.service';
 import { NaverStrategy } from './strategy/naver.strategy';
 import { KakaoStrategy } from './strategy/kakao.strategy';
 import { EmailAuthService } from './email-auth.service';
@@ -33,12 +32,10 @@ import { EmailModule } from '../email/email.module';
   providers: [
     AuthService,
     EmailAuthService,
-    AuthGuard,
-    UserService,
     GoogleStrategy,
     NaverStrategy,
     KakaoStrategy,
   ],
-  exports: [AuthService, AuthGuard],
+  exports: [AuthService, EmailAuthService],
 })
 export class AuthModule {}

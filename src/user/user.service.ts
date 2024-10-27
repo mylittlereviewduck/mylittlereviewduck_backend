@@ -1,7 +1,9 @@
+import { EmailAuthService } from './../auth/email-auth.service';
 import {
   ConflictException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { UserEntity } from './entity/User.entity';
 import { PrismaService } from '../../src/prisma/prisma.service';
@@ -22,6 +24,7 @@ export class UserService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly emailService: EmailService,
+    private readonly emailAuthService: EmailAuthService,
   ) {}
 
   async getUser(getUserDto: GetUserDto): Promise<UserEntity | undefined> {
@@ -51,19 +54,36 @@ export class UserService {
   }
 
   async getUsersAll(dto: GetUsersAllDto): Promise<UserListResponseDto> {
+    console.log('dto', dto);
+
+    const Count = await this.prismaService.accountTb.count({
+      where: {
+        deletedAt: null,
+        suspendExpireAt: null, // active 상태만 확인
+      },
+    });
+
+    console.log('Count: ', Count);
+
+    //or문이 빈배열이라면 쿼리에서 완전히 지워야한다.
+    //
     //prettier-ignore
     const totalCount = await this.prismaService.accountTb.count({
       where: {
-        OR: [
-          dto.email ? { email: { contains: dto.email, mode: Prisma.QueryMode.insensitive } }: null,
-          dto.nickname ? { nickname: { contains: dto.nickname, mode: Prisma.QueryMode.insensitive } }: null,
-          dto.interest1 ? { interest1: { contains: dto.interest1, mode: Prisma.QueryMode.insensitive } }: null,
-          dto.interest2 ? { interest2: { contains: dto.interest2, mode: Prisma.QueryMode.insensitive } }: null,
-          dto.isUserValid ? { suspendExpireAt: null } : null,
-          dto.isUserSuspended ? { suspendExpireAt: { not: null } } : null,
-          dto.isUserBlackList ? { suspendExpireAt: { gte: new Date('2100-01-01') } } : null,
-        ].filter((x) => x !== null), // null 값 제거
         deletedAt: null,
+        ...(dto.status === 'active' ? { suspendExpireAt: null } : {}),
+        ...(dto.status === 'suspended' ? { suspendExpireAt: { not: null } } : {}),
+        ...(dto.status === 'blackList' ? { suspendExpireAt: { gte: new Date('2100-01-01') } } : {}),
+        ...(dto.email || dto.nickname || dto.interest1 || dto.interest2
+          ? {
+              OR: [
+                dto.email ? { email: { contains: dto.email, mode: Prisma.QueryMode.insensitive } } : null,
+                dto.nickname ? { nickname: { contains: dto.nickname, mode: Prisma.QueryMode.insensitive } } : null,
+                dto.interest1 ? { interest1: { contains: dto.interest1, mode: Prisma.QueryMode.insensitive } } : null,
+                dto.interest2 ? { interest2: { contains: dto.interest2, mode: Prisma.QueryMode.insensitive } } : null,
+              ].filter((x) => x !== null),// null 값 제거
+            }
+          : {}),
       },
     });
 
@@ -80,16 +100,20 @@ export class UserService {
 
       // prettier-ignore
       where: {
-        OR: [
-          dto.email ? { email: { contains: dto.email, mode: Prisma.QueryMode.insensitive } }: null,
-          dto.nickname ? { nickname: { contains: dto.nickname, mode: Prisma.QueryMode.insensitive } }: null,
-          dto.interest1 ? { interest1: { contains: dto.interest1, mode: Prisma.QueryMode.insensitive } }: null,
-          dto.interest2 ? { interest2: { contains: dto.interest2, mode: Prisma.QueryMode.insensitive } }: null,
-          dto.isUserValid ? { suspendExpireAt: null } : null,
-          dto.isUserSuspended ? { suspendExpireAt: { not: null } } : null,
-          dto.isUserBlackList ? { suspendExpireAt: { gte: new Date('2100-01-01') } } : null,
-        ].filter((x) => x !== null), // null 값 제거
         deletedAt: null,
+        ...(dto.status === 'active' ? { suspendExpireAt: null } : {}),
+        ...(dto.status === 'suspended' ? { suspendExpireAt: { not: null } } : {}),
+        ...(dto.status === 'blackList' ? { suspendExpireAt: { gte: new Date('2100-01-01') } } : {}),
+        ...(dto.email || dto.nickname || dto.interest1 || dto.interest2
+          ? {
+              OR: [
+                dto.email ? { email: { contains: dto.email, mode: Prisma.QueryMode.insensitive } } : null,
+                dto.nickname ? { nickname: { contains: dto.nickname, mode: Prisma.QueryMode.insensitive } } : null,
+                dto.interest1 ? { interest1: { contains: dto.interest1, mode: Prisma.QueryMode.insensitive } } : null,
+                dto.interest2 ? { interest2: { contains: dto.interest2, mode: Prisma.QueryMode.insensitive } } : null,
+              ].filter((x) => x !== null),// null 값 제거
+            }
+          : {}),
       },
 
       orderBy: {
@@ -106,27 +130,34 @@ export class UserService {
   }
 
   //이메일인증 확인 로직추가
-  async createUser(createUserDto: CreateUserDto): Promise<UserEntity> {
+  async createUser(dto: CreateUserDto): Promise<UserEntity> {
     let newUser;
     await this.prismaService.$transaction(async (tx) => {
-      const emailDuplicatedUser = await tx.accountInfoView.findFirst({
-        where: {
-          email: createUserDto.email,
-        },
-      });
+      const emailDuplicatedUser = await this.getUser({ email: dto.email });
 
       if (emailDuplicatedUser) {
         throw new ConflictException('Email Duplicated');
       }
 
+      const authenticatedEmail =
+        await this.emailAuthService.getEmailWithVerificationCode(dto.email);
+
+      if (!authenticatedEmail || authenticatedEmail.isVerified !== true) {
+        throw new UnauthorizedException('Unauthorized Email');
+      }
+
+      if (
+        new Date().getTime() - authenticatedEmail.createdAt.getTime() >
+        30 * 60 * 1000
+      ) {
+        throw new UnauthorizedException('Authentication TimeOut');
+      }
+
       newUser = await tx.accountTb.create({
         data: {
-          email: createUserDto.email,
-          pw: createUserDto.pw,
+          email: dto.email,
+          pw: dto.pw,
           provider: 'local',
-          profileImgTb: {
-            create: {},
-          },
         },
       });
 
@@ -140,20 +171,20 @@ export class UserService {
       });
     });
 
-    return new UserEntity(newUser);
+    await this.emailAuthService.deleteVerifiedEmail(dto.email);
+
+    return await this.getUser({ idx: newUser.idx });
   }
 
-  async createUserWithOAuth(
-    createUserOAuthDto: CreateUserOAtuhDto,
-  ): Promise<UserEntity> {
+  async createUserWithOAuth(dto: CreateUserOAtuhDto): Promise<UserEntity> {
     let userData;
 
     userData = await this.prismaService.accountTb.create({
       data: {
-        email: createUserOAuthDto.email,
-        nickname: createUserOAuthDto.nickname,
-        provider: createUserOAuthDto.provider,
-        providerKey: createUserOAuthDto.providerKey,
+        email: dto.email,
+        nickname: dto.nickname,
+        provider: dto.provider,
+        providerKey: dto.providerKey,
 
         profileImgTb: {
           create: {},
@@ -175,7 +206,7 @@ export class UserService {
 
   async updateMyinfo(
     userIdx: string,
-    updateMyInfoDto: UpdateMyInfoDto,
+    dto: UpdateMyInfoDto,
   ): Promise<UserEntity> {
     const user = await this.getUser({
       idx: userIdx,
@@ -186,7 +217,7 @@ export class UserService {
     }
 
     const duplicatedUser = await this.getUser({
-      nickname: updateMyInfoDto.nickname,
+      nickname: dto.nickname,
     });
 
     if (duplicatedUser && user.nickname != duplicatedUser.nickname) {
@@ -204,10 +235,10 @@ export class UserService {
         },
       },
       data: {
-        nickname: updateMyInfoDto.nickname,
-        profile: updateMyInfoDto.profile,
-        interest1: updateMyInfoDto.interest[0],
-        interest2: updateMyInfoDto.interest[1],
+        nickname: dto.nickname,
+        profile: dto.profile,
+        interest1: dto.interest[0],
+        interest2: dto.interest[1],
       },
       where: {
         idx: userIdx,
@@ -247,12 +278,6 @@ export class UserService {
           accountIdx: userIdx,
         },
       }),
-
-      this.prismaService.profileImgTb.create({
-        data: {
-          accountIdx: userIdx,
-        },
-      }),
     ]);
   }
 
@@ -286,11 +311,11 @@ export class UserService {
   }
 
   async getFollowingList(
-    userPagerbleDto: UserFollowPagerbleDto,
+    dto: UserFollowPagerbleDto,
   ): Promise<UserPagerbleResponseDto> {
     const getFollowingCount = await this.prismaService.followTb.count({
       where: {
-        followerIdx: userPagerbleDto.userIdx,
+        followerIdx: dto.userIdx,
       },
     });
 
@@ -306,11 +331,10 @@ export class UserService {
       },
 
       where: {
-        [userPagerbleDto.type === 'follower' ? 'followee' : 'follower']: {
+        [dto.type === 'follower' ? 'followee' : 'follower']: {
           some: {
-            [userPagerbleDto.type === 'follower'
-              ? 'followerIdx'
-              : 'followeeIdx']: userPagerbleDto.userIdx,
+            [dto.type === 'follower' ? 'followerIdx' : 'followeeIdx']:
+              dto.userIdx,
           },
         },
       },
@@ -318,12 +342,12 @@ export class UserService {
         createdAt: 'desc',
       },
 
-      skip: (userPagerbleDto.page - 1) * userPagerbleDto.size,
-      take: userPagerbleDto.size,
+      skip: (dto.page - 1) * dto.size,
+      take: dto.size,
     });
 
     return {
-      totalPage: Math.ceil(getFollowingCount / userPagerbleDto.size),
+      totalPage: Math.ceil(getFollowingCount / dto.size),
       users: followList.map((elem) => new UserEntity(elem)),
     };
   }

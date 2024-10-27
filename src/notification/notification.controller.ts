@@ -16,6 +16,7 @@ import { NotificationPagerbleResponseDto } from './dto/response/notification-pag
 import { NotificationService } from './notification.service';
 import { Observable } from 'rxjs';
 import { NotificationEntity } from './entity/Notification.entity';
+import { GetNotificationDto } from './dto/get-notification.dto';
 
 @Controller('')
 @ApiTags('user')
@@ -29,25 +30,17 @@ export class NotificationController {
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '내 알림목록보기' })
-  @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
-  @ApiQuery({ name: 'page', example: 1, description: '페이지, 기본값 1' })
-  @ApiQuery({
-    name: 'size',
-    example: 10,
-    description: '페이지크기, 기본값 10',
-  })
   @Exception(400, '유효하지않은 요청')
   @ApiResponse({ status: 200, type: NotificationPagerbleResponseDto })
   async getMyNotifications(
-    @Query('page') page: number,
-    @Query('size') size: number,
+    @Query() dto: GetNotificationDto,
     @GetUser() loginUser: LoginUser,
   ): Promise<NotificationPagerbleResponseDto> {
     const notificationPagerbleResponseDto =
       await this.notificationService.getMyNotificationAll({
         userIdx: loginUser.idx,
-        page: page || 1,
-        size: size || 20,
+        page: dto.page || 1,
+        size: dto.size || 20,
       });
 
     await this.followCheckService.isFollow(

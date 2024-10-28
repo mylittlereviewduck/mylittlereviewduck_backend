@@ -65,7 +65,7 @@ export class NaverStrategy implements ISocialAuthStrategy {
         providerKey: userInfo.id,
       });
 
-      await this.userService.updateMyinfo(newUser.idx, {
+      user = await this.userService.updateMyinfo(newUser.idx, {
         nickname: `${newUser.serialNumber}번째 오리`,
       });
     }

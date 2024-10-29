@@ -1,6 +1,5 @@
 import { EmailAuthService } from './../auth/email-auth.service';
 import {
-  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -35,7 +34,11 @@ export class UserService {
 
     const userData = await this.prismaService.accountTb.findFirst({
       include: {
-        profileImgTb: true,
+        profileImgTb: {
+          where: {
+            deletedAt: null,
+          },
+        },
         _count: {
           select: {
             followee: true,
@@ -59,15 +62,6 @@ export class UserService {
   }
 
   async getUsersAll(dto: GetUsersAllDto): Promise<UserListResponseDto> {
-    console.log('dto', dto);
-
-    const Count = await this.prismaService.accountTb.count({
-      where: {
-        deletedAt: null,
-        suspendExpireAt: null, // active 상태만 확인
-      },
-    });
-
     //or문이 빈배열이라면 쿼리에서 완전히 지워야한다.
     //prettier-ignore
     const totalCount = await this.prismaService.accountTb.count({
@@ -91,7 +85,11 @@ export class UserService {
 
     const userData = await this.prismaService.accountTb.findMany({
       include: {
-        profileImgTb: true,
+        profileImgTb: {
+          where: {
+            deletedAt: null,
+          },
+        },
         _count: {
           select: {
             followee: true,
@@ -188,7 +186,6 @@ export class UserService {
         providerKey: dto.providerKey,
       },
       include: {
-        profileImgTb: true,
         _count: {
           select: {
             followee: true,
@@ -222,7 +219,11 @@ export class UserService {
 
     const updatedUser = await this.prismaService.accountTb.update({
       include: {
-        profileImgTb: true,
+        profileImgTb: {
+          where: {
+            deletedAt: null,
+          },
+        },
         _count: {
           select: {
             followee: true,
@@ -318,7 +319,11 @@ export class UserService {
 
     const followList = await this.prismaService.accountTb.findMany({
       include: {
-        profileImgTb: true,
+        profileImgTb: {
+          where: {
+            deletedAt: null,
+          },
+        },
         _count: {
           select: {
             followee: true,

@@ -17,7 +17,7 @@ import { UserPagerbleResponseDto } from './dto/response/user-pagerble-response.d
 import { UserFollowPagerbleDto } from './dto/user-follow-pagerble.dto';
 import { EmailService } from '../email/email.service';
 import { GetUsersAllDto } from './dto/get-users-all.dto';
-import { AccountTb, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { UserListResponseDto } from './dto/response/user-list-response.dto';
 
 @Injectable()
@@ -220,7 +220,7 @@ export class UserService {
       nickname: dto.nickname,
     });
 
-    if (duplicatedUser) {
+    if (duplicatedUser && duplicatedUser.nickname == dto.nickname) {
       throw new ConflictException('Duplicated Nickname');
     }
 

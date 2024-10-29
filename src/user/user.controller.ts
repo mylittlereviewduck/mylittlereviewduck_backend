@@ -78,14 +78,18 @@ export class UserController {
     description: '사용가능한 닉네임일경우 상태코드 200반환',
   })
   async checkNicknameDuplicate(
-    @Body() checkDto: CheckNicknameDuplicateDto,
+    @Body() dto: CheckNicknameDuplicateDto,
   ): Promise<void> {
-    const user = await this.userService.getUser({
-      nickname: checkDto.nickname,
+    const duplicatedUser = await this.userService.getUser({
+      nickname: dto.nickname,
     });
 
-    if (user) {
+    if (duplicatedUser && duplicatedUser.nickname == dto.nickname) {
       throw new ConflictException('Duplicated Nickname');
+    }
+
+    if (dto.nickname && dto.nickname.includes('번째 오리')) {
+      throw new BadRequestException("Nickname can't include '번째 오리'");
     }
   }
 

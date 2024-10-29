@@ -132,9 +132,13 @@ export class UserController {
   @ApiResponse({ status: 200 })
   async updateMyInfo(
     @GetUser() loginUser: LoginUser,
-    @Body() updateMyInfoDto: UpdateMyInfoDto,
+    @Body() dto: UpdateMyInfoDto,
   ): Promise<UserEntity> {
-    return await this.userService.updateMyinfo(loginUser.idx, updateMyInfoDto);
+    if (dto.nickname && dto.nickname.includes('번째 오리')) {
+      throw new BadRequestException("Nickname can't include '번째 오리'");
+    }
+
+    return await this.userService.updateMyinfo(loginUser.idx, dto);
   }
 
   @Put('profile-img')

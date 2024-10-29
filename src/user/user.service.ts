@@ -186,10 +186,6 @@ export class UserService {
         email: dto.email,
         provider: dto.provider,
         providerKey: dto.providerKey,
-
-        profileImgTb: {
-          create: {},
-        },
       },
       include: {
         profileImgTb: true,
@@ -222,10 +218,6 @@ export class UserService {
 
     if (duplicatedUser && duplicatedUser.nickname == dto.nickname) {
       throw new ConflictException('Duplicated Nickname');
-    }
-
-    if (dto.nickname && dto.nickname.includes('번째 오리')) {
-      throw new BadRequestException("Nickname can't include '번째 오리'");
     }
 
     const updatedUser = await this.prismaService.accountTb.update({

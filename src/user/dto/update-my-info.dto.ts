@@ -1,11 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  ArrayMaxSize,
-  IsArray,
-  IsOptional,
-  IsString,
-  Length,
-} from 'class-validator';
+import { ArrayMaxSize, IsOptional, IsString, Length } from 'class-validator';
 
 export class UpdateMyInfoDto {
   @ApiProperty({ description: '2-10자 닉네임' })

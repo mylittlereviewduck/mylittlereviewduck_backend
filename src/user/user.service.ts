@@ -1,5 +1,6 @@
 import { EmailAuthService } from './../auth/email-auth.service';
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -27,7 +28,11 @@ export class UserService {
     private readonly emailAuthService: EmailAuthService,
   ) {}
 
-  async getUser(getUserDto: GetUserDto): Promise<UserEntity | undefined> {
+  async getUser(dto: GetUserDto): Promise<UserEntity | undefined> {
+    if (!dto.idx && !dto.nickname && !dto.email && !dto.pw) {
+      return undefined;
+    }
+
     const userData = await this.prismaService.accountTb.findFirst({
       include: {
         profileImgTb: true,
@@ -39,9 +44,9 @@ export class UserService {
         },
       },
       where: {
-        idx: getUserDto.idx,
-        email: getUserDto.email,
-        nickname: getUserDto.nickname,
+        idx: dto.idx,
+        email: dto.email,
+        nickname: dto.nickname,
         deletedAt: null,
       },
     });
@@ -215,8 +220,12 @@ export class UserService {
       nickname: dto.nickname,
     });
 
-    if (duplicatedUser && user.nickname != duplicatedUser.nickname) {
+    if (duplicatedUser) {
       throw new ConflictException('Duplicated Nickname');
+    }
+
+    if (dto.nickname && dto.nickname.includes('번째 오리')) {
+      throw new BadRequestException("Nickname can't include '번째 오리'");
     }
 
     const updatedUser = await this.prismaService.accountTb.update({

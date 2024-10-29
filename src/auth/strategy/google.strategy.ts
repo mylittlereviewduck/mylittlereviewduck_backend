@@ -6,7 +6,6 @@ import { UserService } from '../../../src/user/user.service';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { GoogleCallbackDto } from '../dto/google-callback.dto';
-import { AccountTb } from '@prisma/client';
 import { AuthService } from '../auth.service';
 import { LoginResponseDto } from '../dto/response/login-response.dto';
 
@@ -16,15 +15,15 @@ export class GoogleStrategy implements ISocialAuthStrategy {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly httpService: HttpService,
-    private readonly configServce: ConfigService,
+    private readonly configService: ConfigService,
     @Inject(forwardRef(() => AuthService))
     private readonly authService: AuthService,
   ) {}
 
   async getTokenRequest(req: Request, res: Response): Promise<void> {
     let url = `https://accounts.google.com/o/oauth2/v2/auth`;
-    url += `?client_id=${this.configServce.get<string>('GOOGLE_CLIENT_ID')}`;
-    url += `&redirect_uri=${this.configServce.get<string>('GOOGLE_REDIRECT_URI')}`;
+    url += `?client_id=${this.configService.get<string>('GOOGLE_CLIENT_ID')}`;
+    url += `&redirect_uri=${this.configService.get<string>('GOOGLE_REDIRECT_URI')}`;
     url += `&response_type=code`;
     url += `&scope=email profile`;
 
@@ -35,10 +34,10 @@ export class GoogleStrategy implements ISocialAuthStrategy {
     const { code, scope, authuser, prompt } = query;
 
     const tokenRequestBody = {
-      client_id: this.configServce.get<string>('GOOGLE_CLIENT_ID'),
-      client_secret: this.configServce.get<string>('GOOGLE_CLIENT_SECRET'),
+      client_id: this.configService.get<string>('GOOGLE_CLIENT_ID'),
+      client_secret: this.configService.get<string>('GOOGLE_CLIENT_SECRET'),
       code: code,
-      redirect_uri: this.configServce.get<string>('GOOGLE_REDIRECT_URI'),
+      redirect_uri: this.configService.get<string>('GOOGLE_REDIRECT_URI'),
       grant_type: 'authorization_code',
     };
 

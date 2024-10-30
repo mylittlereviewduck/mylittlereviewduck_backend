@@ -49,7 +49,7 @@ export class UserFollowService {
 
     const followList = await this.prismaService.followTb.findMany({
       include: {
-        follower: {
+        [dto.type === 'follower' ? 'followee' : 'follower']: {
           include: {
             profileImgTb: {
               where: {
@@ -75,10 +75,13 @@ export class UserFollowService {
       take: dto.size,
     });
 
-    // return;
     return {
       totalPage: Math.ceil(followingCount / dto.size),
-      users: followList.map((elem) => new UserEntity(elem.follower)),
+      users: followList.map((elem) => {
+        return new UserEntity(
+          dto.type == 'follower' ? elem.followee : elem.follower,
+        );
+      }),
     };
   }
 }

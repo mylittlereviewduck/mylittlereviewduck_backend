@@ -41,15 +41,11 @@ export class UserFollowService {
   async getFollowingList(
     dto: UserFollowPagerbleDto,
   ): Promise<UserPagerbleResponseDto> {
-    console.log('dto: ', dto);
-
     const followingCount = await this.prismaService.followTb.count({
       where: {
         [dto.type === 'follower' ? 'followerIdx' : 'followeeIdx']: dto.userIdx,
       },
     });
-
-    console.log('count: ', followingCount);
 
     const followList = await this.prismaService.followTb.findMany({
       include: {
@@ -78,7 +74,6 @@ export class UserFollowService {
       skip: (dto.page - 1) * dto.size,
       take: dto.size,
     });
-    console.log('followList: ', followList);
 
     // return;
     return {

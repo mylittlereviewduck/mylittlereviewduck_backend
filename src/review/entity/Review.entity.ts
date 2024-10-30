@@ -12,6 +12,7 @@ const review = Prisma.validator<Prisma.ReviewTbDefaultArgs>()({
     },
     tagTb: true,
     reviewImgTb: true,
+    reviewThumbnailTb: true,
     _count: {
       select: {
         commentTb: true,
@@ -57,7 +58,7 @@ export class ReviewEntity {
     example: ['태그1', '태그2', '태그3'],
     description: '태그 개수 제한x, 최소1개',
   })
-  tags: string[];
+  tags: string[] | null;
 
   @ApiProperty({
     example:
@@ -65,14 +66,14 @@ export class ReviewEntity {
     description: '썸네일 이미지',
   })
   @IsString()
-  thumbnail: string;
+  thumbnail: string | null;
 
   @ApiProperty({
     example: '썸네일 이미지 설명',
     description: '썸네일 이미지 설명',
   })
   @IsString()
-  thumbnailContent: string;
+  thumbnailContent: string | null;
 
   @ApiProperty({
     example: [
@@ -83,14 +84,14 @@ export class ReviewEntity {
     description: '리뷰이미지 0-6개',
     nullable: true,
   })
-  images: string[];
+  images: string[] | null;
 
   @ApiProperty({
     example: ['이미지 설명1', '이미지 설명2', '이미지 설명3'],
     description: '이미지 설명, 이미지 개수와 일치',
     nullable: true,
   })
-  imgContent: string[];
+  imgContent: string[] | null;
 
   @ApiProperty({
     example: '2024-08-01Tq07:58:57.844Z',
@@ -159,6 +160,10 @@ export class ReviewEntity {
     this.content = data.content;
     this.score = data.score;
     this.tags = data.tagTb.map((tag) => tag.tagName);
+    //prettier-ignore
+    this.thumbnail = data.reviewThumbnailTb[0] ? data.reviewThumbnailTb[0].imgPath : null;
+    //prettier-ignore
+    this.thumbnailContent = data.reviewThumbnailTb[0] ? data.reviewThumbnailTb[0].content : null;
     this.images = data.reviewImgTb.map((img) => img.imgPath);
     this.imgContent = data.reviewImgTb.map((img) => img.content);
     this.createdAt = data.createdAt;

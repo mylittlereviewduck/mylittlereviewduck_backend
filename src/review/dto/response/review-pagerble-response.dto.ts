@@ -9,7 +9,7 @@ export class ReviewPagerbleResponseDto {
   @ApiProperty({
     description: '리뷰리스트',
     isArray: true,
-    type: ReviewListEntity,
+    type: ReviewEntity,
     example: [
       {
         idx: 10118,
@@ -51,5 +51,5 @@ export class ReviewPagerbleResponseDto {
       },
     ],
   })
-  reviews: ReviewListEntity[];
+  reviews: ReviewEntity[];
 }

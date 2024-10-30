@@ -495,10 +495,12 @@ export class ReviewController {
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
     @Query() dto: GetReviewsAllPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    dto.userIdx = userIdx;
-
-    const reviewPagerbleResponseDto =
-      await this.reviewService.getReviewsAll(dto);
+    const reviewPagerbleResponseDto = await this.reviewService.getReviewsAll({
+      page: dto.page || 1,
+      size: dto.size || 10,
+      timeframe: 'all',
+      userIdx: userIdx,
+    });
 
     if (!loginUser) {
       return reviewPagerbleResponseDto;

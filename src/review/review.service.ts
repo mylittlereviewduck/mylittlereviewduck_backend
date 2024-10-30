@@ -184,6 +184,29 @@ export class ReviewService {
     return new ReviewEntity(data);
   }
 
+  async updateReviewThumbnail(
+    reviewIdx: number,
+    imgPath: string,
+    content: string,
+  ): Promise<void> {
+    await this.prismaService.reviewThumbnailTb.updateMany({
+      data: {
+        deletedAt: new Date(),
+      },
+      where: {
+        reviewIdx: reviewIdx,
+      },
+    });
+
+    await this.prismaService.reviewThumbnailTb.create({
+      data: {
+        reviewIdx: reviewIdx,
+        imgPath: imgPath,
+        content: content,
+      },
+    });
+  }
+
   async deleteReview(userIdx: string, reviewIdx: number): Promise<void> {
     const review = await this.getReviewByIdx(reviewIdx);
 
@@ -234,7 +257,11 @@ export class ReviewService {
             deletedAt: null,
           },
         },
-
+        reviewThumbnailTb: {
+          where: {
+            deletedAt: null,
+          },
+        },
         _count: {
           select: {
             commentTb: true,
@@ -345,6 +372,8 @@ export class ReviewService {
             commentTb: true,
             reviewLikeTb: true,
             reviewDislikeTb: true,
+            reviewBookmarkTb: true,
+            reviewShareTb: true,
           },
         },
       },
@@ -365,7 +394,7 @@ export class ReviewService {
 
     return {
       totalPage: Math.ceil(reviewCount / dto.size),
-      reviews: reviewSQLResult.map((elem) => new ReviewListEntity(elem)),
+      reviews: reviewSQLResult.map((elem) => new ReviewEntity(elem)),
     };
   }
 

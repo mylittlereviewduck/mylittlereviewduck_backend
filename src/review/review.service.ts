@@ -14,7 +14,6 @@ import { ReviewSearchPagerbleDto } from './dto/review-search-pagerble.dto';
 import { ReviewPagerbleResponseDto } from './dto/response/review-pagerble-response.dto';
 import { UserService } from 'src/user/user.service';
 import { Cron } from '@nestjs/schedule';
-import { ReviewListEntity } from './entity/ReviewList.entity';
 import { GetReviewsAllPagerbleDto } from './dto/get-reviews-all-pagerble.dto';
 import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
 
@@ -76,7 +75,6 @@ export class ReviewService {
           create: {
             imgPath: dto.thumbnail,
             content: dto.content,
-            isThumbnail: true,
           },
           createMany: {
             data: dto.images.map((image, index) => ({
@@ -160,17 +158,10 @@ export class ReviewService {
               },
             },
 
-            create: {
-              imgPath: dto.thumbnail,
-              content: dto.thumbnailContent,
-              isThumbnail: true,
-            },
-
             createMany: {
               data: dto.images.map((image, index) => ({
                 imgPath: image,
                 content: dto.imgContent[index],
-                isThumbnail: false,
               })),
             },
           },
@@ -205,6 +196,19 @@ export class ReviewService {
         content: content,
       },
     });
+  }
+
+  async deleteThumbnailImg(reviewIdx: number): Promise<void> {
+    await this.prismaService.$transaction([
+      this.prismaService.profileImgTb.updateMany({
+        data: {
+          deletedAt: new Date(),
+        },
+        where: {
+          idx: reviewIdx,
+        },
+      }),
+    ]);
   }
 
   async deleteReview(userIdx: string, reviewIdx: number): Promise<void> {
@@ -269,13 +273,6 @@ export class ReviewService {
             reviewDislikeTb: true,
             reviewBookmarkTb: true,
             reviewShareTb: true,
-            reportTb: {
-              where: {
-                reviewIdx: {
-                  not: null,
-                },
-              },
-            },
           },
         },
       },
@@ -337,32 +334,19 @@ export class ReviewService {
         accountTb: {
           include: {
             profileImgTb: {
-              select: {
-                imgPath: true,
-              },
               where: {
                 deletedAt: null,
               },
             },
           },
         },
-        tagTb: {
-          select: {
-            tagName: true,
-          },
-        },
+        tagTb: true,
         reviewImgTb: {
-          select: {
-            imgPath: true,
-          },
           where: {
             deletedAt: null,
           },
         },
         reviewThumbnailTb: {
-          select: {
-            imgPath: true,
-          },
           where: {
             deletedAt: null,
           },
@@ -444,41 +428,30 @@ export class ReviewService {
         accountTb: {
           include: {
             profileImgTb: {
-              select: {
-                imgPath: true,
-              },
               where: {
                 deletedAt: null,
               },
             },
           },
         },
-        tagTb: {
-          select: {
-            tagName: true,
-          },
-        },
+        tagTb: true,
         reviewImgTb: {
-          select: {
-            imgPath: true,
-          },
           where: {
             deletedAt: null,
           },
         },
         reviewThumbnailTb: {
-          select: {
-            imgPath: true,
-          },
           where: {
             deletedAt: null,
           },
         },
         _count: {
           select: {
+            commentTb: true,
             reviewLikeTb: true,
             reviewDislikeTb: true,
-            commentTb: true,
+            reviewBookmarkTb: true,
+            reviewShareTb: true,
           },
         },
       },
@@ -526,7 +499,7 @@ export class ReviewService {
 
     return {
       totalPage: Math.ceil(totalCount / dto.size),
-      reviews: reviewData.map((elem) => new ReviewListEntity(elem)),
+      reviews: reviewData.map((elem) => new ReviewEntity(elem)),
     };
   }
 
@@ -554,41 +527,30 @@ export class ReviewService {
         accountTb: {
           include: {
             profileImgTb: {
-              select: {
-                imgPath: true,
-              },
               where: {
                 deletedAt: null,
               },
             },
           },
         },
-        tagTb: {
-          select: {
-            tagName: true,
-          },
-        },
+        tagTb: true,
         reviewImgTb: {
-          select: {
-            imgPath: true,
-          },
           where: {
             deletedAt: null,
           },
         },
         reviewThumbnailTb: {
-          select: {
-            imgPath: true,
-          },
           where: {
             deletedAt: null,
           },
         },
         _count: {
           select: {
+            commentTb: true,
             reviewLikeTb: true,
             reviewDislikeTb: true,
-            commentTb: true,
+            reviewBookmarkTb: true,
+            reviewShareTb: true,
           },
         },
       },
@@ -608,7 +570,7 @@ export class ReviewService {
 
     return {
       totalPage: Math.ceil(totalCount / dto.size),
-      reviews: reviewData.map((elem) => new ReviewListEntity(elem)),
+      reviews: reviewData.map((elem) => new ReviewEntity(elem)),
     };
   }
 
@@ -624,32 +586,19 @@ export class ReviewService {
         accountTb: {
           include: {
             profileImgTb: {
-              select: {
-                imgPath: true,
-              },
               where: {
                 deletedAt: null,
               },
             },
           },
         },
-        tagTb: {
-          select: {
-            tagName: true,
-          },
-        },
+        tagTb: true,
         reviewImgTb: {
-          select: {
-            imgPath: true,
-          },
           where: {
             deletedAt: null,
           },
         },
         reviewThumbnailTb: {
-          select: {
-            imgPath: true,
-          },
           where: {
             deletedAt: null,
           },
@@ -659,6 +608,8 @@ export class ReviewService {
             commentTb: true,
             reviewLikeTb: true,
             reviewDislikeTb: true,
+            reviewBookmarkTb: true,
+            reviewShareTb: true,
           },
         },
       },
@@ -683,7 +634,7 @@ export class ReviewService {
       },
     });
 
-    const hotReviews = reviewData.map((review) => new ReviewListEntity(review));
+    const hotReviews = reviewData.map((review) => new ReviewEntity(review));
 
     await this.cacheManager.set('hotReviews', hotReviews, 12 * 3600 * 1000);
   }
@@ -697,32 +648,19 @@ export class ReviewService {
         accountTb: {
           include: {
             profileImgTb: {
-              select: {
-                imgPath: true,
-              },
               where: {
                 deletedAt: null,
               },
             },
           },
         },
-        tagTb: {
-          select: {
-            tagName: true,
-          },
-        },
+        tagTb: true,
         reviewImgTb: {
-          select: {
-            imgPath: true,
-          },
           where: {
             deletedAt: null,
           },
         },
         reviewThumbnailTb: {
-          select: {
-            imgPath: true,
-          },
           where: {
             deletedAt: null,
           },
@@ -732,6 +670,8 @@ export class ReviewService {
             commentTb: true,
             reviewLikeTb: true,
             reviewDislikeTb: true,
+            reviewBookmarkTb: true,
+            reviewShareTb: true,
           },
         },
       },
@@ -756,9 +696,7 @@ export class ReviewService {
       },
     });
 
-    const coldReviews = reviewData.map(
-      (review) => new ReviewListEntity(review),
-    );
+    const coldReviews = reviewData.map((review) => new ReviewEntity(review));
 
     await this.cacheManager.set('coldReviews', coldReviews, 12 * 3600 * 1000);
   }
@@ -830,41 +768,30 @@ export class ReviewService {
         accountTb: {
           include: {
             profileImgTb: {
-              select: {
-                imgPath: true,
-              },
               where: {
                 deletedAt: null,
               },
             },
           },
         },
-        tagTb: {
-          select: {
-            tagName: true,
-          },
-        },
+        tagTb: true,
         reviewImgTb: {
-          select: {
-            imgPath: true,
-          },
           where: {
             deletedAt: null,
           },
         },
         reviewThumbnailTb: {
-          select: {
-            imgPath: true,
-          },
           where: {
             deletedAt: null,
           },
         },
         _count: {
           select: {
+            commentTb: true,
             reviewLikeTb: true,
             reviewDislikeTb: true,
-            commentTb: true,
+            reviewBookmarkTb: true,
+            reviewShareTb: true,
           },
         },
       },
@@ -885,7 +812,7 @@ export class ReviewService {
 
     return {
       totalPage: Math.ceil(totalCount / dto.size),
-      reviews: reviewData.map((elem) => new ReviewListEntity(elem)),
+      reviews: reviewData.map((elem) => new ReviewEntity(elem)),
     };
   }
 
@@ -924,41 +851,30 @@ export class ReviewService {
         accountTb: {
           include: {
             profileImgTb: {
-              select: {
-                imgPath: true,
-              },
               where: {
                 deletedAt: null,
               },
             },
           },
         },
-        tagTb: {
-          select: {
-            tagName: true,
-          },
-        },
+        tagTb: true,
         reviewImgTb: {
-          select: {
-            imgPath: true,
-          },
           where: {
             deletedAt: null,
           },
         },
         reviewThumbnailTb: {
-          select: {
-            imgPath: true,
-          },
           where: {
             deletedAt: null,
           },
         },
         _count: {
           select: {
+            commentTb: true,
             reviewLikeTb: true,
             reviewDislikeTb: true,
-            commentTb: true,
+            reviewBookmarkTb: true,
+            reviewShareTb: true,
           },
         },
       },
@@ -978,7 +894,7 @@ export class ReviewService {
 
     return {
       totalPage: Math.ceil(totalCount / dto.size),
-      reviews: reviewData.map((elem) => new ReviewListEntity(elem)),
+      reviews: reviewData.map((elem) => new ReviewEntity(elem)),
     };
   }
 

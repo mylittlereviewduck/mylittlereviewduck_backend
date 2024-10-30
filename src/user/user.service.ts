@@ -267,16 +267,14 @@ export class UserService {
   }
 
   async deleteMyProfileImg(userIdx: string): Promise<void> {
-    await this.prismaService.$transaction([
-      this.prismaService.profileImgTb.updateMany({
-        data: {
-          deletedAt: new Date(),
-        },
-        where: {
-          accountIdx: userIdx,
-        },
-      }),
-    ]);
+    await this.prismaService.profileImgTb.updateMany({
+      data: {
+        deletedAt: new Date(),
+      },
+      where: {
+        accountIdx: userIdx,
+      },
+    });
   }
 
   async getUserWithProvider(

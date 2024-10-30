@@ -44,7 +44,6 @@ import { FollowEntity } from './entity/Follow.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { OptionalAuthGuard } from 'src/auth/guard/optional-auth.guard';
 import { UserPagerbleResponseDto } from './dto/response/user-pagerble-response.dto';
-import { FollowCheckService } from './follow-check.service';
 import { UserBlockEntity } from './entity/UserBlock.entity';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { AwsService } from 'src/aws/aws.service';
@@ -52,7 +51,8 @@ import { FileValidationPipe } from 'src/common/fileValidation.pipe';
 import { UserListResponseDto } from './dto/response/user-list-response.dto';
 import { AdminGuard } from 'src/auth/guard/admin.guard';
 import { SuspendUserDto } from './dto/suspend-user.dto';
-import { GetUsersAllDto } from './dto/get-users-all.dto';
+import { UserPagerbleDto } from './dto/user-pagerble.dto';
+import { UserFollowService } from './user-follow.service';
 
 @Controller('user')
 @ApiTags('user')
@@ -60,7 +60,7 @@ export class UserController {
   constructor(
     private readonly userService: UserService,
     private readonly followService: FollowService,
-    private readonly followCheckService: FollowCheckService,
+    private readonly userFollowService: UserFollowService,
     private readonly userBlockService: UserBlockService,
     private readonly userBlockCheckService: UserBlockCheckService,
     private readonly awsService: AwsService,
@@ -210,7 +210,7 @@ export class UserController {
       return user;
     }
 
-    await this.followCheckService.isFollow(loginUser.idx, [user]);
+    await this.userFollowService.isFollow(loginUser.idx, [user]);
 
     await this.userBlockCheckService.isBlockedUser(loginUser.idx, [user]);
 
@@ -219,26 +219,15 @@ export class UserController {
 
   @Get('')
   @UseGuards(OptionalAuthGuard)
-  @ApiOperation({ summary: '유저검색하기 닉네임, 관심사' })
+  @ApiOperation({ summary: '유저검색하기 이메일, 닉네임, 관심사' })
   @ApiQuery({ name: 'search', description: '검색 키워드, 검색어 2글자 이상' })
-  @ApiQuery({
-    name: 'size',
-    example: 1,
-    description: '한 페이지당 가져올 리뷰수, 기본값 10',
-  })
-  @ApiQuery({
-    name: 'page',
-    example: 1,
-    description: '가져올 페이지, 기본값 1',
-  })
   @Exception(400, '유효하지않은 요청')
   @Exception(404, 'Not Found Page')
   @ApiResponse({ status: 200, type: UserListResponseDto })
   async getUserWithSearch(
     @GetUser() loginUser: LoginUser,
     @Query('search') search: string,
-    @Query('page') page: number,
-    @Query('size') size: number,
+    @Query() dto: UserPagerbleDto,
   ): Promise<UserListResponseDto> {
     if (search.length < 2) {
       throw new BadRequestException('검색어는 2글자이상');
@@ -249,15 +238,15 @@ export class UserController {
       nickname: search,
       interest1: search,
       interest2: search,
-      size: size || 10,
-      page: page || 1,
+      size: dto.size || 10,
+      page: dto.page || 1,
     });
 
     if (!loginUser) {
       return userSearchResponseDto;
     }
 
-    await this.followCheckService.isFollow(
+    await this.userFollowService.isFollow(
       loginUser.idx,
       userSearchResponseDto.users,
     );
@@ -283,33 +272,31 @@ export class UserController {
   @Get('/:userIdx/following/all')
   @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '팔로잉 리스트보기' })
-  @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
-  @ApiQuery({ name: 'page', example: 1, description: '페이지, 기본값 1' })
-  @ApiQuery({
-    name: 'size',
-    example: 10,
-    description: '페이지크기, 기본값 10',
+  @ApiParam({
+    name: 'userIdx',
+    type: 'string',
+    example: '836d533b-3ee3-4616-8644-a1ddea65e1e0',
   })
   @Exception(400, '유효하지않은 요청')
   @ApiResponse({ status: 200, type: UserPagerbleResponseDto })
   async getFollowingAll(
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
-    @Query('page') page: number,
-    @Query('size') size: number,
+    @Query() dto: UserPagerbleDto,
     @GetUser() loginUser: LoginUser,
   ): Promise<UserPagerbleResponseDto> {
-    const userPagerbleResponseDto = await this.userService.getFollowingList({
-      page: page || 1,
-      size: size || 10,
-      type: 'follower',
-      userIdx: userIdx,
-    });
+    const userPagerbleResponseDto =
+      await this.userFollowService.getFollowingList({
+        page: dto.page || 1,
+        size: dto.size || 20,
+        type: 'follower',
+        userIdx: userIdx,
+      });
 
     if (!loginUser) {
       return userPagerbleResponseDto;
     }
 
-    await this.followCheckService.isFollow(
+    await this.userFollowService.isFollow(
       loginUser.idx,
       userPagerbleResponseDto.users,
     );
@@ -320,33 +307,31 @@ export class UserController {
   @Get('/:userIdx/follower/all')
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '팔로워 리스트보기' })
-  @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
-  @ApiQuery({ name: 'page', example: 1, description: '페이지, 기본값 1' })
-  @ApiQuery({
-    name: 'size',
-    example: 10,
-    description: '페이지크기, 기본값 10',
+  @ApiParam({
+    name: 'userIdx',
+    type: 'string',
+    example: '836d533b-3ee3-4616-8644-a1ddea65e1e0',
   })
   @Exception(400, '유효하지않은 요청')
   @ApiResponse({ status: 200, type: UserPagerbleResponseDto })
   async getFollowerAll(
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
-    @Query('page') page: number,
-    @Query('size') size: number,
+    @Query() dto: UserPagerbleDto,
     @GetUser() loginUser: LoginUser,
   ): Promise<UserPagerbleResponseDto> {
-    const userPagerbleResponseDto = await this.userService.getFollowingList({
-      userIdx: userIdx,
-      page: page || 1,
-      size: size || 20,
-      type: 'followee',
-    });
+    const userPagerbleResponseDto =
+      await this.userFollowService.getFollowingList({
+        userIdx: userIdx,
+        page: dto.page || 1,
+        size: dto.size || 20,
+        type: 'followee',
+      });
 
     if (!loginUser) {
       return userPagerbleResponseDto;
     }
 
-    await this.followCheckService.isFollow(
+    await this.userFollowService.isFollow(
       loginUser.idx,
       userPagerbleResponseDto.users,
     );
@@ -359,7 +344,11 @@ export class UserController {
   @HttpCode(200)
   @ApiOperation({ summary: '유저 팔로우' })
   @ApiBearerAuth()
-  @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
+  @ApiParam({
+    name: 'userIdx',
+    type: 'string',
+    example: '836d533b-3ee3-4616-8644-a1ddea65e1e0',
+  })
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
   @ApiResponse({
@@ -442,26 +431,19 @@ export class UserController {
   @HttpCode(200)
   @ApiOperation({ summary: '차단한 유저목록보기' })
   @ApiBearerAuth()
-  @ApiQuery({ name: 'page', example: 1, description: '페이지, 기본값 1' })
-  @ApiQuery({
-    name: 'size',
-    example: 10,
-    description: '페이지크기, 기본값 10',
-  })
   @Exception(401, '권한 없음')
   @ApiResponse({ status: 200, type: UserPagerbleResponseDto })
   async getBlockedUserAll(
     @GetUser() loginUser: LoginUser,
-    @Query('size') size: number,
-    @Query('page') page: number,
+    @Query() dto: UserPagerbleDto,
   ): Promise<UserPagerbleResponseDto> {
     const userPagerbleResponseDto =
       await this.userBlockService.getBlockedUserAll(loginUser.idx, {
-        page: page || 1,
-        size: size || 10,
+        page: dto.page || 1,
+        size: dto.size || 10,
       });
 
-    await this.followCheckService.isFollow(
+    await this.userFollowService.isFollow(
       loginUser.idx,
       userPagerbleResponseDto.users,
     );
@@ -510,28 +492,17 @@ export class UserController {
     name: 'status',
     description: '유저상태: active | suspended | blacklist',
   })
-  @ApiQuery({
-    name: 'size',
-    example: 1,
-    description: '한 페이지당 가져올 리뷰수, 기본값 10',
-  })
-  @ApiQuery({
-    name: 'page',
-    example: 1,
-    description: '가져올 페이지, 기본값 1',
-  })
   @Exception(401, '권한 없음')
   @Exception(403, '관리자 권한 필요')
   @ApiResponse({ status: 200 })
   async getUsersWithStatus(
     @Param('status') status: UserStatus,
-    @Query('page') page: number,
-    @Query('size') size: number,
+    @Query() dto: UserPagerbleDto,
   ): Promise<UserListResponseDto> {
     return await this.userService.getUsersAll({
       status,
-      page: page || 1,
-      size: size || 10,
+      page: dto.page || 1,
+      size: dto.size || 10,
     });
   }
 }

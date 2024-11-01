@@ -582,7 +582,7 @@ export class ReviewController {
   ): Promise<ReviewPagerbleResponseDto> {
     dto.userIdx = userIdx;
     const reviewPagerbleResponseDto =
-      await this.reviewService.getMyCommentedReviewAll(dto);
+      await this.reviewService.getReviewsAllCommented(dto);
 
     if (!loginUser) {
       return reviewPagerbleResponseDto;

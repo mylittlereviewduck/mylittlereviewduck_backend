@@ -674,7 +674,7 @@ export class ReviewService {
     };
   }
 
-  async getMyCommentedReviewAll(
+  async getReviewsAllCommented(
     dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
     const user = await this.userService.getUser({ idx: dto.userIdx });
@@ -683,16 +683,28 @@ export class ReviewService {
       throw new NotFoundException('Not Found User');
     }
 
-    const totalCount = await this.prismaService.reviewTb.count({
-      where: {
-        commentTb: {
-          some: {
-            accountIdx: dto.userIdx,
-            deletedAt: null,
-          },
-        },
-      },
-    });
+    const countSQLResult: { count: bigint }[] = await this.prismaService
+      .$queryRaw`
+      SELECT count(*)
+      FROM review_tb r
+      JOIN comment_tb c ON r.idx = c.review_idx
+      WHERE c.account_idx = ${dto.userIdx}
+      AND r.deleted_at IS NULL;
+    `;
+
+    // 왜안되는지 공부
+    // const totalCount = await this.prismaService.reviewTb.count({
+    //   where: {
+    //     deletedAt: null,
+    //     commentTb: {
+    //       some: {
+    //         accountIdx: dto.userIdx,
+    //       },
+    //     },
+    //   },
+    // });
+
+    const totalCount: number = Number(countSQLResult[0].count);
 
     const reviewData = await this.prismaService.reviewTb.findMany({
       include: {

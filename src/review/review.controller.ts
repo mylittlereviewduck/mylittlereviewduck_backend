@@ -51,8 +51,8 @@ import { ReviewBlockEntity } from './entity/ReviewBlock.entity';
 import { ReviewShareEntity } from './entity/ReviewShare.entity';
 import { ReviewBookmarkEntity } from './entity/Reviewbookmark.entity';
 import { NotificationService } from 'src/notification/notification.service';
-import { GetReviewsAllPagerbleDto } from './dto/get-reviews-all-pagerble.dto';
 import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
+import { GetReviewsAllDto } from './dto/get-reviews-all.dto';
 
 @Controller('')
 @ApiTags('review')
@@ -78,7 +78,7 @@ export class ReviewController {
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
   async getReviewAll(
     @GetUser() loginUser: LoginUser,
-    @Query() dto: GetReviewsAllPagerbleDto,
+    @Query() dto: GetReviewsAllDto,
   ): Promise<ReviewPagerbleResponseDto> {
     const reviewPagerbleResponseDto = await this.reviewService.getReviewsAll({
       size: dto.size || 10,
@@ -493,7 +493,7 @@ export class ReviewController {
   async getReviewAllByUserIdx(
     @GetUser() loginUser: LoginUser,
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
-    @Query() dto: GetReviewsAllPagerbleDto,
+    @Query() dto: GetReviewsAllDto,
   ): Promise<ReviewPagerbleResponseDto> {
     const reviewPagerbleResponseDto = await this.reviewService.getReviewsAll({
       page: dto.page || 1,

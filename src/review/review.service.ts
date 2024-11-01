@@ -10,12 +10,12 @@ import { ReviewEntity } from './entity/Review.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { UpdateReviewDto } from './dto/update-review.dto';
-import { ReviewSearchPagerbleDto } from './dto/review-search-pagerble.dto';
 import { ReviewPagerbleResponseDto } from './dto/response/review-pagerble-response.dto';
 import { UserService } from 'src/user/user.service';
 import { Cron } from '@nestjs/schedule';
-import { GetReviewsAllPagerbleDto } from './dto/get-reviews-all-pagerble.dto';
 import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
+import { GetReviewWithSearchDto } from './dto/get-review-with-search.dto';
+import { GetReviewsAllDto } from './dto/get-reviews-all.dto';
 
 @Injectable()
 export class ReviewService {
@@ -289,8 +289,10 @@ export class ReviewService {
   }
 
   async getReviewsAll(
-    dto: GetReviewsAllPagerbleDto,
+    dto: GetReviewsAllDto,
   ): Promise<ReviewPagerbleResponseDto> {
+    console.log(dto);
+
     if (dto.userIdx) {
       const user = await this.userService.getUser({ idx: dto.userIdx });
 
@@ -383,7 +385,7 @@ export class ReviewService {
   }
 
   async getReviewWithSearch(
-    dto: ReviewSearchPagerbleDto,
+    dto: GetReviewWithSearchDto,
   ): Promise<ReviewPagerbleResponseDto> {
     const totalCount = await this.prismaService.reviewTb.count({
       where: {

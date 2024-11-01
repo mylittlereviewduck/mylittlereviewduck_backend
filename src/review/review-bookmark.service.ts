@@ -55,7 +55,6 @@ export class ReviewBookmarkService {
         accountIdx: dto.userIdx,
       },
     });
-    console.log('totalCount: ', totalCount);
 
     const reviewData = await this.prismaService.reviewBookmarkTb.findMany({
       include: {

@@ -523,6 +523,7 @@ export class ReviewService {
         },
       },
     });
+    console.log('totalCount: ', totalCount);
 
     const reviewData = await this.prismaService.reviewTb.findMany({
       include: {

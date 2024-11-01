@@ -18,7 +18,7 @@ export class ReviewLikeService {
   async getReviewLike(
     userIdx: string,
     reviewIdx: number,
-  ): Promise<ReviewLikeEntity> {
+  ): Promise<ReviewLikeEntity | undefined> {
     const reviewLikeData = await this.prismaService.reviewLikeTb.findUnique({
       where: {
         reviewIdx_accountIdx: {
@@ -29,7 +29,7 @@ export class ReviewLikeService {
     });
 
     if (!reviewLikeData) {
-      return;
+      return undefined;
     }
 
     return new ReviewLikeEntity(reviewLikeData);
@@ -38,7 +38,7 @@ export class ReviewLikeService {
   async getReviewDislike(
     userIdx: string,
     reviewIdx: number,
-  ): Promise<ReviewDislikeEntity> {
+  ): Promise<ReviewDislikeEntity | undefined> {
     const reviewDislikeData =
       await this.prismaService.reviewDislikeTb.findUnique({
         where: {
@@ -50,7 +50,7 @@ export class ReviewLikeService {
       });
 
     if (!reviewDislikeData) {
-      return;
+      return undefined;
     }
 
     return new ReviewDislikeEntity(reviewDislikeData);
@@ -151,9 +151,9 @@ export class ReviewLikeService {
       throw new NotFoundException('Not Found Review');
     }
 
-    const existingLike = await this.getReviewLike(userIdx, reviewIdx);
+    const existingDislike = await this.getReviewDislike(userIdx, reviewIdx);
 
-    if (existingLike) {
+    if (!existingDislike) {
       throw new ConflictException('Already Not Review Dislike');
     }
 

@@ -674,7 +674,7 @@ export class ReviewService {
     };
   }
 
-  async getReviewsAllCommented(
+  async getReviewsCommented(
     dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
     const user = await this.userService.getUser({ idx: dto.userIdx });
@@ -693,7 +693,7 @@ export class ReviewService {
     `;
 
     // 왜안되는지 공부
-    // const totalCount = await this.prismaService.reviewTb.count({
+    // const totalCount2 = await this.prismaService.reviewTb.count({
     //   where: {
     //     deletedAt: null,
     //     commentTb: {
@@ -703,8 +703,10 @@ export class ReviewService {
     //     },
     //   },
     // });
+    // console.log('totalCount2: ', totalCount2);
 
     const totalCount: number = Number(countSQLResult[0].count);
+    console.log('totalCount: ', totalCount);
 
     const reviewData = await this.prismaService.reviewTb.findMany({
       include: {
@@ -776,6 +778,7 @@ export class ReviewService {
     return noon;
   }
 
+  //쿼리수정해야됨
   async getReviewLikedAll(
     dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {

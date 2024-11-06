@@ -18,4 +18,5 @@ jobs:
           pwd
           cd /home/ubuntu/mylittlereviewduck_backend
           git pull origin main
+          npx prisma generate
           sudo pm2 restart today-review

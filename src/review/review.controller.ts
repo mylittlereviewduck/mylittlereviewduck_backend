@@ -105,11 +105,6 @@ export class ReviewController {
       reviewPagerbleResponseDto.reviews,
     );
 
-    await this.reviewBlockCheckService.isReviewBlocked(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
-
     await this.userBlockCheckService.isBlockedUser(
       loginUser.idx,
       reviewPagerbleResponseDto.reviews.map((elem) => elem.user),

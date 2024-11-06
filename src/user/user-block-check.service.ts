@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserEntity } from './entity/User.entity';
-import { ReviewListUserEntity } from 'src/review/entity/ReviewListUser.entity';
+import { ReviewUserEntity } from 'src/review/entity/ReviewUser.entity';
 
 @Injectable()
 export class UserBlockCheckService {
@@ -9,8 +9,8 @@ export class UserBlockCheckService {
 
   async isBlockedUser(
     userIdx: string,
-    toUsers: UserEntity[] | ReviewListUserEntity[],
-  ): Promise<UserEntity[] | ReviewListUserEntity[]> {
+    toUsers: UserEntity[] | ReviewUserEntity[],
+  ): Promise<UserEntity[] | ReviewUserEntity[]> {
     const sqlResult = await this.prismaService.accountBlockTb.findMany({
       select: {
         blockedIdx: true,

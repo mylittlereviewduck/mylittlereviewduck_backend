@@ -1,3 +1,4 @@
+import { UserModule } from 'src/user/user.module';
 import { Module } from '@nestjs/common';
 import { CommentService } from './comment.service';
 import { CommentController } from './comment.controller';
@@ -8,7 +9,7 @@ import { ReviewModule } from 'src/review/review.module';
 import { NotificationModule } from 'src/notification/notification.module';
 
 @Module({
-  imports: [PrismaModule, ReviewModule, NotificationModule],
+  imports: [UserModule, PrismaModule, ReviewModule, NotificationModule],
   controllers: [CommentController],
   providers: [CommentService, CommentLikeService, CommentLikeCheckService],
   exports: [CommentService],

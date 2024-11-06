@@ -10,13 +10,12 @@ import { ReviewEntity } from './entity/Review.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { UpdateReviewDto } from './dto/update-review.dto';
-import { ReviewSearchPagerbleDto } from './dto/review-search-pagerble.dto';
 import { ReviewPagerbleResponseDto } from './dto/response/review-pagerble-response.dto';
 import { UserService } from 'src/user/user.service';
 import { Cron } from '@nestjs/schedule';
-import { ReviewListEntity } from './entity/ReviewList.entity';
-import { GetReviewsAllPagerbleDto } from './dto/get-reviews-all-pagerble.dto';
 import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
+import { GetReviewWithSearchDto } from './dto/get-review-with-search.dto';
+import { GetReviewsAllDto } from './dto/get-reviews-all.dto';
 
 @Injectable()
 export class ReviewService {
@@ -76,7 +75,6 @@ export class ReviewService {
           create: {
             imgPath: dto.thumbnail,
             content: dto.content,
-            isThumbnail: true,
           },
           createMany: {
             data: dto.images.map((image, index) => ({
@@ -160,17 +158,10 @@ export class ReviewService {
               },
             },
 
-            create: {
-              imgPath: dto.thumbnail,
-              content: dto.thumbnailContent,
-              isThumbnail: true,
-            },
-
             createMany: {
               data: dto.images.map((image, index) => ({
                 imgPath: image,
                 content: dto.imgContent[index],
-                isThumbnail: false,
               })),
             },
           },
@@ -182,6 +173,42 @@ export class ReviewService {
     });
 
     return new ReviewEntity(data);
+  }
+
+  async updateReviewThumbnail(
+    reviewIdx: number,
+    imgPath: string,
+    content: string,
+  ): Promise<void> {
+    await this.prismaService.reviewThumbnailTb.updateMany({
+      data: {
+        deletedAt: new Date(),
+      },
+      where: {
+        reviewIdx: reviewIdx,
+      },
+    });
+
+    await this.prismaService.reviewThumbnailTb.create({
+      data: {
+        reviewIdx: reviewIdx,
+        imgPath: imgPath,
+        content: content,
+      },
+    });
+  }
+
+  async deleteThumbnailImg(reviewIdx: number): Promise<void> {
+    await this.prismaService.$transaction([
+      this.prismaService.profileImgTb.updateMany({
+        data: {
+          deletedAt: new Date(),
+        },
+        where: {
+          idx: reviewIdx,
+        },
+      }),
+    ]);
   }
 
   async deleteReview(userIdx: string, reviewIdx: number): Promise<void> {
@@ -234,7 +261,11 @@ export class ReviewService {
             deletedAt: null,
           },
         },
-
+        reviewThumbnailTb: {
+          where: {
+            deletedAt: null,
+          },
+        },
         _count: {
           select: {
             commentTb: true,
@@ -242,13 +273,6 @@ export class ReviewService {
             reviewDislikeTb: true,
             reviewBookmarkTb: true,
             reviewShareTb: true,
-            reportTb: {
-              where: {
-                reviewIdx: {
-                  not: null,
-                },
-              },
-            },
           },
         },
       },
@@ -265,8 +289,10 @@ export class ReviewService {
   }
 
   async getReviewsAll(
-    dto: GetReviewsAllPagerbleDto,
+    dto: GetReviewsAllDto,
   ): Promise<ReviewPagerbleResponseDto> {
+    console.log(dto);
+
     if (dto.userIdx) {
       const user = await this.userService.getUser({ idx: dto.userIdx });
 
@@ -310,32 +336,19 @@ export class ReviewService {
         accountTb: {
           include: {
             profileImgTb: {
-              select: {
-                imgPath: true,
-              },
               where: {
                 deletedAt: null,
               },
             },
           },
         },
-        tagTb: {
-          select: {
-            tagName: true,
-          },
-        },
+        tagTb: true,
         reviewImgTb: {
-          select: {
-            imgPath: true,
-          },
           where: {
             deletedAt: null,
           },
         },
         reviewThumbnailTb: {
-          select: {
-            imgPath: true,
-          },
           where: {
             deletedAt: null,
           },
@@ -345,6 +358,8 @@ export class ReviewService {
             commentTb: true,
             reviewLikeTb: true,
             reviewDislikeTb: true,
+            reviewBookmarkTb: true,
+            reviewShareTb: true,
           },
         },
       },
@@ -365,12 +380,12 @@ export class ReviewService {
 
     return {
       totalPage: Math.ceil(reviewCount / dto.size),
-      reviews: reviewSQLResult.map((elem) => new ReviewListEntity(elem)),
+      reviews: reviewSQLResult.map((elem) => new ReviewEntity(elem)),
     };
   }
 
   async getReviewWithSearch(
-    dto: ReviewSearchPagerbleDto,
+    dto: GetReviewWithSearchDto,
   ): Promise<ReviewPagerbleResponseDto> {
     const totalCount = await this.prismaService.reviewTb.count({
       where: {
@@ -415,41 +430,30 @@ export class ReviewService {
         accountTb: {
           include: {
             profileImgTb: {
-              select: {
-                imgPath: true,
-              },
               where: {
                 deletedAt: null,
               },
             },
           },
         },
-        tagTb: {
-          select: {
-            tagName: true,
-          },
-        },
+        tagTb: true,
         reviewImgTb: {
-          select: {
-            imgPath: true,
-          },
           where: {
             deletedAt: null,
           },
         },
         reviewThumbnailTb: {
-          select: {
-            imgPath: true,
-          },
           where: {
             deletedAt: null,
           },
         },
         _count: {
           select: {
+            commentTb: true,
             reviewLikeTb: true,
             reviewDislikeTb: true,
-            commentTb: true,
+            reviewBookmarkTb: true,
+            reviewShareTb: true,
           },
         },
       },
@@ -497,89 +501,7 @@ export class ReviewService {
 
     return {
       totalPage: Math.ceil(totalCount / dto.size),
-      reviews: reviewData.map((elem) => new ReviewListEntity(elem)),
-    };
-  }
-
-  async getBookmarkedReviewAll(
-    dto: ReviewPagerbleDto,
-  ): Promise<ReviewPagerbleResponseDto> {
-    const user = await this.userService.getUser({ idx: dto.userIdx });
-
-    if (!user) {
-      throw new NotFoundException('Not Found User');
-    }
-
-    const totalCount = await this.prismaService.reviewTb.count({
-      where: {
-        reviewBookmarkTb: {
-          every: {
-            accountIdx: dto.userIdx,
-          },
-        },
-      },
-    });
-
-    const reviewData = await this.prismaService.reviewTb.findMany({
-      include: {
-        accountTb: {
-          include: {
-            profileImgTb: {
-              select: {
-                imgPath: true,
-              },
-              where: {
-                deletedAt: null,
-              },
-            },
-          },
-        },
-        tagTb: {
-          select: {
-            tagName: true,
-          },
-        },
-        reviewImgTb: {
-          select: {
-            imgPath: true,
-          },
-          where: {
-            deletedAt: null,
-          },
-        },
-        reviewThumbnailTb: {
-          select: {
-            imgPath: true,
-          },
-          where: {
-            deletedAt: null,
-          },
-        },
-        _count: {
-          select: {
-            reviewLikeTb: true,
-            reviewDislikeTb: true,
-            commentTb: true,
-          },
-        },
-      },
-      where: {
-        reviewBookmarkTb: {
-          every: {
-            accountIdx: dto.userIdx,
-          },
-        },
-      },
-      orderBy: {
-        idx: 'desc',
-      },
-      skip: (dto.page - 1) * dto.size,
-      take: dto.size,
-    });
-
-    return {
-      totalPage: Math.ceil(totalCount / dto.size),
-      reviews: reviewData.map((elem) => new ReviewListEntity(elem)),
+      reviews: reviewData.map((elem) => new ReviewEntity(elem)),
     };
   }
 
@@ -595,32 +517,19 @@ export class ReviewService {
         accountTb: {
           include: {
             profileImgTb: {
-              select: {
-                imgPath: true,
-              },
               where: {
                 deletedAt: null,
               },
             },
           },
         },
-        tagTb: {
-          select: {
-            tagName: true,
-          },
-        },
+        tagTb: true,
         reviewImgTb: {
-          select: {
-            imgPath: true,
-          },
           where: {
             deletedAt: null,
           },
         },
         reviewThumbnailTb: {
-          select: {
-            imgPath: true,
-          },
           where: {
             deletedAt: null,
           },
@@ -630,6 +539,8 @@ export class ReviewService {
             commentTb: true,
             reviewLikeTb: true,
             reviewDislikeTb: true,
+            reviewBookmarkTb: true,
+            reviewShareTb: true,
           },
         },
       },
@@ -654,7 +565,7 @@ export class ReviewService {
       },
     });
 
-    const hotReviews = reviewData.map((review) => new ReviewListEntity(review));
+    const hotReviews = reviewData.map((review) => new ReviewEntity(review));
 
     await this.cacheManager.set('hotReviews', hotReviews, 12 * 3600 * 1000);
   }
@@ -668,32 +579,19 @@ export class ReviewService {
         accountTb: {
           include: {
             profileImgTb: {
-              select: {
-                imgPath: true,
-              },
               where: {
                 deletedAt: null,
               },
             },
           },
         },
-        tagTb: {
-          select: {
-            tagName: true,
-          },
-        },
+        tagTb: true,
         reviewImgTb: {
-          select: {
-            imgPath: true,
-          },
           where: {
             deletedAt: null,
           },
         },
         reviewThumbnailTb: {
-          select: {
-            imgPath: true,
-          },
           where: {
             deletedAt: null,
           },
@@ -703,6 +601,8 @@ export class ReviewService {
             commentTb: true,
             reviewLikeTb: true,
             reviewDislikeTb: true,
+            reviewBookmarkTb: true,
+            reviewShareTb: true,
           },
         },
       },
@@ -727,9 +627,7 @@ export class ReviewService {
       },
     });
 
-    const coldReviews = reviewData.map(
-      (review) => new ReviewListEntity(review),
-    );
+    const coldReviews = reviewData.map((review) => new ReviewEntity(review));
 
     await this.cacheManager.set('coldReviews', coldReviews, 12 * 3600 * 1000);
   }
@@ -776,7 +674,7 @@ export class ReviewService {
     };
   }
 
-  async getMyCommentedReviewAll(
+  async getReviewsCommented(
     dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
     const user = await this.userService.getUser({ idx: dto.userIdx });
@@ -785,57 +683,60 @@ export class ReviewService {
       throw new NotFoundException('Not Found User');
     }
 
-    const totalCount = await this.prismaService.reviewTb.count({
-      where: {
-        commentTb: {
-          some: {
-            accountIdx: dto.userIdx,
-            deletedAt: null,
-          },
-        },
-      },
-    });
+    const countSQLResult: { count: bigint }[] = await this.prismaService
+      .$queryRaw`
+      SELECT count(*)
+      FROM review_tb r
+      JOIN comment_tb c ON r.idx = c.review_idx
+      WHERE c.account_idx = ${dto.userIdx}
+      AND r.deleted_at IS NULL;
+    `;
+
+    // 왜안되는지 공부
+    // const totalCount2 = await this.prismaService.reviewTb.count({
+    //   where: {
+    //     deletedAt: null,
+    //     commentTb: {
+    //       some: {
+    //         accountIdx: dto.userIdx,
+    //       },
+    //     },
+    //   },
+    // });
+    // console.log('totalCount2: ', totalCount2);
+
+    const totalCount: number = Number(countSQLResult[0].count);
+    console.log('totalCount: ', totalCount);
 
     const reviewData = await this.prismaService.reviewTb.findMany({
       include: {
         accountTb: {
           include: {
             profileImgTb: {
-              select: {
-                imgPath: true,
-              },
               where: {
                 deletedAt: null,
               },
             },
           },
         },
-        tagTb: {
-          select: {
-            tagName: true,
-          },
-        },
+        tagTb: true,
         reviewImgTb: {
-          select: {
-            imgPath: true,
-          },
           where: {
             deletedAt: null,
           },
         },
         reviewThumbnailTb: {
-          select: {
-            imgPath: true,
-          },
           where: {
             deletedAt: null,
           },
         },
         _count: {
           select: {
+            commentTb: true,
             reviewLikeTb: true,
             reviewDislikeTb: true,
-            commentTb: true,
+            reviewBookmarkTb: true,
+            reviewShareTb: true,
           },
         },
       },
@@ -856,7 +757,7 @@ export class ReviewService {
 
     return {
       totalPage: Math.ceil(totalCount / dto.size),
-      reviews: reviewData.map((elem) => new ReviewListEntity(elem)),
+      reviews: reviewData.map((elem) => new ReviewEntity(elem)),
     };
   }
 
@@ -877,6 +778,7 @@ export class ReviewService {
     return noon;
   }
 
+  //쿼리수정해야됨
   async getReviewLikedAll(
     dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
@@ -895,41 +797,30 @@ export class ReviewService {
         accountTb: {
           include: {
             profileImgTb: {
-              select: {
-                imgPath: true,
-              },
               where: {
                 deletedAt: null,
               },
             },
           },
         },
-        tagTb: {
-          select: {
-            tagName: true,
-          },
-        },
+        tagTb: true,
         reviewImgTb: {
-          select: {
-            imgPath: true,
-          },
           where: {
             deletedAt: null,
           },
         },
         reviewThumbnailTb: {
-          select: {
-            imgPath: true,
-          },
           where: {
             deletedAt: null,
           },
         },
         _count: {
           select: {
+            commentTb: true,
             reviewLikeTb: true,
             reviewDislikeTb: true,
-            commentTb: true,
+            reviewBookmarkTb: true,
+            reviewShareTb: true,
           },
         },
       },
@@ -949,7 +840,7 @@ export class ReviewService {
 
     return {
       totalPage: Math.ceil(totalCount / dto.size),
-      reviews: reviewData.map((elem) => new ReviewListEntity(elem)),
+      reviews: reviewData.map((elem) => new ReviewEntity(elem)),
     };
   }
 

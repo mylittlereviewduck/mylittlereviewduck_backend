@@ -1,41 +1,37 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { ReviewService } from './review.service';
-import { ReviewShareEntity } from './entity/ReviewShare.entity';
+import { ReviewEntity } from './entity/Review.entity';
 
 @Injectable()
-export class ReviewShareService {
-  constructor(
-    private readonly prismaService: PrismaService,
-    private readonly reviewService: ReviewService,
-  ) {}
+export class ReviewShareCheckService {
+  constructor(private readonly prismaService: PrismaService) {}
 
-  async shareReview(
+  async isReviewShared(
     userIdx: string,
-    reviewIdx: number,
-  ): Promise<ReviewShareEntity> {
-    const review = await this.reviewService.getReviewByIdx(reviewIdx);
-    if (!review) {
-      throw new NotFoundException('Not Found Review');
-    }
-
-    const existingShare = await this.prismaService.reviewShareTb.findFirst({
+    reviews: ReviewEntity[],
+  ): Promise<ReviewEntity[]> {
+    const sqlResult = await this.prismaService.reviewShareTb.findMany({
       where: {
         accountIdx: userIdx,
-        reviewIdx: reviewIdx,
+        reviewIdx: {
+          in: reviews.map((review) => review.idx),
+        },
+      },
+      select: {
+        reviewIdx: true,
       },
     });
 
-    if (existingShare) {
-      return;
+    const sharedReviewIdxList = sqlResult.map((elem) => elem.reviewIdx);
+
+    for (let i = 0; i < reviews.length; i++) {
+      if (sharedReviewIdxList.includes(reviews[i].idx)) {
+        reviews[i].isMyShare = true;
+      } else {
+        reviews[i].isMyShare = false;
+      }
     }
 
-    const reviewShareData = await this.prismaService.reviewShareTb.create({
-      data: {
-        accountIdx: userIdx,
-        reviewIdx: reviewIdx,
-      },
-    });
-    return new ReviewShareEntity(reviewShareData);
+    return reviews;
   }
 }

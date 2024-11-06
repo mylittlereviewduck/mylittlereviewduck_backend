@@ -1,11 +1,11 @@
 import { UserBlockCheckService } from './../user/user-block-check.service';
 import { AwsService } from '../aws/aws.service';
-import { ReviewShareCheckService } from './review-share-check.service';
-import { ReviewShareService } from './review-share.service';
+import { ReviewShareCheckService } from './review-share.service';
+import { ReviewShareService } from './share.service';
 import { ReviewBlockService } from './review-block.service';
 import { ReviewBlockCheckService } from './review-block-check.service';
-import { ReviewBookmarkCheckService } from './review-bookmark-check.service';
-import { ReviewLikeService } from './review-like.service';
+import { ReviewBookmarkService } from './review-bookmark.service';
+import { ReviewLikeService } from './like.service';
 import {
   BadRequestException,
   Body,
@@ -41,8 +41,7 @@ import { GetUser } from 'src/auth/get-user.decorator';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { OptionalAuthGuard } from 'src/auth/guard/optional-auth.guard';
 import { ReviewPagerbleResponseDto } from './dto/response/review-pagerble-response.dto';
-import { ReviewLikeCheckService } from './review-like-check.service';
-import { ReviewBookmarkService } from './review-bookmark.service';
+import { ReviewLikeCheckService } from './review-like.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileValidationPipe } from 'src/common/fileValidation.pipe';
 import { ReviewLikeEntity } from './entity/ReviewLike.entity';
@@ -51,8 +50,9 @@ import { ReviewBlockEntity } from './entity/ReviewBlock.entity';
 import { ReviewShareEntity } from './entity/ReviewShare.entity';
 import { ReviewBookmarkEntity } from './entity/Reviewbookmark.entity';
 import { NotificationService } from 'src/notification/notification.service';
-import { GetReviewsAllPagerbleDto } from './dto/get-reviews-all-pagerble.dto';
 import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
+import { GetReviewsAllDto } from './dto/get-reviews-all.dto';
+import { BookmarkService } from './bookmark.service';
 
 @Controller('')
 @ApiTags('review')
@@ -61,8 +61,8 @@ export class ReviewController {
     private readonly reviewService: ReviewService,
     private readonly reviewLikeService: ReviewLikeService,
     private readonly reviewLikeCheckService: ReviewLikeCheckService,
+    private readonly bookmarkService: BookmarkService,
     private readonly reviewBookmarkService: ReviewBookmarkService,
-    private readonly reviewBookmarkCheckService: ReviewBookmarkCheckService,
     private readonly reviewShareService: ReviewShareService,
     private readonly reviewShareCheckService: ReviewShareCheckService,
     private readonly reviewBlockService: ReviewBlockService,
@@ -78,7 +78,7 @@ export class ReviewController {
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
   async getReviewAll(
     @GetUser() loginUser: LoginUser,
-    @Query() dto: GetReviewsAllPagerbleDto,
+    @Query() dto: GetReviewsAllDto,
   ): Promise<ReviewPagerbleResponseDto> {
     const reviewPagerbleResponseDto = await this.reviewService.getReviewsAll({
       size: dto.size || 10,
@@ -207,7 +207,7 @@ export class ReviewController {
       reviewEntity,
     ]);
 
-    await this.reviewBookmarkCheckService.isReviewBookmarked(loginUser.idx, [
+    await this.reviewBookmarkService.isReviewBookmarked(loginUser.idx, [
       reviewEntity,
     ]);
 
@@ -410,10 +410,7 @@ export class ReviewController {
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
   ): Promise<ReviewBookmarkEntity> {
-    return await this.reviewBookmarkService.bookmarkReview(
-      loginUser.idx,
-      reviewIdx,
-    );
+    return await this.bookmarkService.bookmarkReview(loginUser.idx, reviewIdx);
   }
 
   @Delete('/review/:reviewIdx/bookmark')
@@ -430,7 +427,7 @@ export class ReviewController {
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
   ): Promise<void> {
-    await this.reviewBookmarkService.unbookmarkReview(loginUser.idx, reviewIdx);
+    await this.bookmarkService.unbookmarkReview(loginUser.idx, reviewIdx);
   }
 
   @Post('/review/:reviewIdx/share')
@@ -493,12 +490,14 @@ export class ReviewController {
   async getReviewAllByUserIdx(
     @GetUser() loginUser: LoginUser,
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
-    @Query() dto: GetReviewsAllPagerbleDto,
+    @Query() dto: GetReviewsAllDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    dto.userIdx = userIdx;
-
-    const reviewPagerbleResponseDto =
-      await this.reviewService.getReviewsAll(dto);
+    const reviewPagerbleResponseDto = await this.reviewService.getReviewsAll({
+      page: dto.page || 1,
+      size: dto.size || 10,
+      timeframe: 'all',
+      userIdx: userIdx,
+    });
 
     if (!loginUser) {
       return reviewPagerbleResponseDto;
@@ -541,7 +540,7 @@ export class ReviewController {
     dto.userIdx = userIdx;
 
     const reviewPagerbleResponseDto =
-      await this.reviewService.getBookmarkedReviewAll(dto);
+      await this.reviewBookmarkService.getBookmarkedReviewAll(dto);
 
     if (!loginUser) {
       return reviewPagerbleResponseDto;
@@ -583,7 +582,7 @@ export class ReviewController {
   ): Promise<ReviewPagerbleResponseDto> {
     dto.userIdx = userIdx;
     const reviewPagerbleResponseDto =
-      await this.reviewService.getMyCommentedReviewAll(dto);
+      await this.reviewService.getReviewsCommented(dto);
 
     if (!loginUser) {
       return reviewPagerbleResponseDto;

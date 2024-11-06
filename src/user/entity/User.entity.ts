@@ -96,7 +96,7 @@ export class UserEntity {
     this.suspensionCount = data.suspensionCount;
     this.suspendExpireAt = data.suspendExpireAt;
     this.createdAt = data.createdAt;
-    this.followingCount = data._count.followee;
-    this.followerCount = data._count.follower;
+    this.followingCount = data._count.follower;
+    this.followerCount = data._count.followee;
   }
 }

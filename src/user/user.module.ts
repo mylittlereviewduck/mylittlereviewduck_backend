@@ -5,12 +5,12 @@ import { FollowService } from './follow.service';
 import { UserBlockService } from './user-block.service';
 import { PrismaModule } from '../../src/prisma/prisma.module';
 import { AuthModule } from '../../src/auth/auth.module';
-import { FollowCheckService } from './follow-check.service';
 import { UserBlockCheckService } from './user-block-check.service';
 import { AwsModule } from '../aws/aws.module';
 import { NotificationModule } from 'src/notification/notification.module';
 import { EmailModule } from '../email/email.module';
 import { UserSuspensionService } from './user-suspension.service';
+import { UserFollowService } from './user-follow.service';
 
 @Module({
   imports: [
@@ -25,14 +25,14 @@ import { UserSuspensionService } from './user-suspension.service';
     UserService,
     FollowService,
     UserBlockService,
-    FollowCheckService,
+    UserFollowService,
     UserBlockCheckService,
     UserSuspensionService,
   ],
   exports: [
     UserService,
     UserBlockService,
-    FollowCheckService,
+    UserFollowService,
     UserBlockCheckService,
   ],
 })

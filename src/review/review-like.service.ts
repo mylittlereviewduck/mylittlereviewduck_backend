@@ -1,169 +1,67 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { ReviewService } from './review.service';
-import { ReviewLikeEntity } from './entity/ReviewLike.entity';
-import { ReviewDislikeEntity } from './entity/ReviewDislike.entity';
+import { ReviewEntity } from './entity/Review.entity';
+import { ReviewListEntity } from './entity/ReviewList.entity';
 
 @Injectable()
-export class ReviewLikeService {
-  constructor(
-    private readonly prismaService: PrismaService,
-    private readonly reviewService: ReviewService,
-  ) {}
+export class ReviewLikeCheckService {
+  constructor(private readonly prismaService: PrismaService) {}
 
-  async getReviewLike(
+  async isReviewLiked(
     userIdx: string,
-    reviewIdx: number,
-  ): Promise<ReviewLikeEntity> {
-    const reviewLikeData = await this.prismaService.reviewLikeTb.findUnique({
+    reviews: ReviewListEntity[],
+  ): Promise<ReviewListEntity[]> {
+    const sqlResult = await this.prismaService.reviewLikeTb.findMany({
       where: {
-        reviewIdx_accountIdx: {
-          accountIdx: userIdx,
-          reviewIdx: reviewIdx,
-        },
-      },
-    });
-
-    if (!reviewLikeData) {
-      return;
-    }
-
-    return new ReviewLikeEntity(reviewLikeData);
-  }
-
-  async getReviewDislike(
-    userIdx: string,
-    reviewIdx: number,
-  ): Promise<ReviewDislikeEntity> {
-    const reviewDislikeData =
-      await this.prismaService.reviewDislikeTb.findUnique({
-        where: {
-          accountIdx_reviewIdx: {
-            accountIdx: userIdx,
-            reviewIdx: reviewIdx,
-          },
-        },
-      });
-
-    if (!reviewDislikeData) {
-      return;
-    }
-
-    return new ReviewDislikeEntity(reviewDislikeData);
-  }
-
-  async likeReview(
-    userIdx: string,
-    reviewIdx: number,
-  ): Promise<ReviewLikeEntity> {
-    const review = await this.reviewService.getReviewByIdx(reviewIdx);
-
-    if (!review) {
-      throw new NotFoundException('Not Found Review');
-    }
-
-    const existingLike = await this.getReviewLike(userIdx, reviewIdx);
-
-    if (existingLike) {
-      throw new ConflictException('Already Review Like');
-    }
-
-    const existingDisLike = await this.getReviewDislike(userIdx, reviewIdx);
-
-    if (existingDisLike) {
-      await this.undislikeReview(userIdx, reviewIdx);
-    }
-    const reviewLikeData = await this.prismaService.reviewLikeTb.create({
-      data: {
         accountIdx: userIdx,
-        reviewIdx: reviewIdx,
-      },
-    });
-
-    return new ReviewLikeEntity(reviewLikeData);
-  }
-
-  async unlikeReview(userIdx: string, reviewIdx: number): Promise<void> {
-    const review = await this.reviewService.getReviewByIdx(reviewIdx);
-
-    if (!review) {
-      throw new NotFoundException('Not Found Review');
-    }
-
-    const existingLike = await this.getReviewLike(userIdx, reviewIdx);
-
-    if (!existingLike) {
-      throw new ConflictException('Already Not Review Like');
-    }
-
-    await this.prismaService.reviewLikeTb.delete({
-      where: {
-        reviewIdx_accountIdx: {
-          accountIdx: userIdx,
-          reviewIdx: reviewIdx,
+        reviewIdx: {
+          in: reviews.map((review) => review.idx),
         },
       },
+      select: {
+        reviewIdx: true,
+      },
     });
+
+    const likedReviewIdxList = sqlResult.map((elem) => elem.reviewIdx);
+
+    for (let i = 0; i < reviews.length; i++) {
+      if (likedReviewIdxList.includes(reviews[i].idx)) {
+        reviews[i].isMyLike = true;
+      } else {
+        reviews[i].isMyLike = false;
+      }
+    }
+
+    return reviews;
   }
 
-  async dislikeReview(
+  async isReviewDisliked(
     userIdx: string,
-    reviewIdx: number,
-  ): Promise<ReviewDislikeEntity> {
-    const review = await this.reviewService.getReviewByIdx(reviewIdx);
-
-    if (!review) {
-      throw new NotFoundException('Not Found Review');
-    }
-
-    const existingDislike = await this.getReviewDislike(userIdx, reviewIdx);
-
-    if (existingDislike) {
-      throw new ConflictException('Already Review DisLike');
-    }
-
-    const existingLike = await this.getReviewLike(userIdx, reviewIdx);
-
-    if (existingLike) {
-      await this.unlikeReview(userIdx, reviewIdx);
-    }
-
-    const reviewDislikeEntity = await this.prismaService.reviewDislikeTb.create(
-      {
-        data: {
-          accountIdx: userIdx,
-          reviewIdx: reviewIdx,
+    reviews: ReviewListEntity[],
+  ): Promise<ReviewListEntity[]> {
+    const sqlResult = await this.prismaService.reviewDislikeTb.findMany({
+      where: {
+        accountIdx: userIdx,
+        reviewIdx: {
+          in: reviews.map((review) => review.idx),
         },
       },
-    );
-
-    return new ReviewDislikeEntity(reviewDislikeEntity);
-  }
-
-  async undislikeReview(userIdx: string, reviewIdx: number): Promise<void> {
-    const review = await this.reviewService.getReviewByIdx(reviewIdx);
-
-    if (!review) {
-      throw new NotFoundException('Not Found Review');
-    }
-
-    const existingLike = await this.getReviewLike(userIdx, reviewIdx);
-
-    if (existingLike) {
-      throw new ConflictException('Already Not Review Dislike');
-    }
-
-    await this.prismaService.reviewDislikeTb.delete({
-      where: {
-        accountIdx_reviewIdx: {
-          accountIdx: userIdx,
-          reviewIdx: reviewIdx,
-        },
+      select: {
+        reviewIdx: true,
       },
     });
+
+    const dislikedReviewIdxList = sqlResult.map((elem) => elem.reviewIdx);
+
+    for (let i = 0; i < reviews.length; i++) {
+      if (dislikedReviewIdxList.includes(reviews[i].idx)) {
+        reviews[i].isMyDislike = true;
+      } else {
+        reviews[i].isMyDislike = false;
+      }
+    }
+
+    return reviews;
   }
 }

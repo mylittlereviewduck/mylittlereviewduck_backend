@@ -1,4 +1,3 @@
-import { FollowCheckService } from './../user/follow-check.service';
 import { AuthGuard } from '../auth/guard/auth.guard';
 import { Controller, Get, Query, Sse, UseGuards } from '@nestjs/common';
 import {
@@ -17,13 +16,14 @@ import { NotificationService } from './notification.service';
 import { Observable } from 'rxjs';
 import { NotificationEntity } from './entity/Notification.entity';
 import { GetNotificationDto } from './dto/get-notification.dto';
+import { UserFollowService } from 'src/user/user-follow.service';
 
 @Controller('')
 @ApiTags('user')
 export class NotificationController {
   constructor(
     private readonly notificationService: NotificationService,
-    private readonly followCheckService: FollowCheckService,
+    private readonly userFollowService: UserFollowService,
   ) {}
 
   @Get('/user/notification/all')
@@ -43,7 +43,7 @@ export class NotificationController {
         size: dto.size || 20,
       });
 
-    await this.followCheckService.isFollow(
+    await this.userFollowService.isFollow(
       loginUser.idx,
       notificationPagerbleResponseDto.notifications.map(
         (notification) => notification.sender,

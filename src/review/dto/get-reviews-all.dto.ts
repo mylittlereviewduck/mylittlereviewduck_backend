@@ -1,26 +1,24 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsIn, IsInt, IsOptional } from 'class-validator';
+import { IsIn, IsOptional } from 'class-validator';
 import { ReviewTimeframe } from '../type/review-timeframe.dto';
-import { Transform } from 'class-transformer';
+import { Type } from 'class-transformer';
 
-export class GetReviewsAllPagerbleDto {
+export class GetReviewsAllDto {
   @ApiProperty({
     description: '한 페이지에 담긴 리뷰 수',
     default: 10,
   })
   @IsOptional()
-  @IsInt()
-  @Transform(({ value }) => parseInt(value, 10) || 10)
-  size: number;
+  @Type(() => Number)
+  size?: number;
 
   @ApiProperty({
     description: '가져올 페이지',
     default: 1,
   })
   @IsOptional()
-  @IsInt()
-  @Transform(({ value }) => parseInt(value, 10) || 1)
-  page: number;
+  @Type(() => Number)
+  page?: number;
 
   userIdx?: string;
 

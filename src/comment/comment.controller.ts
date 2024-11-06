@@ -33,11 +33,13 @@ import { OptionalAuthGuard } from 'src/auth/guard/optional-auth.guard';
 import { CommentPagerbleResponseDto } from './dto/response/comment-pagerble-response.dto';
 import { NotificationService } from 'src/notification/notification.service';
 import { ReviewService } from 'src/review/review.service';
+import { UserBlockCheckService } from 'src/user/user-block-check.service';
 
 @ApiTags('comment')
 @Controller()
 export class CommentController {
   constructor(
+    private readonly userBlockCheckService: UserBlockCheckService,
     private readonly commentService: CommentService,
     private readonly commentLikeService: CommentLikeService,
     private readonly commentLikeCheckService: CommentLikeCheckService,
@@ -81,6 +83,11 @@ export class CommentController {
     await this.commentLikeCheckService.isCommentLiked(
       loginUser.idx,
       commentPagerbleResponseDto.comments,
+    );
+
+    await this.userBlockCheckService.isBlockedUser(
+      loginUser.idx,
+      commentPagerbleResponseDto.comments.map((elem) => elem.user),
     );
 
     return commentPagerbleResponseDto;

@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ReviewEntity } from './entity/Review.entity';
-import { ReviewListEntity } from './entity/ReviewList.entity';
 
 @Injectable()
 export class ReviewLikeCheckService {
@@ -9,8 +8,8 @@ export class ReviewLikeCheckService {
 
   async isReviewLiked(
     userIdx: string,
-    reviews: ReviewListEntity[],
-  ): Promise<ReviewListEntity[]> {
+    reviews: ReviewEntity[],
+  ): Promise<ReviewEntity[]> {
     const sqlResult = await this.prismaService.reviewLikeTb.findMany({
       where: {
         accountIdx: userIdx,
@@ -38,8 +37,8 @@ export class ReviewLikeCheckService {
 
   async isReviewDisliked(
     userIdx: string,
-    reviews: ReviewListEntity[],
-  ): Promise<ReviewListEntity[]> {
+    reviews: ReviewEntity[],
+  ): Promise<ReviewEntity[]> {
     const sqlResult = await this.prismaService.reviewDislikeTb.findMany({
       where: {
         accountIdx: userIdx,

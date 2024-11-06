@@ -295,8 +295,6 @@ export class ReviewService {
   async getReviewsAll(
     dto: GetReviewsAllDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    console.log(dto);
-
     if (dto.userIdx) {
       const user = await this.userService.getUser({ idx: dto.userIdx });
 
@@ -710,7 +708,6 @@ export class ReviewService {
     // console.log('totalCount2: ', totalCount2);
 
     const totalCount: number = Number(countSQLResult[0].count);
-    console.log('totalCount: ', totalCount);
 
     const reviewData = await this.prismaService.reviewTb.findMany({
       include: {

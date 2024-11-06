@@ -49,6 +49,9 @@ export class CommentEntity {
   @ApiProperty({ example: '댓글내용입니다', description: '댓글 내용' })
   content: string;
 
+  @ApiProperty({ example: '3', description: '댓글 좋아요 수' })
+  likeCount: number;
+
   @ApiProperty({
     example: '2024-08-01T07:58:57.844Z',
     description: '댓글 작성시간 타임스탬프',
@@ -67,6 +70,7 @@ export class CommentEntity {
     this.reviewIdx = data.reviewIdx;
     this.commentIdx = data.commentIdx;
     this.content = data.content;
+    this.likeCount = data._count.commentLikeTb;
     this.createdAt = data.createdAt;
   }
 }

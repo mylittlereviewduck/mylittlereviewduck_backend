@@ -41,6 +41,11 @@ export class ReviewService {
           },
         },
         tagTb: true,
+        reviewThumbnailTb: {
+          where: {
+            deletedAt: null,
+          },
+        },
         reviewImgTb: {
           where: {
             deletedAt: null,
@@ -80,7 +85,6 @@ export class ReviewService {
             data: dto.images.map((image, index) => ({
               imgPath: image,
               content: dto.imgContent[index],
-              isThumbnail: false,
             })),
           },
         },

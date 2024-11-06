@@ -1,11 +1,12 @@
 import { UserService } from './../../user/user.service';
 import { Request, Response } from 'express';
 import { ISocialAuthStrategy } from '../interface/social-auth-strategy.interface';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { v4 as uuidv4 } from 'uuid';
+import { AuthService } from '../auth.service';
+import { LoginResponseDto } from '../dto/response/login-response.dto';
 
 @Injectable()
 export class KakaoStrategy implements ISocialAuthStrategy {
@@ -14,6 +15,8 @@ export class KakaoStrategy implements ISocialAuthStrategy {
     private readonly userService: UserService,
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
+    @Inject(forwardRef(() => AuthService))
+    private readonly authService: AuthService,
   ) {}
 
   async getTokenRequest(req: Request, res: Response): Promise<void> {
@@ -25,7 +28,7 @@ export class KakaoStrategy implements ISocialAuthStrategy {
     res.redirect(url);
   }
 
-  async socialLogin(query: any): Promise<{ accessToken: string }> {
+  async socialLogin(query: any): Promise<LoginResponseDto> {
     const { code } = query;
 
     const { data: tokenData } = await this.httpService.axiosRef.post(
@@ -58,17 +61,32 @@ export class KakaoStrategy implements ISocialAuthStrategy {
     });
 
     if (!user) {
-      user = await this.userService.createUserWithOAuth({
+      // 기존회원 아닌경우 카카오 회원가입
+      const newUser = await this.userService.createUserWithOAuth({
         email: userData.kakao_account.email,
-        nickname: uuidv4(),
         provider: 'kakao',
         providerKey: String(userData.id),
       });
+
+      user = await this.userService.updateMyinfo(newUser.idx, {
+        nickname: `${newUser.serialNumber}번째 오리`,
+      });
     }
 
-    const payload = { idx: user.idx };
-    const accessToken = await this.jwtService.signAsync(payload);
+    const accessToken = await this.authService.generateToken(
+      'access',
+      user.idx,
+      user.isAdmin,
+      5 * 60,
+    );
 
-    return { accessToken };
+    const refreshToken = await this.authService.generateToken(
+      'refresh',
+      user.idx,
+      user.isAdmin,
+      12 * 3600,
+    );
+
+    return { accessToken, refreshToken };
   }
 }

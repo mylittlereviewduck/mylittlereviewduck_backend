@@ -16,7 +16,7 @@ import { UserPagerbleResponseDto } from './dto/response/user-pagerble-response.d
 import { UserFollowPagerbleDto } from './dto/user-follow-pagerble.dto';
 import { EmailService } from '../email/email.service';
 import { GetUsersAllDto } from './dto/get-users-all.dto';
-import { Prisma } from '@prisma/client';
+import { AccountTb, Prisma } from '@prisma/client';
 import { UserListResponseDto } from './dto/response/user-list-response.dto';
 
 @Injectable()
@@ -63,10 +63,7 @@ export class UserService {
       },
     });
 
-    console.log('Count: ', Count);
-
     //or문이 빈배열이라면 쿼리에서 완전히 지워야한다.
-    //
     //prettier-ignore
     const totalCount = await this.prismaService.accountTb.count({
       where: {
@@ -129,7 +126,6 @@ export class UserService {
     };
   }
 
-  //이메일인증 확인 로직추가
   async createUser(dto: CreateUserDto): Promise<UserEntity> {
     let newUser;
     await this.prismaService.$transaction(async (tx) => {
@@ -176,13 +172,13 @@ export class UserService {
     return await this.getUser({ idx: newUser.idx });
   }
 
+  //serial_Number 반환하기위해 테이블형태로반환
   async createUserWithOAuth(dto: CreateUserOAtuhDto): Promise<UserEntity> {
     let userData;
 
     userData = await this.prismaService.accountTb.create({
       data: {
         email: dto.email,
-        nickname: dto.nickname,
         provider: dto.provider,
         providerKey: dto.providerKey,
 
@@ -200,7 +196,6 @@ export class UserService {
         },
       },
     });
-
     return new UserEntity(userData);
   }
 
@@ -234,11 +229,12 @@ export class UserService {
           },
         },
       },
+      //prettier-ignore
       data: {
-        nickname: dto.nickname,
-        profile: dto.profile,
-        interest1: dto.interest[0],
-        interest2: dto.interest[1],
+        nickname: dto.nickname ?? user.nickname,
+        profile: dto.profile ?? user.profile,
+        interest1: (dto.interest?.[0] ?? user.interest1),
+        interest2: (dto.interest?.[1] ?? user.interest2),
       },
       where: {
         idx: userIdx,

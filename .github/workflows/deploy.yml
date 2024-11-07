@@ -15,7 +15,7 @@ jobs:
       - name: 코드 업데이트, 재실행
         uses: actions/checkout@v2
         with:
-          repository: k1ju/mylittlereviewduck/mylittlereviewduck_backend
+          repository: k1ju/mylittlereviewduck_backend
           token: ${{ secrets.ACTION_TOKEN }}
 
       - name: 코드 업데이트, 재실행

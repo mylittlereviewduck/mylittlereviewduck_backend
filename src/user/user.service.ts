@@ -12,18 +12,16 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateMyInfoDto } from './dto/update-my-info.dto';
 import { GetUserDto } from './dto/get-user.dto';
 import { UserWithProvider } from './model/user-with-provider.model';
-import { UserPagerbleResponseDto } from './dto/response/user-pagerble-response.dto';
-import { UserFollowPagerbleDto } from './dto/user-follow-pagerble.dto';
-import { EmailService } from '../email/email.service';
 import { GetUsersAllDto } from './dto/get-users-all.dto';
 import { Prisma } from '@prisma/client';
 import { UserListResponseDto } from './dto/response/user-list-response.dto';
+import { BcryptService } from 'src/auth/bcrypt.service';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly prismaService: PrismaService,
-    private readonly emailService: EmailService,
+    private readonly bcryptService: BcryptService,
     private readonly emailAuthService: EmailAuthService,
   ) {}
 

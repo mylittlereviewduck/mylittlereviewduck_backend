@@ -12,6 +12,7 @@ import { KakaoStrategy } from './strategy/kakao.strategy';
 import { EmailAuthService } from './email-auth.service';
 import { ConfigService } from '@nestjs/config';
 import { EmailModule } from '../email/email.module';
+import { BcryptService } from './bcrypt.service';
 
 @Module({
   imports: [
@@ -32,10 +33,11 @@ import { EmailModule } from '../email/email.module';
   providers: [
     AuthService,
     EmailAuthService,
+    BcryptService,
     GoogleStrategy,
     NaverStrategy,
     KakaoStrategy,
   ],
-  exports: [AuthService, EmailAuthService],
+  exports: [AuthService, EmailAuthService, BcryptService],
 })
 export class AuthModule {}

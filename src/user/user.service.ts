@@ -186,6 +186,11 @@ export class UserService {
         providerKey: dto.providerKey,
       },
       include: {
+        profileImgTb: {
+          where: {
+            deletedAt: null,
+          },
+        },
         _count: {
           select: {
             followee: true,

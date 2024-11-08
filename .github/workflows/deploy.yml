@@ -12,6 +12,9 @@ jobs:
     if: github.event.pull_request.merged == true
     runs-on: self-hosted
     steps:
+      - name: Print environment variables
+        run: env
+
       - name: 코드 업데이트, 재실행
         uses: actions/checkout@v3
         with:

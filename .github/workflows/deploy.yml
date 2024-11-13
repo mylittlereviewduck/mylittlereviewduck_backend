@@ -12,14 +12,15 @@ jobs:
     if: github.event.pull_request.merged == true
     runs-on: self-hosted
     steps:
-      - name: Print environment variables
-        run: env
-
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
           ref: main
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git to use GITHUB_TOKEN
+        run: |
+          git config --global url."https://${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
 
       - name: 코드 업데이트, 재실행
         run: |

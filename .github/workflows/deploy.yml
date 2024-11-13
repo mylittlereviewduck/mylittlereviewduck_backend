@@ -18,10 +18,9 @@ jobs:
           ref: main
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Configure Git to use GITHUB_TOKEN
+     - name: Configure Git to use PAT
         run: |
-          git config --global url."https://${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
-
+          git config --global url."https://${{ secrets.ACTION_TOKEN }}@github.com/".insteadOf "https://github.com/"
       - name: 코드 업데이트, 재실행
         run: |
           echo "PR was merged"

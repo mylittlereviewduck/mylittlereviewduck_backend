@@ -18,7 +18,7 @@ jobs:
           ref: main
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Configure Git to use PAT
+      - name: PAT설정
         run: |
           git config --global url."https://${{ secrets.ACTION_TOKEN }}@github.com/".insteadOf "https://github.com/"
 

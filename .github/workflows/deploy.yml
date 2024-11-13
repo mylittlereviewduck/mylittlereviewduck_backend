@@ -22,7 +22,6 @@ jobs:
         run: |
           git config --global credential.helper store
           git config --global url."https://${{ secrets.ACTION_TOKEN }}@github.com/".insteadOf "https://github.com/"
-          echo ${{ secrets.ACTION_TOKEN }}
 
       - name: 코드 업데이트, 재실행
         run: |

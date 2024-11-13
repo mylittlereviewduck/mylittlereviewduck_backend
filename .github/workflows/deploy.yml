@@ -15,11 +15,11 @@ jobs:
       - name: Print environment variables
         run: env
 
-      - name: 코드 업데이트, 재실행
+      - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          repository: k1ju/mylittlereviewduck_backend
-          token: ${{ secrets.ACTION_TOKEN }}
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 코드 업데이트, 재실행
         run: |

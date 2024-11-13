@@ -18,14 +18,14 @@ jobs:
           ref: main
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: PAT설정
+      - name: PAT 설정
         run: |
+          git config --global credential.helper store
           git config --global url."https://${{ secrets.ACTION_TOKEN }}@github.com/".insteadOf "https://github.com/"
 
       - name: 코드 업데이트, 재실행
         run: |
           echo "PR was merged"
-          pwd
           cd /home/ubuntu/mylittlereviewduck_backend
           git pull origin main
           npx prisma generate

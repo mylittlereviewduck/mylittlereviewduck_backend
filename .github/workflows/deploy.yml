@@ -30,4 +30,6 @@ jobs:
           cd /home/ubuntu/mylittlereviewduck_backend
           git pull origin main
           npx prisma generate
+          npm install
+          npx types-installer
           sudo pm2 restart today-review

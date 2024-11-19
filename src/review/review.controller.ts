@@ -335,7 +335,7 @@ export class ReviewController {
         reviewIdx: reviewIdx,
       });
 
-      this.notificationService.sendNotification(notification);
+      // this.notificationService.sendNotification(notification);
     }
     return reviewLikeEntity;
   }

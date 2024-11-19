@@ -371,7 +371,7 @@ export class UserController {
       type: 1,
     });
 
-    this.notificationService.sendNotification(notification);
+    // this.notificationService.sendNotification(notification);
 
     return followEntity;
   }

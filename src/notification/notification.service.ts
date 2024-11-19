@@ -5,11 +5,12 @@ import { CreateNotificationDto } from './dto/create-notification.dto';
 import { UserService } from 'src/user/user.service';
 import { NotificationEntity } from './entity/Notification.entity';
 import { NotificationPagerbleResponseDto } from './dto/response/notification-pagerble-response.dto';
-import { Observable, Subject } from 'rxjs';
+import { Subject } from 'rxjs';
 
 @Injectable()
 export class NotificationService {
-  private notification$ = new Subject<NotificationEntity>();
+  private users$: Subject<any> = new Subject();
+  private observer = this.users$.asObservable();
 
   constructor(
     private readonly prismaService: PrismaService,
@@ -17,7 +18,6 @@ export class NotificationService {
   ) {}
 
   /**
-   * 
    * @param createNotificationDto 
    * @description
    * type
@@ -105,13 +105,5 @@ export class NotificationService {
         (notification) => new NotificationEntity(notification),
       ),
     };
-  }
-
-  getNotification(userIdx: string): Observable<any> {
-    return this.notification$.asObservable();
-  }
-
-  async sendNotification(notification: NotificationEntity): Promise<void> {
-    this.notification$.next(notification);
   }
 }

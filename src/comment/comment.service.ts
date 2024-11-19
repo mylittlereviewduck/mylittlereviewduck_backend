@@ -10,12 +10,14 @@ import { UpdateCommentDto } from './dto/update-comment.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ReviewService } from 'src/review/review.service';
 import { CommentPagerbleDto } from './dto/comment-pagerble.dto';
+import { SseService } from 'src/notification/sse.service';
 
 @Injectable()
 export class CommentService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly reviewService: ReviewService,
+    private readonly sseService: SseService,
   ) {}
 
   async getCommentByIdx(
@@ -131,6 +133,8 @@ export class CommentService {
         commentIdx: createCommentDto.commentIdx,
       },
     });
+
+    this.sseService.createSSE(userIdx);
 
     return new CommentEntity(commentData);
   }

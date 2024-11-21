@@ -1,13 +1,5 @@
 import { AuthGuard } from '../auth/guard/auth.guard';
-import {
-  Controller,
-  Get,
-  Param,
-  ParseUUIDPipe,
-  Query,
-  Sse,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Query, Sse, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -19,8 +11,7 @@ import { LoginUser } from 'src/auth/model/login-user.model';
 import { Exception } from 'src/decorator/exception.decorator';
 import { NotificationPagerbleResponseDto } from './dto/response/notification-pagerble-response.dto';
 import { NotificationService } from './notification.service';
-import { Observable, interval, map } from 'rxjs';
-import { NotificationEntity } from './entity/Notification.entity';
+import { Observable, map } from 'rxjs';
 import { GetNotificationDto } from './dto/get-notification.dto';
 import { UserFollowService } from 'src/user/user-follow.service';
 import { SseService } from './sse.service';

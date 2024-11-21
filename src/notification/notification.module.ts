@@ -4,12 +4,13 @@ import { UserModule } from 'src/user/user.module';
 import { NotificationService } from './notification.service';
 import { NotificationController } from './notification.controller';
 import { SseService } from './sse.service';
+import { CommentModule } from 'src/comment/comment.module';
 
 @Module({
   imports: [
     PrismaModule,
     forwardRef(() => UserModule),
-    forwardRef(() => UserModule),
+    forwardRef(() => CommentModule),
   ],
   controllers: [NotificationController],
   providers: [NotificationService, SseService],

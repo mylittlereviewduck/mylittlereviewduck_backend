@@ -318,26 +318,7 @@ export class ReviewController {
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
   ): Promise<ReviewLikeEntity> {
-    const reviewLikeEntity = await this.reviewLikeService.likeReview(
-      loginUser.idx,
-      reviewIdx,
-    );
-
-    const reviewEntity = await this.reviewService.getReviewByIdx(
-      reviewLikeEntity.reviewIdx,
-    );
-
-    if (loginUser.idx != reviewEntity.user.idx) {
-      const notification = await this.notificationService.createNotification({
-        senderIdx: loginUser.idx,
-        recipientIdx: reviewEntity.user.idx,
-        type: 2,
-        reviewIdx: reviewIdx,
-      });
-
-      // this.notificationService.sendNotification(notification);
-    }
-    return reviewLikeEntity;
+    return await this.reviewLikeService.likeReview(loginUser.idx, reviewIdx);
   }
 
   @Delete('/review/:reviewIdx/like')

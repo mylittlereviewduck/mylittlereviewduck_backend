@@ -1,11 +1,15 @@
 import { GetNotificationDto } from './dto/get-notification.dto';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { UserService } from 'src/user/user.service';
 import { NotificationEntity } from './entity/Notification.entity';
 import { NotificationPagerbleResponseDto } from './dto/response/notification-pagerble-response.dto';
 import { Subject } from 'rxjs';
+import { CommentService } from 'src/comment/comment.service';
+import { CommentEntity } from 'src/comment/entity/Comment.entity';
+import { ReviewEntity } from 'src/review/entity/Review.entity';
+import { ReviewService } from 'src/review/review.service';
 
 @Injectable()
 export class NotificationService {
@@ -15,6 +19,9 @@ export class NotificationService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly userService: UserService,
+    private readonly reviewService: ReviewService,
+    @Inject(forwardRef(() => CommentService))
+    private readonly commentService: CommentService,
   ) {}
 
   /**
@@ -26,34 +33,54 @@ export class NotificationService {
      - 3 = comment
    */
   async createNotification(
-    createNotificationDto: CreateNotificationDto,
+    dto: CreateNotificationDto,
   ): Promise<NotificationEntity> {
     let content: string;
+    let comment: CommentEntity;
+    let review: ReviewEntity;
 
     const sender = await this.userService.getUser({
-      idx: createNotificationDto.senderIdx,
+      idx: dto.senderIdx,
     });
 
-    if (createNotificationDto.type == 1) {
+    const recipient = await this.userService.getUser({
+      idx: dto.recipientIdx,
+    });
+
+    if (dto.reviewIdx)
+      review = await this.reviewService.getReviewByIdx(dto.reviewIdx);
+    if (dto.commentIdx)
+      comment = await this.commentService.getCommentByIdx(
+        dto.reviewIdx,
+        dto.commentIdx,
+      );
+
+    if (dto.type == 1) {
       content = `${sender.nickname}님이 회원님을 팔로우하기 시작했습니다.`;
-    } else if (createNotificationDto.type == 2) {
+    } else if (dto.type == 2) {
       content = `${sender.nickname}님이 내 리뷰를 좋아합니다.`;
-    } else if (createNotificationDto.type == 3) {
-      content = `${sender.nickname}님이 댓글을 남겼습니다. ${createNotificationDto.commentContent}`;
+    } else if (dto.type == 3) {
+      content = `${sender.nickname}님이 댓글을 남겼습니다.: ${comment.content}`;
+      56;
     }
 
     const notificationData = await this.prismaService.notificationTb.create({
       data: {
-        senderIdx: createNotificationDto.senderIdx,
-        recipientIdx: createNotificationDto.recipientIdx,
-        type: createNotificationDto.type,
-        reviewIdx: createNotificationDto.reviewIdx,
+        senderIdx: sender.idx,
+        recipientIdx: recipient.idx,
+        type: dto.type,
+        reviewIdx: review.idx,
         content: content,
       },
       include: {
         senderAccountTb: {
           include: {
             profileImgTb: true,
+          },
+        },
+        notificationTypeTb: {
+          select: {
+            typeName: true,
           },
         },
       },
@@ -63,14 +90,14 @@ export class NotificationService {
   }
 
   async getMyNotificationAll(
-    getNotificationDto: GetNotificationDto,
+    dto: GetNotificationDto,
   ): Promise<NotificationPagerbleResponseDto> {
     let totalCount, notificationData;
 
     await this.prismaService.$transaction(async (tx) => {
       totalCount = await tx.notificationTb.count({
         where: {
-          recipientIdx: getNotificationDto.userIdx,
+          recipientIdx: dto.userIdx,
         },
       });
 
@@ -83,10 +110,10 @@ export class NotificationService {
           },
         },
         where: {
-          recipientIdx: getNotificationDto.userIdx,
+          recipientIdx: dto.userIdx,
         },
-        take: getNotificationDto.size,
-        skip: (getNotificationDto.page - 1) * getNotificationDto.size,
+        take: dto.size,
+        skip: (dto.page - 1) * dto.size,
       });
 
       await tx.notificationTb.updateMany({
@@ -94,13 +121,13 @@ export class NotificationService {
           readAt: new Date(),
         },
         where: {
-          recipientIdx: getNotificationDto.userIdx,
+          recipientIdx: dto.userIdx,
         },
       });
     });
 
     return {
-      totalPage: Math.ceil(totalCount / getNotificationDto.size),
+      totalPage: Math.ceil(totalCount / dto.size),
       notifications: notificationData.map(
         (notification) => new NotificationEntity(notification),
       ),

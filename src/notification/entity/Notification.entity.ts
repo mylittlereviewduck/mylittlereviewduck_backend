@@ -9,6 +9,11 @@ const notification = Prisma.validator<Prisma.NotificationTbDefaultArgs>()({
         profileImgTb: true,
       },
     },
+    notificationTypeTb: {
+      select: {
+        typeName: true,
+      },
+    },
   },
 });
 
@@ -35,24 +40,31 @@ export class NotificationEntity {
   sender: NotificationUserEntity;
 
   @ApiProperty({
-    example: 1,
+    example: 'comment',
     description:
       'Type: 1 => 팔로우한 경우, 2 => 리뷰 좋아요한 경우, 3 => 댓글 남긴 경우',
   })
-  type: number;
+  type: string;
 
   @ApiProperty({
     example: 1,
-    description: 'type 2,3의 경우 존재',
+    description: '리뷰idx',
     nullable: true,
   })
-  reviewIdx: number;
+  reviewIdx?: number;
 
   @ApiProperty({
     example: 1,
     description: '알림 메시지',
   })
-  content: string;
+  content?: string;
+
+  @ApiProperty({
+    example: 1,
+    description: '댓글idx',
+    nullable: true,
+  })
+  commentIdx?: number;
 
   @ApiProperty({
     example: 1,
@@ -70,9 +82,10 @@ export class NotificationEntity {
   constructor(data: Notification) {
     this.recipientIdx = data.recipientIdx;
     this.sender = new NotificationUserEntity(data.senderAccountTb);
-    this.type = data.type;
+    this.type = data.notificationTypeTb.typeName;
     this.reviewIdx = data.reviewIdx;
     this.content = data.content;
+    this.commentIdx = data.commentIdx;
     this.createdAt = data.createdAt;
     this.readAt = data.readAt;
   }

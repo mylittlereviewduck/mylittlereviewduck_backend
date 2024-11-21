@@ -11,6 +11,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { EmailModule } from '../src/email/email.module';
 import { NotificationModule } from './notification/notification.module';
 import { ReportModule } from './report/report.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { ReportModule } from './report/report.module';
     CacheModule.register(),
     NotificationModule,
     ReportModule,
+    EventEmitterModule.forRoot(),
   ],
   controllers: [AppController],
   providers: [AppService],

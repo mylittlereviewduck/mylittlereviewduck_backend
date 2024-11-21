@@ -360,20 +360,7 @@ export class UserController {
     @GetUser() loginUser: LoginUser,
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
   ): Promise<FollowEntity> {
-    const followEntity = await this.followService.followUser(
-      loginUser.idx,
-      userIdx,
-    );
-
-    const notification = await this.notificationService.createNotification({
-      senderIdx: followEntity.followerIdx,
-      recipientIdx: followEntity.followeeIdx,
-      type: 1,
-    });
-
-    // this.notificationService.sendNotification(notification);
-
-    return followEntity;
+    return await this.followService.followUser(loginUser.idx, userIdx);
   }
 
   @Delete('/:userIdx/follow')

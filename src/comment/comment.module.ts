@@ -10,7 +10,7 @@ import { NotificationModule } from 'src/notification/notification.module';
 
 @Module({
   imports: [
-    UserModule,
+    forwardRef(() => UserModule),
     PrismaModule,
     ReviewModule,
     forwardRef(() => NotificationModule),

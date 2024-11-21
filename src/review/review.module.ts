@@ -21,9 +21,9 @@ import { BookmarkService } from './bookmark.service';
     CacheModule.register(),
     forwardRef(() => AuthModule),
     PrismaModule,
-    UserModule,
+    forwardRef(() => UserModule),
     AwsModule,
-    NotificationModule,
+    forwardRef(() => NotificationModule),
   ],
   controllers: [ReviewController],
   providers: [

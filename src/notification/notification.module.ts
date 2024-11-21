@@ -5,10 +5,12 @@ import { NotificationService } from './notification.service';
 import { NotificationController } from './notification.controller';
 import { SseService } from './sse.service';
 import { CommentModule } from 'src/comment/comment.module';
+import { ReviewModule } from 'src/review/review.module';
 
 @Module({
   imports: [
     PrismaModule,
+    ReviewModule,
     forwardRef(() => UserModule),
     forwardRef(() => CommentModule),
   ],

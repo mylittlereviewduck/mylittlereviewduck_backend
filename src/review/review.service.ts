@@ -1,6 +1,5 @@
 import {
   ConsoleLogger,
-  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -8,7 +7,6 @@ import {
 import { CreateReviewDto } from './dto/create-review.dto';
 import { ReviewEntity } from './entity/Review.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { UpdateReviewDto } from './dto/update-review.dto';
 import { ReviewPagerbleResponseDto } from './dto/response/review-pagerble-response.dto';
 import { UserService } from 'src/user/user.service';
@@ -25,7 +23,6 @@ export class ReviewService {
 
   constructor(
     private readonly logger: ConsoleLogger,
-    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
     private readonly prismaService: PrismaService,
     private readonly userService: UserService,
     private readonly redisService: RedisService,
@@ -599,7 +596,7 @@ export class ReviewService {
 
     const hotReviews = reviewData.map((review) => new ReviewEntity(review));
 
-    await this.cacheManager.set('hotReviews', hotReviews, 12 * 3600 * 1000);
+    await this.redis.set('hotReviews', JSON.stringify(hotReviews));
   }
 
   @Cron(' 0 0 0,12 * * *')
@@ -661,14 +658,15 @@ export class ReviewService {
 
     const coldReviews = reviewData.map((review) => new ReviewEntity(review));
 
-    await this.cacheManager.set('coldReviews', coldReviews, 12 * 3600 * 1000);
+    await this.redis.set('coldReviews', JSON.stringify(coldReviews));
   }
 
   async getHotReviewAll(
     dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    const hotReviews =
-      await this.cacheManager.get<Array<ReviewEntity>>('hotReviews');
+    const hotReviews = JSON.parse(
+      await this.redis.get('hotReviews'),
+    ) as Array<ReviewEntity>;
 
     if (!hotReviews) {
       return {
@@ -688,8 +686,9 @@ export class ReviewService {
   async getColdReviewAll(
     dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    const coldReviews =
-      await this.cacheManager.get<Array<ReviewEntity>>('coldReviews');
+    const coldReviews = JSON.parse(
+      await this.redis.get('coldReviews'),
+    ) as Array<ReviewEntity>;
 
     if (!coldReviews) {
       return {

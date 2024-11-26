@@ -7,7 +7,6 @@ import { ReviewModule } from './review/review.module';
 import { CommentModule } from './comment/comment.module';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
-import { CacheModule } from '@nestjs/cache-manager';
 import { EmailModule } from '../src/email/email.module';
 import { NotificationModule } from './notification/notification.module';
 import { ReportModule } from './report/report.module';
@@ -23,7 +22,6 @@ import { RedisModule } from '@liaoliaots/nestjs-redis';
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
     EmailModule,
-    CacheModule.register(),
     NotificationModule,
     ReportModule,
     EventEmitterModule.forRoot(),

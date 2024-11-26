@@ -13,7 +13,6 @@ export class SseService {
 
   @OnEvent('notification.create')
   async handleNotificationEvent(dto: CreateNotificationDto) {
-    console.log('이벤트발생');
     const notification: NotificationEntity =
       await this.notificationService.createNotification({
         senderIdx: dto.senderIdx,

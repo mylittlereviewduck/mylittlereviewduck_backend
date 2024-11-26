@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsIn, IsOptional } from 'class-validator';
-import { ReviewTimeframe } from '../type/review-timeframe.dto';
+import { ReviewTimeframe } from '../type/review-timeframe';
 import { Type } from 'class-transformer';
 
 export class GetReviewsAllDto {

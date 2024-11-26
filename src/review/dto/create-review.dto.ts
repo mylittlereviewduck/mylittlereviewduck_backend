@@ -8,9 +8,10 @@ import {
   Length,
   Max,
   Min,
-  Validate,
+  ValidateNested,
 } from 'class-validator';
-import { IsEqualLength } from '../review-img-content.validator';
+import { ReviewImage } from '../type/review-image';
+import { Type } from 'class-transformer';
 
 export class CreateReviewDto {
   userIdx?: string;
@@ -46,37 +47,33 @@ export class CreateReviewDto {
     description: '썸네일 이미지',
   })
   @IsString()
-  thumbnail: string;
+  thumbnail: string | null;
 
   @ApiProperty({
     example: '썸네일 이미지 설명',
     description: '썸네일 이미지 설명',
   })
   @IsString()
-  thumbnailContent: string;
+  thumbnailContent: string | null;
 
   @ApiProperty({
     example: [
-      'https://s3.ap-northeast-2.amazonaws.com/todayreview/1723963141509',
-      'https://s3.ap-northeast-2.amazonaws.com/todayreview/1723963141509',
+      {
+        image:
+          'https://s3.ap-northeast-2.amazonaws.com/todayreview/1723963141509',
+        content: '이미지 설명1',
+      },
+      {
+        image:
+          'https://s3.ap-northeast-2.amazonaws.com/todayreview/1723963141509',
+        content: '이미지 설명2',
+      },
     ],
-    description: '이미지 주소 리스트, 6개 제한',
+    description: '이미지 리스트, 6개 제한',
   })
   @IsArray()
-  @IsString({ each: true })
   @ArrayMaxSize(6)
-  images: string[];
-
-  @ApiProperty({
-    example: [
-      'https://s3.ap-northeast-2.amazonaws.com/todayreview/1723963141509',
-      'https://s3.ap-northeast-2.amazonaws.com/todayreview/1723963141509',
-    ],
-    description: '이미지 주소 리스트, 6개 제한',
-  })
-  @IsArray()
-  @IsString({ each: true })
-  @ArrayMaxSize(6)
-  @Validate(IsEqualLength, ['images'])
-  imgContent: string[];
+  @ValidateNested({ each: true })
+  @Type(() => ReviewImage)
+  images: ReviewImage[];
 }

@@ -1,16 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
   ArrayMaxSize,
   IsArray,
   IsNumber,
-  IsOptional,
   IsString,
   Length,
   Max,
   Min,
-  Validate,
+  ValidateNested,
 } from 'class-validator';
-import { IsEqualLength } from '../review-img-content.validator';
+import { ReviewImage } from '../type/review-image';
+// import { IsEqualLength } from '../review-img-content.validator';
 
 export class UpdateReviewDto {
   @ApiProperty({ example: '', description: '유저 식별자' })
@@ -60,28 +61,22 @@ export class UpdateReviewDto {
 
   @ApiProperty({
     example: [
-      'https://s3.ap-northeast-2.amazonaws.com/todayreview/1723962576545',
-      'https://s3.ap-northeast-2.amazonaws.com/todayreview/1723962576545',
+      {
+        image:
+          'https://s3.ap-northeast-2.amazonaws.com/todayreview/1723963141509',
+        content: '이미지 설명1',
+      },
+      {
+        image:
+          'https://s3.ap-northeast-2.amazonaws.com/todayreview/1723963141509',
+        content: '이미지 설명2',
+      },
     ],
-    description: '이미지 주소, 6개제한',
+    description: '이미지 리스트, 6개 제한',
   })
   @IsArray()
-  @IsString({ each: true })
   @ArrayMaxSize(6)
-  @IsOptional()
-  images: string[];
-
-  @ApiProperty({
-    example: [
-      'https://s3.ap-northeast-2.amazonaws.com/todayreview/1723963141509',
-      'https://s3.ap-northeast-2.amazonaws.com/todayreview/1723963141509',
-    ],
-    description: '이미지 주소 리스트, 6개 제한',
-  })
-  @IsArray()
-  @IsString({ each: true })
-  @ArrayMaxSize(6)
-  @IsOptional()
-  @Validate(IsEqualLength, ['images'])
-  imgContent: string[];
+  @ValidateNested({ each: true })
+  @Type(() => ReviewImage)
+  images: ReviewImage[];
 }

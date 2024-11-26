@@ -76,15 +76,17 @@ export class ReviewService {
             }),
           },
         },
-        reviewImgTb: {
+        reviewThumbnailTb: {
           create: {
             imgPath: dto.thumbnail,
             content: dto.content,
           },
+        },
+        reviewImgTb: {
           createMany: {
-            data: dto.images.map((image, index) => ({
-              imgPath: image,
-              content: dto.imgContent[index],
+            data: dto.images.map((image) => ({
+              imgPath: image.image,
+              content: image.content,
             })),
           },
         },
@@ -122,6 +124,11 @@ export class ReviewService {
               deletedAt: null,
             },
           },
+          reviewThumbnailTb: {
+            where: {
+              deletedAt: null,
+            },
+          },
           _count: {
             select: {
               reviewLikeTb: true,
@@ -151,7 +158,20 @@ export class ReviewService {
               }),
             },
           },
-
+          reviewThumbnailTb: {
+            updateMany: {
+              data: {
+                deletedAt: new Date(),
+              },
+              where: {
+                idx: dto.reviewIdx,
+              },
+            },
+            create: {
+              imgPath: dto.thumbnail,
+              content: dto.content,
+            },
+          },
           reviewImgTb: {
             updateMany: {
               data: {
@@ -161,11 +181,10 @@ export class ReviewService {
                 reviewIdx: dto.reviewIdx,
               },
             },
-
             createMany: {
-              data: dto.images.map((image, index) => ({
-                imgPath: image,
-                content: dto.imgContent[index],
+              data: dto.images.map((image) => ({
+                imgPath: image.image,
+                content: image.content,
               })),
             },
           },

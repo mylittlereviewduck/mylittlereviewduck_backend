@@ -1,6 +1,5 @@
 import { UserStatus } from './type/user-status.type';
 import { UserSuspensionService } from './user-suspension.service';
-import { NotificationService } from './../notification/notification.service';
 import { UserBlockCheckService } from './user-block-check.service';
 import { UserBlockService } from './user-block.service';
 import {
@@ -64,7 +63,6 @@ export class UserController {
     private readonly userBlockService: UserBlockService,
     private readonly userBlockCheckService: UserBlockCheckService,
     private readonly awsService: AwsService,
-    private readonly notificationService: NotificationService,
     private readonly userSuspensionService: UserSuspensionService,
   ) {}
 

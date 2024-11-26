@@ -4,21 +4,16 @@ import { Subject } from 'rxjs';
 import { NotificationEntity } from './entity/Notification.entity';
 import { NotificationService } from './notification.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
-import { ReviewService } from 'src/review/review.service';
 
 @Injectable()
 export class SseService {
-  private notification$ = new Subject<any>();
+  private notification$ = new Subject<NotificationEntity>();
 
-  constructor(
-    private readonly notificationService: NotificationService,
-    private readonly reviewService: ReviewService,
-  ) {}
+  constructor(private readonly notificationService: NotificationService) {}
 
   @OnEvent('notification.create')
   async handleNotificationEvent(dto: CreateNotificationDto) {
-    console.log('알림생성이벤트발생');
-
+    console.log('이벤트발생');
     const notification: NotificationEntity =
       await this.notificationService.createNotification({
         senderIdx: dto.senderIdx,
@@ -31,16 +26,8 @@ export class SseService {
     this.notification$.next(notification);
   }
 
-  // createSSE(userIdx: string): void {
-  //   const notification = {
-  //     userIdx,
-  //     message: '새로운 댓글이 작성되었습니다.',
-  //   };
-  //   this.notification$.next(notification);
-  // }
-
   getNotificationObservable() {
-    console.log('Notification Observable 구독 시작');
+    console.log('notifiacation:', this.notification$);
     return this.notification$.asObservable();
   }
 }

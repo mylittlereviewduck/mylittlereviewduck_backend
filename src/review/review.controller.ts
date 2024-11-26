@@ -49,7 +49,6 @@ import { ReviewDislikeEntity } from './entity/ReviewDislike.entity';
 import { ReviewBlockEntity } from './entity/ReviewBlock.entity';
 import { ReviewShareEntity } from './entity/ReviewShare.entity';
 import { ReviewBookmarkEntity } from './entity/Reviewbookmark.entity';
-import { NotificationService } from 'src/notification/notification.service';
 import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
 import { GetReviewsAllDto } from './dto/get-reviews-all.dto';
 import { BookmarkService } from './bookmark.service';
@@ -68,7 +67,6 @@ export class ReviewController {
     private readonly reviewBlockService: ReviewBlockService,
     private readonly reviewBlockCheckService: ReviewBlockCheckService,
     private readonly awsService: AwsService,
-    private readonly notificationService: NotificationService,
     private readonly userBlockCheckService: UserBlockCheckService,
   ) {}
 

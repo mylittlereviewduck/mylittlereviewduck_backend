@@ -12,6 +12,7 @@ import { EmailModule } from '../src/email/email.module';
 import { NotificationModule } from './notification/notification.module';
 import { ReportModule } from './report/report.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { RedisModule } from '@liaoliaots/nestjs-redis';
 
 @Module({
   imports: [
@@ -26,6 +27,12 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     NotificationModule,
     ReportModule,
     EventEmitterModule.forRoot(),
+    RedisModule.forRoot({
+      config: {
+        host: 'localhost',
+        port: 6379,
+      },
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],

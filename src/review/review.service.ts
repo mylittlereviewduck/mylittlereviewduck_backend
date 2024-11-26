@@ -16,15 +16,22 @@ import { Cron } from '@nestjs/schedule';
 import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
 import { GetReviewWithSearchDto } from './dto/get-review-with-search.dto';
 import { GetReviewsAllDto } from './dto/get-reviews-all.dto';
+import { DEFAULT_REDIS, RedisService } from '@liaoliaots/nestjs-redis';
+import { Redis } from 'ioredis';
 
 @Injectable()
 export class ReviewService {
+  private readonly redis: Redis | null;
+
   constructor(
     private readonly logger: ConsoleLogger,
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
     private readonly prismaService: PrismaService,
     private readonly userService: UserService,
-  ) {}
+    private readonly redisService: RedisService,
+  ) {
+    this.redis = this.redisService.getOrThrow(DEFAULT_REDIS);
+  }
 
   async createReview(dto: CreateReviewDto): Promise<ReviewEntity> {
     let reviewData;

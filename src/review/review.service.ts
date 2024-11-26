@@ -256,17 +256,7 @@ export class ReviewService {
   }
 
   async getReviewByIdx(reviewIdx: number): Promise<ReviewEntity> {
-    const existingReview = await this.prismaService.reviewTb.findUnique({
-      where: {
-        idx: reviewIdx,
-      },
-    });
-
-    if (!existingReview) {
-      return;
-    }
-
-    let reviewData = await this.prismaService.reviewTb.update({
+    let review = await this.prismaService.reviewTb.findUnique({
       include: {
         accountTb: {
           include: {
@@ -299,16 +289,17 @@ export class ReviewService {
           },
         },
       },
-      data: {
-        viewCount: existingReview.viewCount + 1,
-      },
 
       where: {
         idx: reviewIdx,
       },
     });
 
-    return new ReviewEntity(reviewData);
+    if (!review) {
+      return null;
+    }
+
+    return new ReviewEntity(review);
   }
 
   async getReviewsAll(

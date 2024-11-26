@@ -396,6 +396,19 @@ export class ReviewService {
     };
   }
 
+  async increaseViewCount(reviewIdx: number): Promise<void> {
+    await this.prismaService.reviewTb.update({
+      where: {
+        idx: reviewIdx,
+      },
+      data: {
+        viewCount: {
+          increment: 1,
+        },
+      },
+    });
+  }
+
   async getReviewWithSearch(
     dto: GetReviewWithSearchDto,
   ): Promise<ReviewPagerbleResponseDto> {

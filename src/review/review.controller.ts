@@ -216,6 +216,8 @@ export class ReviewController {
       reviewEntity.user,
     ]);
 
+    await this.reviewService.increaseViewCount(reviewEntity.idx);
+
     return reviewEntity;
   }
 

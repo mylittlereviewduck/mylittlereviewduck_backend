@@ -188,6 +188,12 @@ export class ReviewController {
   ): Promise<ReviewEntity> {
     const reviewEntity = await this.reviewService.getReviewByIdx(reviewIdx);
 
+    const addedViewCount = await this.reviewService.getViewCount(
+      reviewEntity.idx,
+    );
+    reviewEntity.viewCount = reviewEntity.viewCount + addedViewCount;
+    await this.reviewService.increaseViewCount(reviewEntity.idx);
+
     if (!loginUser) {
       return reviewEntity;
     }
@@ -215,9 +221,6 @@ export class ReviewController {
     await this.userBlockCheckService.isBlockedUser(loginUser.idx, [
       reviewEntity.user,
     ]);
-
-    await this.reviewService.getViewCount(reviewEntity.idx);
-    await this.reviewService.increaseViewCount(reviewEntity.idx);
 
     return reviewEntity;
   }

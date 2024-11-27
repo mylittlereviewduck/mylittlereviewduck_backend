@@ -28,6 +28,26 @@ export class ReviewService {
     private readonly redisService: RedisService,
   ) {
     this.redis = this.redisService.getOrThrow(DEFAULT_REDIS);
+
+    setInterval(
+      async () => {
+        const keys = await this.redis.keys(`review:*:viewCount`);
+        for (const key of keys) {
+          const reviewIdx = key.split(':')[1];
+          const viewCount = await this.redis.get(key);
+          await this.prismaService.reviewTb.update({
+            where: {
+              idx: parseInt(reviewIdx, 10),
+            },
+            data: {
+              viewCount: parseInt(viewCount, 10),
+            },
+          });
+          await this.redis.del(key);
+        }
+      },
+      1 * 10 * 1000,
+    );
   }
 
   async createReview(dto: CreateReviewDto): Promise<ReviewEntity> {
@@ -401,16 +421,23 @@ export class ReviewService {
   }
 
   async increaseViewCount(reviewIdx: number): Promise<void> {
-    await this.prismaService.reviewTb.update({
-      where: {
-        idx: reviewIdx,
-      },
-      data: {
-        viewCount: {
-          increment: 1,
-        },
-      },
-    });
+    await this.redis.incr(`review:${reviewIdx}:viewCount`);
+  }
+
+  async getViewCount(reviewIdx: number): Promise<number> {
+    let viewCount = parseInt(
+      await this.redis.get(`review:${reviewIdx}:viewCount`),
+      10,
+    );
+
+    if (!viewCount) {
+      const review = await this.getReviewByIdx(reviewIdx);
+      viewCount = review.viewCount;
+
+      await this.redis.set(`review:${reviewIdx}:viewCount`, viewCount);
+    }
+
+    return viewCount;
   }
 
   async getReviewWithSearch(

@@ -17,6 +17,7 @@ import { GetReviewsAllDto } from './dto/get-reviews-all.dto';
 import { DEFAULT_REDIS, RedisService } from '@liaoliaots/nestjs-redis';
 import { Redis } from 'ioredis';
 import { GetLatestReveiwsByUserIdxsDto } from './dto/get-latest-reviews-by-userIdxs.dto';
+import { UserFollowService } from 'src/user/user-follow.service';
 
 @Injectable()
 export class ReviewService {
@@ -27,6 +28,7 @@ export class ReviewService {
     private readonly prismaService: PrismaService,
     private readonly userService: UserService,
     private readonly redisService: RedisService,
+    private readonly userFollowService: UserFollowService,
   ) {
     this.redis = this.redisService.getOrThrow(DEFAULT_REDIS);
 
@@ -360,7 +362,8 @@ export class ReviewService {
     const reviewCount = await this.prismaService.reviewTb.count({
       where: {
         //문법공부
-        ...(dto.userIdx ? { accountIdx: dto.userIdx } : {}),
+        ...(dto.userIdx && { accountIdx: dto.userIdx }),
+        ...(dto.userIdxs && { accountIdx: { in: dto.userIdxs } }),
         createdAt: {
           gte: startDate,
         },
@@ -402,7 +405,8 @@ export class ReviewService {
       },
       where: {
         // prettier-ignore
-        ...(dto.userIdx ? { accountIdx: dto.userIdx  } : {}),
+        ...(dto.userIdx && { accountIdx: dto.userIdx  } ),
+        ...(dto.userIdxs && { accountIdx: { in: dto.userIdxs } }),
         createdAt: {
           gte: startDate,
         },
@@ -419,6 +423,21 @@ export class ReviewService {
       totalPage: Math.ceil(reviewCount / dto.size),
       reviews: reviewSQLResult.map((elem) => new ReviewEntity(elem)),
     };
+  }
+
+  async getLatestReviewsByFollowing(
+    dto: GetReviewsAllDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    const followList = await this.userFollowService.getAllFollowingUsers(
+      dto.userIdx,
+    );
+
+    return await this.getReviewsAll({
+      page: dto.page,
+      size: dto.size,
+      timeframe: dto.timeframe,
+      userIdxs: followList,
+    });
   }
 
   async increaseViewCount(reviewIdx: number): Promise<void> {

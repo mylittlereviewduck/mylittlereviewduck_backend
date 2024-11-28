@@ -52,6 +52,7 @@ import { ReviewBookmarkEntity } from './entity/Reviewbookmark.entity';
 import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
 import { GetReviewsAllDto } from './dto/get-reviews-all.dto';
 import { BookmarkService } from './bookmark.service';
+import { UserFollowService } from 'src/user/user-follow.service';
 
 @Controller('')
 @ApiTags('review')
@@ -459,6 +460,23 @@ export class ReviewController {
     @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
   ): Promise<void> {
     await this.reviewBlockService.unblockReview(loginUser.idx, reviewIdx);
+  }
+
+  @Get('/review/all/following')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: '팔로우한 사람들의 리뷰목록 보기' })
+  @Exception(401, '권한없음')
+  @ApiResponse({ status: 200 })
+  async getReviewsByFollowingUsers(
+    @GetUser() loginUser: LoginUser,
+    @Query() dto: GetReviewsAllDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    return await this.reviewService.getLatestReviewsByFollowing({
+      size: dto.size,
+      page: dto.page,
+      timeframe: dto.timeframe,
+      userIdx: loginUser.idx,
+    });
   }
 
   @Get('/user/:userIdx/review/all')

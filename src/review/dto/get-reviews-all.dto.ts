@@ -10,7 +10,7 @@ export class GetReviewsAllDto {
   })
   @IsOptional()
   @Type(() => Number)
-  size?: number;
+  size?: number = 10;
 
   @ApiProperty({
     description: '가져올 페이지',
@@ -18,9 +18,11 @@ export class GetReviewsAllDto {
   })
   @IsOptional()
   @Type(() => Number)
-  page?: number;
+  page?: number = 1;
 
   userIdx?: string;
+
+  userIdxs?: string[];
 
   @ApiProperty({
     description:

@@ -38,6 +38,15 @@ export class UserFollowService {
     return toUsers;
   }
 
+  async getAllFollowingUsers(userIdx: string): Promise<string[]> {
+    const followList = await this.prismaService.followTb.findMany({
+      where: { followerIdx: userIdx },
+      select: { followeeIdx: true },
+    });
+
+    return followList.map((follow) => follow.followeeIdx);
+  }
+
   async getFollowingList(
     dto: UserFollowPagerbleDto,
   ): Promise<UserPagerbleResponseDto> {

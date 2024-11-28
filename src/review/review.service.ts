@@ -428,9 +428,9 @@ export class ReviewService {
   async getLatestReviewsByFollowing(
     dto: GetReviewsAllDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    const followList = await this.userFollowService.getAllFollowingUsers(
-      dto.userIdx,
-    );
+    const followList = await this.userFollowService.getFollowingUsersIdx({
+      userIdx: dto.userIdx,
+    });
 
     return await this.getReviewsAll({
       page: dto.page,

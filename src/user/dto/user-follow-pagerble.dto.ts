@@ -1,6 +1,5 @@
-export class UserFollowPagerbleDto {
-  size: number;
-  page: number;
+export class GetFollowUserDto {
+  size?: number;
+  page?: number;
   userIdx: string;
-  type: 'follower' | 'followee';
 }

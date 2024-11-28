@@ -38,7 +38,13 @@ export class UserFollowService {
     return toUsers;
   }
 
-  async getFollowingUsersIdx(dto: GetFollowUserDto): Promise<string[]> {
+  async getFollowingUsersIdx(
+    dto: GetFollowUserDto,
+  ): Promise<{ followingIdxs: string[]; totalCount: number }> {
+    const totalCount = await this.prismaService.followTb.count({
+      where: { followerIdx: dto.userIdx },
+    });
+
     const followList = await this.prismaService.followTb.findMany({
       where: { followerIdx: dto.userIdx },
       select: { followeeIdx: true },
@@ -46,18 +52,30 @@ export class UserFollowService {
       ...(dto.size && { take: dto.size }),
     });
 
-    return followList.map((follow) => follow.followeeIdx);
+    return {
+      followingIdxs: followList.map((follow) => follow.followeeIdx),
+      totalCount,
+    };
   }
 
-  async getFollowerUsersIdx(dto: GetFollowUserDto): Promise<string[]> {
-    const followList = await this.prismaService.followTb.findMany({
+  async getFollowerUsersIdx(
+    dto: GetFollowUserDto,
+  ): Promise<{ followerIdxs: string[]; totalCount: number }> {
+    const totalCount = await this.prismaService.followTb.count({
+      where: { followeeIdx: dto.userIdx },
+    });
+
+    const followeeList = await this.prismaService.followTb.findMany({
       where: { followeeIdx: dto.userIdx },
       select: { followerIdx: true },
       ...(dto.page && { skip: (dto.page - 1) * dto.size }),
       ...(dto.size && { take: dto.size }),
     });
 
-    return followList.map((follow) => follow.followerIdx);
+    return {
+      followerIdxs: followeeList.map((follow) => follow.followerIdx),
+      totalCount,
+    };
   }
 
   // async getFollowingList(

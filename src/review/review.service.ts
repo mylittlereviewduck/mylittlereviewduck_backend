@@ -436,7 +436,7 @@ export class ReviewService {
       page: dto.page,
       size: dto.size,
       timeframe: dto.timeframe,
-      userIdxs: followList,
+      userIdxs: followList.followingIdxs,
     });
   }
 

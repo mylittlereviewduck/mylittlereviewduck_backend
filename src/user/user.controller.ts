@@ -282,22 +282,24 @@ export class UserController {
     @Query() dto: UserPagerbleDto,
     @GetUser() loginUser: LoginUser,
   ): Promise<UserPagerbleResponseDto> {
-    const userPagerbleResponseDto =
-      await this.userFollowService.getFollowingList({
-        page: dto.page || 1,
-        size: dto.size || 20,
-        type: 'follower',
+    const { followingIdxs, totalCount } =
+      await this.userFollowService.getFollowingUsersIdx({
+        page: dto.page,
+        size: dto.size,
         userIdx: userIdx,
       });
 
-    if (!loginUser) {
-      return userPagerbleResponseDto;
-    }
+    const userPagerbleResponseDto = {
+      totalPage: Math.ceil(totalCount / dto.size),
+      users: await this.userService.getUsersByIdx(followingIdxs),
+    };
 
-    await this.userFollowService.isFollow(
-      loginUser.idx,
-      userPagerbleResponseDto.users,
-    );
+    if (loginUser) {
+      await this.userFollowService.isFollow(
+        loginUser.idx,
+        userPagerbleResponseDto.users,
+      );
+    }
 
     return userPagerbleResponseDto;
   }
@@ -317,22 +319,24 @@ export class UserController {
     @Query() dto: UserPagerbleDto,
     @GetUser() loginUser: LoginUser,
   ): Promise<UserPagerbleResponseDto> {
-    const userPagerbleResponseDto =
-      await this.userFollowService.getFollowingList({
+    const { followerIdxs, totalCount } =
+      await this.userFollowService.getFollowerUsersIdx({
         userIdx: userIdx,
         page: dto.page || 1,
         size: dto.size || 20,
-        type: 'followee',
       });
 
-    if (!loginUser) {
-      return userPagerbleResponseDto;
-    }
+    const userPagerbleResponseDto = {
+      totalPage: Math.ceil(totalCount / dto.size),
+      users: await this.userService.getUsersByIdx(followerIdxs),
+    };
 
-    await this.userFollowService.isFollow(
-      loginUser.idx,
-      userPagerbleResponseDto.users,
-    );
+    if (loginUser) {
+      await this.userFollowService.isFollow(
+        loginUser.idx,
+        userPagerbleResponseDto.users,
+      );
+    }
 
     return userPagerbleResponseDto;
   }

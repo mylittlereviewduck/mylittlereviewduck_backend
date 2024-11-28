@@ -7,14 +7,14 @@ export class UserPagerbleDto {
     default: 10,
   })
   @Type(() => Number)
-  size?: number;
+  size?: number = 20;
 
   @ApiProperty({
     description: '가져올 페이지',
     default: 1,
   })
   @Type(() => Number)
-  page?: number;
+  page?: number = 1;
 
   userIdx?: string;
 }

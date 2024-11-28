@@ -16,6 +16,7 @@ import { GetReviewWithSearchDto } from './dto/get-review-with-search.dto';
 import { GetReviewsAllDto } from './dto/get-reviews-all.dto';
 import { DEFAULT_REDIS, RedisService } from '@liaoliaots/nestjs-redis';
 import { Redis } from 'ioredis';
+import { GetLatestReveiwsByUserIdxsDto } from './dto/get-latest-reviews-by-userIdxs.dto';
 
 @Injectable()
 export class ReviewService {
@@ -46,7 +47,7 @@ export class ReviewService {
           await this.redis.del(key);
         }
       },
-      1 * 10 * 1000,
+      10 * 60 * 1000,
     );
   }
 
@@ -438,6 +439,65 @@ export class ReviewService {
     }
 
     return viewCount;
+  }
+
+  async getLatestReviewsByUsers(
+    dto: GetLatestReveiwsByUserIdxsDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    const totalCount = await this.prismaService.reviewTb.count({
+      where: {
+        accountIdx: {
+          in: dto.userIdxs,
+        },
+      },
+    });
+
+    const reviewData = await this.prismaService.reviewTb.findMany({
+      include: {
+        accountTb: {
+          include: {
+            profileImgTb: {
+              where: {
+                deletedAt: null,
+              },
+            },
+          },
+        },
+        tagTb: true,
+        reviewImgTb: {
+          where: {
+            deletedAt: null,
+          },
+        },
+        reviewThumbnailTb: {
+          where: {
+            deletedAt: null,
+          },
+        },
+        _count: {
+          select: {
+            commentTb: true,
+            reviewLikeTb: true,
+            reviewDislikeTb: true,
+            reviewBookmarkTb: true,
+            reviewShareTb: true,
+          },
+        },
+      },
+      where: {
+        accountIdx: {
+          in: dto.userIdxs,
+        },
+      },
+      skip: dto.page * dto.size,
+      take: dto.size,
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return {
+      totalPage: Math.ceil(totalCount / dto.size),
+      reviews: reviewData.map((elem) => new ReviewEntity(elem)),
+    };
   }
 
   async getReviewWithSearch(

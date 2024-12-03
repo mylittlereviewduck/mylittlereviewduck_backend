@@ -304,24 +304,6 @@ export class UserService {
     });
   }
 
-  // async getUserWithProvider(
-  //   userIdx: string,
-  //   provider: string,
-  // ): Promise<UserWithProvider> {
-  //   const userData = await this.prismaService.accountInfoView.findUnique({
-  //     where: {
-  //       idx: userIdx,
-  //       provider: provider,
-  //     },
-  //   });
-
-  //   if (!userData) {
-  //     throw new NotFoundException('Not Found User');
-  //   }
-
-  //   return new UserWithProvider(userData);
-  // }
-
   async deleteUser(userIdx: string): Promise<void> {
     await this.prismaService.accountTb.update({
       where: {

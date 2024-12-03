@@ -3,7 +3,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { UserEntity } from './entity/User.entity';
 import { NotificationUserEntity } from 'src/notification/entity/NotificationUser.entity';
 import { GetFollowUserDto } from './dto/user-follow-pagerble.dto';
-import { UserPagerbleResponseDto } from './dto/response/user-pagerble-response.dto';
 
 @Injectable()
 export class UserFollowService {

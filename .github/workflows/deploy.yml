@@ -28,8 +28,7 @@ jobs:
         run: |
           echo "PR was merged"
           cd /home/ubuntu/mylittlereviewduck_backend
-          git reset --hard
           git pull origin main
-          npm install
           npx prisma generate
+          npm install
           sudo pm2 restart today-review

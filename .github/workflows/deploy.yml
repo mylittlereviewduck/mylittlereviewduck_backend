@@ -33,4 +33,5 @@ jobs:
           npm install
           npx prisma generate
           npx types-installer
+          npm audit fix --force
           sudo pm2 restart today-review

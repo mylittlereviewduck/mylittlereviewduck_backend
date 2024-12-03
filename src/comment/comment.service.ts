@@ -10,12 +10,14 @@ import { UpdateCommentDto } from './dto/update-comment.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ReviewService } from 'src/review/review.service';
 import { CommentPagerbleDto } from './dto/comment-pagerble.dto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class CommentService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly reviewService: ReviewService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async getCommentByIdx(
@@ -131,6 +133,16 @@ export class CommentService {
         commentIdx: createCommentDto.commentIdx,
       },
     });
+
+    if (userIdx !== review.user.idx) {
+      this.eventEmitter.emit('notification.create', {
+        senderIdx: userIdx,
+        recipientIdx: review.user.idx,
+        type: 3,
+        reviewIdx: review.idx,
+        commentIdx: commentData.idx,
+      });
+    }
 
     return new CommentEntity(commentData);
   }

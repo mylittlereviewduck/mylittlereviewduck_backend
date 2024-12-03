@@ -11,6 +11,13 @@ async function bootstrap() {
     logger: ['error', 'debug', 'warn'],
   });
 
+  app.enableCors({
+    origin: 'http://localhost', // 요청을 보내는 클라이언트의 도메인
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: 'Content-Type, Authorization',
+    credentials: true, // 인증 관련 헤더를 포함한 요청 허용
+  });
+
   const config = new DocumentBuilder()
     .addBearerAuth()
     .setTitle('today-review')

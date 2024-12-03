@@ -31,8 +31,6 @@ import { CommentLikeCheckService } from './comment-like-check.service';
 import { CommentLikeEntity } from './entity/CommentLike.entity';
 import { OptionalAuthGuard } from 'src/auth/guard/optional-auth.guard';
 import { CommentPagerbleResponseDto } from './dto/response/comment-pagerble-response.dto';
-import { NotificationService } from 'src/notification/notification.service';
-import { ReviewService } from 'src/review/review.service';
 import { UserBlockCheckService } from 'src/user/user-block-check.service';
 
 @ApiTags('comment')
@@ -43,8 +41,6 @@ export class CommentController {
     private readonly commentService: CommentService,
     private readonly commentLikeService: CommentLikeService,
     private readonly commentLikeCheckService: CommentLikeCheckService,
-    private readonly notificationService: NotificationService,
-    private readonly reviewService: ReviewService,
   ) {}
 
   @Get('/review/:reviewIdx/comment/all')
@@ -103,33 +99,15 @@ export class CommentController {
   @Exception(404, '해당 리소스 없음')
   @ApiResponse({ status: 201, type: CommentEntity })
   async createComment(
-    @Body() createCommentDto: CreateCommentDto,
+    @Body() dto: CreateCommentDto,
     @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
     @GetUser() loginUser: LoginUser,
   ): Promise<CommentEntity> {
-    const commentEntity = await this.commentService.createComment(
+    return await this.commentService.createComment(
       loginUser.idx,
       reviewIdx,
-      createCommentDto,
+      dto,
     );
-
-    const reviewEntity = await this.reviewService.getReviewByIdx(
-      commentEntity.reviewIdx,
-    );
-
-    if (loginUser.idx !== reviewEntity.user.idx) {
-      const notification = await this.notificationService.createNotification({
-        senderIdx: loginUser.idx,
-        recipientIdx: reviewEntity.user.idx,
-        commentContent: commentEntity.content,
-        type: 3,
-        reviewIdx: reviewIdx,
-      });
-
-      this.notificationService.sendNotification(notification);
-    }
-
-    return commentEntity;
   }
 
   @Put('/review/:reviewIdx/comment/:commentIdx')

@@ -1,6 +1,5 @@
 import {
   ConsoleLogger,
-  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -8,7 +7,6 @@ import {
 import { CreateReviewDto } from './dto/create-review.dto';
 import { ReviewEntity } from './entity/Review.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { UpdateReviewDto } from './dto/update-review.dto';
 import { ReviewPagerbleResponseDto } from './dto/response/review-pagerble-response.dto';
 import { UserService } from 'src/user/user.service';
@@ -16,15 +14,44 @@ import { Cron } from '@nestjs/schedule';
 import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
 import { GetReviewWithSearchDto } from './dto/get-review-with-search.dto';
 import { GetReviewsAllDto } from './dto/get-reviews-all.dto';
+import { DEFAULT_REDIS, RedisService } from '@liaoliaots/nestjs-redis';
+import { Redis } from 'ioredis';
+import { GetLatestReveiwsByUserIdxsDto } from './dto/get-latest-reviews-by-userIdxs.dto';
+import { UserFollowService } from 'src/user/user-follow.service';
 
 @Injectable()
 export class ReviewService {
+  private readonly redis: Redis | null;
+
   constructor(
     private readonly logger: ConsoleLogger,
-    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
     private readonly prismaService: PrismaService,
     private readonly userService: UserService,
-  ) {}
+    private readonly redisService: RedisService,
+    private readonly userFollowService: UserFollowService,
+  ) {
+    this.redis = this.redisService.getOrThrow(DEFAULT_REDIS);
+
+    setInterval(
+      async () => {
+        const keys = await this.redis.keys(`review:*:viewCount`);
+        for (const key of keys) {
+          const reviewIdx = key.split(':')[1];
+          const viewCount = await this.redis.get(key);
+          await this.prismaService.reviewTb.update({
+            where: {
+              idx: parseInt(reviewIdx, 10),
+            },
+            data: {
+              viewCount: parseInt(viewCount, 10),
+            },
+          });
+          await this.redis.del(key);
+        }
+      },
+      10 * 60 * 1000,
+    );
+  }
 
   async createReview(dto: CreateReviewDto): Promise<ReviewEntity> {
     let reviewData;
@@ -76,15 +103,17 @@ export class ReviewService {
             }),
           },
         },
-        reviewImgTb: {
+        reviewThumbnailTb: {
           create: {
             imgPath: dto.thumbnail,
             content: dto.content,
           },
+        },
+        reviewImgTb: {
           createMany: {
-            data: dto.images.map((image, index) => ({
-              imgPath: image,
-              content: dto.imgContent[index],
+            data: dto.images.map((image) => ({
+              imgPath: image.image,
+              content: image.content,
             })),
           },
         },
@@ -122,6 +151,11 @@ export class ReviewService {
               deletedAt: null,
             },
           },
+          reviewThumbnailTb: {
+            where: {
+              deletedAt: null,
+            },
+          },
           _count: {
             select: {
               reviewLikeTb: true,
@@ -151,7 +185,20 @@ export class ReviewService {
               }),
             },
           },
-
+          reviewThumbnailTb: {
+            updateMany: {
+              data: {
+                deletedAt: new Date(),
+              },
+              where: {
+                idx: dto.reviewIdx,
+              },
+            },
+            create: {
+              imgPath: dto.thumbnail,
+              content: dto.content,
+            },
+          },
           reviewImgTb: {
             updateMany: {
               data: {
@@ -161,11 +208,10 @@ export class ReviewService {
                 reviewIdx: dto.reviewIdx,
               },
             },
-
             createMany: {
-              data: dto.images.map((image, index) => ({
-                imgPath: image,
-                content: dto.imgContent[index],
+              data: dto.images.map((image) => ({
+                imgPath: image.image,
+                content: image.content,
               })),
             },
           },
@@ -237,17 +283,7 @@ export class ReviewService {
   }
 
   async getReviewByIdx(reviewIdx: number): Promise<ReviewEntity> {
-    const existingReview = await this.prismaService.reviewTb.findUnique({
-      where: {
-        idx: reviewIdx,
-      },
-    });
-
-    if (!existingReview) {
-      return;
-    }
-
-    let reviewData = await this.prismaService.reviewTb.update({
+    let review = await this.prismaService.reviewTb.findUnique({
       include: {
         accountTb: {
           include: {
@@ -280,16 +316,17 @@ export class ReviewService {
           },
         },
       },
-      data: {
-        viewCount: existingReview.viewCount + 1,
-      },
 
       where: {
         idx: reviewIdx,
       },
     });
 
-    return new ReviewEntity(reviewData);
+    if (!review) {
+      return null;
+    }
+
+    return new ReviewEntity(review);
   }
 
   async getReviewsAll(
@@ -325,7 +362,8 @@ export class ReviewService {
     const reviewCount = await this.prismaService.reviewTb.count({
       where: {
         //문법공부
-        ...(dto.userIdx ? { accountIdx: dto.userIdx } : {}),
+        ...(dto.userIdx && { accountIdx: dto.userIdx }),
+        ...(dto.userIdxs && { accountIdx: { in: dto.userIdxs } }),
         createdAt: {
           gte: startDate,
         },
@@ -367,7 +405,8 @@ export class ReviewService {
       },
       where: {
         // prettier-ignore
-        ...(dto.userIdx ? { accountIdx: dto.userIdx  } : {}),
+        ...(dto.userIdx && { accountIdx: dto.userIdx  } ),
+        ...(dto.userIdxs && { accountIdx: { in: dto.userIdxs } }),
         createdAt: {
           gte: startDate,
         },
@@ -383,6 +422,100 @@ export class ReviewService {
     return {
       totalPage: Math.ceil(reviewCount / dto.size),
       reviews: reviewSQLResult.map((elem) => new ReviewEntity(elem)),
+    };
+  }
+
+  async getLatestReviewsByFollowing(
+    dto: GetReviewsAllDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    const followList = await this.userFollowService.getFollowingUsersIdx({
+      userIdx: dto.userIdx,
+    });
+
+    return await this.getReviewsAll({
+      page: dto.page,
+      size: dto.size,
+      timeframe: dto.timeframe,
+      userIdxs: followList.followingIdxs,
+    });
+  }
+
+  async increaseViewCount(reviewIdx: number): Promise<void> {
+    await this.redis.incr(`review:${reviewIdx}:viewCount`);
+  }
+
+  async getViewCount(reviewIdx: number): Promise<number> {
+    let viewCount = parseInt(
+      await this.redis.get(`review:${reviewIdx}:viewCount`),
+      10,
+    );
+
+    if (!viewCount) {
+      const review = await this.getReviewByIdx(reviewIdx);
+      viewCount = review.viewCount;
+
+      await this.redis.set(`review:${reviewIdx}:viewCount`, viewCount);
+    }
+
+    return viewCount;
+  }
+
+  async getLatestReviewsByUsers(
+    dto: GetLatestReveiwsByUserIdxsDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    const totalCount = await this.prismaService.reviewTb.count({
+      where: {
+        accountIdx: {
+          in: dto.userIdxs,
+        },
+      },
+    });
+
+    const reviewData = await this.prismaService.reviewTb.findMany({
+      include: {
+        accountTb: {
+          include: {
+            profileImgTb: {
+              where: {
+                deletedAt: null,
+              },
+            },
+          },
+        },
+        tagTb: true,
+        reviewImgTb: {
+          where: {
+            deletedAt: null,
+          },
+        },
+        reviewThumbnailTb: {
+          where: {
+            deletedAt: null,
+          },
+        },
+        _count: {
+          select: {
+            commentTb: true,
+            reviewLikeTb: true,
+            reviewDislikeTb: true,
+            reviewBookmarkTb: true,
+            reviewShareTb: true,
+          },
+        },
+      },
+      where: {
+        accountIdx: {
+          in: dto.userIdxs,
+        },
+      },
+      skip: dto.page * dto.size,
+      take: dto.size,
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return {
+      totalPage: Math.ceil(totalCount / dto.size),
+      reviews: reviewData.map((elem) => new ReviewEntity(elem)),
     };
   }
 
@@ -569,7 +702,7 @@ export class ReviewService {
 
     const hotReviews = reviewData.map((review) => new ReviewEntity(review));
 
-    await this.cacheManager.set('hotReviews', hotReviews, 12 * 3600 * 1000);
+    await this.redis.set('hotReviews', JSON.stringify(hotReviews));
   }
 
   @Cron(' 0 0 0,12 * * *')
@@ -631,14 +764,15 @@ export class ReviewService {
 
     const coldReviews = reviewData.map((review) => new ReviewEntity(review));
 
-    await this.cacheManager.set('coldReviews', coldReviews, 12 * 3600 * 1000);
+    await this.redis.set('coldReviews', JSON.stringify(coldReviews));
   }
 
   async getHotReviewAll(
     dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    const hotReviews =
-      await this.cacheManager.get<Array<ReviewEntity>>('hotReviews');
+    const hotReviews = JSON.parse(
+      await this.redis.get('hotReviews'),
+    ) as Array<ReviewEntity>;
 
     if (!hotReviews) {
       return {
@@ -658,8 +792,9 @@ export class ReviewService {
   async getColdReviewAll(
     dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    const coldReviews =
-      await this.cacheManager.get<Array<ReviewEntity>>('coldReviews');
+    const coldReviews = JSON.parse(
+      await this.redis.get('coldReviews'),
+    ) as Array<ReviewEntity>;
 
     if (!coldReviews) {
       return {

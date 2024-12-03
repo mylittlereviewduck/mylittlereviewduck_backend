@@ -1,4 +1,3 @@
-import { AuthGuard } from './guard/auth.guard';
 import { Module, forwardRef } from '@nestjs/common';
 import { PrismaModule } from '../../src/prisma/prisma.module';
 import { UserModule } from '../../src/user/user.module';

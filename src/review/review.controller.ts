@@ -49,10 +49,10 @@ import { ReviewDislikeEntity } from './entity/ReviewDislike.entity';
 import { ReviewBlockEntity } from './entity/ReviewBlock.entity';
 import { ReviewShareEntity } from './entity/ReviewShare.entity';
 import { ReviewBookmarkEntity } from './entity/Reviewbookmark.entity';
-import { NotificationService } from 'src/notification/notification.service';
 import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
 import { GetReviewsAllDto } from './dto/get-reviews-all.dto';
 import { BookmarkService } from './bookmark.service';
+import { UserFollowService } from 'src/user/user-follow.service';
 
 @Controller('')
 @ApiTags('review')
@@ -68,7 +68,6 @@ export class ReviewController {
     private readonly reviewBlockService: ReviewBlockService,
     private readonly reviewBlockCheckService: ReviewBlockCheckService,
     private readonly awsService: AwsService,
-    private readonly notificationService: NotificationService,
     private readonly userBlockCheckService: UserBlockCheckService,
   ) {}
 
@@ -189,6 +188,12 @@ export class ReviewController {
     @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
   ): Promise<ReviewEntity> {
     const reviewEntity = await this.reviewService.getReviewByIdx(reviewIdx);
+
+    const addedViewCount = await this.reviewService.getViewCount(
+      reviewEntity.idx,
+    );
+    reviewEntity.viewCount = reviewEntity.viewCount + addedViewCount;
+    await this.reviewService.increaseViewCount(reviewEntity.idx);
 
     if (!loginUser) {
       return reviewEntity;
@@ -318,26 +323,7 @@ export class ReviewController {
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
   ): Promise<ReviewLikeEntity> {
-    const reviewLikeEntity = await this.reviewLikeService.likeReview(
-      loginUser.idx,
-      reviewIdx,
-    );
-
-    const reviewEntity = await this.reviewService.getReviewByIdx(
-      reviewLikeEntity.reviewIdx,
-    );
-
-    if (loginUser.idx != reviewEntity.user.idx) {
-      const notification = await this.notificationService.createNotification({
-        senderIdx: loginUser.idx,
-        recipientIdx: reviewEntity.user.idx,
-        type: 2,
-        reviewIdx: reviewIdx,
-      });
-
-      this.notificationService.sendNotification(notification);
-    }
-    return reviewLikeEntity;
+    return await this.reviewLikeService.likeReview(loginUser.idx, reviewIdx);
   }
 
   @Delete('/review/:reviewIdx/like')
@@ -474,6 +460,23 @@ export class ReviewController {
     @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
   ): Promise<void> {
     await this.reviewBlockService.unblockReview(loginUser.idx, reviewIdx);
+  }
+
+  @Get('/review/all/following')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: '팔로우한 사람들의 리뷰목록 보기' })
+  @Exception(401, '권한없음')
+  @ApiResponse({ status: 200 })
+  async getReviewsByFollowingUsers(
+    @GetUser() loginUser: LoginUser,
+    @Query() dto: GetReviewsAllDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    return await this.reviewService.getLatestReviewsByFollowing({
+      size: dto.size,
+      page: dto.page,
+      timeframe: dto.timeframe,
+      userIdx: loginUser.idx,
+    });
   }
 
   @Get('/user/:userIdx/review/all')

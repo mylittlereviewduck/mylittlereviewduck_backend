@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { LoginUser } from 'src/auth/model/login-user.model';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CommentEntity } from './entity/Comment.entity';
 

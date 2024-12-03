@@ -65,20 +65,19 @@ export class UserService {
     const totalCount = await this.prismaService.accountTb.count({
       where: {
         deletedAt: null,
-        ...(dto.status === 'active' ? { suspendExpireAt: null } : {}),
-        ...(dto.status === 'suspended' ? { suspendExpireAt: { not: null } } : {}),
-        ...(dto.status === 'blackList' ? { suspendExpireAt: { gte: new Date('2100-01-01') } } : {}),
-        ...(dto.email || dto.nickname || dto.interest1 || dto.interest2
-          ? {
+        ...(dto.status === 'active' && { suspendExpireAt: null } ),
+        ...(dto.status === 'suspended' && { suspendExpireAt: { not: null } } ),
+        ...(dto.status === 'blackList' && { suspendExpireAt: { gte: new Date('2100-01-01') } } ),
+        ...(dto.email || dto.nickname || dto.interest1 || dto.interest2)
+          && {
               OR: [
-                dto.email ? { email: { contains: dto.email, mode: Prisma.QueryMode.insensitive } } : null,
-                dto.nickname ? { nickname: { contains: dto.nickname, mode: Prisma.QueryMode.insensitive } } : null,
-                dto.interest1 ? { interest1: { contains: dto.interest1, mode: Prisma.QueryMode.insensitive } } : null,
-                dto.interest2 ? { interest2: { contains: dto.interest2, mode: Prisma.QueryMode.insensitive } } : null,
-              ].filter((x) => x !== null),// null 값 제거
+                dto.email && { email: { contains: dto.email, mode: Prisma.QueryMode.insensitive } } ,
+                dto.nickname && { nickname: { contains: dto.nickname, mode: Prisma.QueryMode.insensitive } } ,
+                dto.interest1 && { interest1: { contains: dto.interest1, mode: Prisma.QueryMode.insensitive } } ,
+                dto.interest2 && { interest2: { contains: dto.interest2, mode: Prisma.QueryMode.insensitive } } ,
+              ].filter(Boolean),// null 값 제거
             }
-          : {}),
-      },
+        }  
     });
 
     const userData = await this.prismaService.accountTb.findMany({
@@ -99,20 +98,19 @@ export class UserService {
       // prettier-ignore
       where: {
         deletedAt: null,
-        ...(dto.status === 'active' ? { suspendExpireAt: null } : {}),
-        ...(dto.status === 'suspended' ? { suspendExpireAt: { not: null } } : {}),
-        ...(dto.status === 'blackList' ? { suspendExpireAt: { gte: new Date('2100-01-01') } } : {}),
-        ...(dto.email || dto.nickname || dto.interest1 || dto.interest2
-          ? {
+        ...(dto.status === 'active' && { suspendExpireAt: null } ),
+        ...(dto.status === 'suspended' && { suspendExpireAt: { not: null } } ),
+        ...(dto.status === 'blackList' && { suspendExpireAt: { gte: new Date('2100-01-01') } } ),
+        ...(dto.email || dto.nickname || dto.interest1 || dto.interest2)
+          && {
               OR: [
-                dto.email ? { email: { contains: dto.email, mode: Prisma.QueryMode.insensitive } } : null,
-                dto.nickname ? { nickname: { contains: dto.nickname, mode: Prisma.QueryMode.insensitive } } : null,
-                dto.interest1 ? { interest1: { contains: dto.interest1, mode: Prisma.QueryMode.insensitive } } : null,
-                dto.interest2 ? { interest2: { contains: dto.interest2, mode: Prisma.QueryMode.insensitive } } : null,
-              ].filter((x) => x !== null),// null 값 제거
+                dto.email && { email: { contains: dto.email, mode: Prisma.QueryMode.insensitive } } ,
+                dto.nickname && { nickname: { contains: dto.nickname, mode: Prisma.QueryMode.insensitive } } ,
+                dto.interest1 && { interest1: { contains: dto.interest1, mode: Prisma.QueryMode.insensitive } } ,
+                dto.interest2 && { interest2: { contains: dto.interest2, mode: Prisma.QueryMode.insensitive } } ,
+              ].filter(Boolean),// null 값 제거
             }
-          : {}),
-      },
+        },
 
       orderBy: {
         idx: 'desc',
@@ -125,6 +123,32 @@ export class UserService {
       totalPage: Math.ceil(totalCount / dto.size),
       users: userData.map((elem) => new UserEntity(elem)),
     };
+  }
+
+  async getUsersByIdx(userIdxs: string[]): Promise<UserEntity[]> {
+    const userData = await this.prismaService.accountTb.findMany({
+      include: {
+        profileImgTb: {
+          where: {
+            deletedAt: null,
+          },
+        },
+        _count: {
+          select: {
+            followee: true,
+            follower: true,
+          },
+        },
+      },
+      where: {
+        idx: {
+          in: userIdxs,
+        },
+        deletedAt: null,
+      },
+    });
+
+    return userData.map((user) => new UserEntity(user));
   }
 
   async createUser(dto: CreateUserDto): Promise<UserEntity> {
@@ -280,23 +304,23 @@ export class UserService {
     });
   }
 
-  async getUserWithProvider(
-    userIdx: string,
-    provider: string,
-  ): Promise<UserWithProvider> {
-    const userData = await this.prismaService.accountInfoView.findUnique({
-      where: {
-        idx: userIdx,
-        provider: provider,
-      },
-    });
+  // async getUserWithProvider(
+  //   userIdx: string,
+  //   provider: string,
+  // ): Promise<UserWithProvider> {
+  //   const userData = await this.prismaService.accountInfoView.findUnique({
+  //     where: {
+  //       idx: userIdx,
+  //       provider: provider,
+  //     },
+  //   });
 
-    if (!userData) {
-      throw new NotFoundException('Not Found User');
-    }
+  //   if (!userData) {
+  //     throw new NotFoundException('Not Found User');
+  //   }
 
-    return new UserWithProvider(userData);
-  }
+  //   return new UserWithProvider(userData);
+  // }
 
   async deleteUser(userIdx: string): Promise<void> {
     await this.prismaService.accountTb.update({

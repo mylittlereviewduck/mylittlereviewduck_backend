@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserEntity } from './entity/User.entity';
 import { NotificationUserEntity } from 'src/notification/entity/NotificationUser.entity';
-import { UserFollowPagerbleDto } from './dto/user-follow-pagerble.dto';
+import { GetFollowUserDto } from './dto/user-follow-pagerble.dto';
 import { UserPagerbleResponseDto } from './dto/response/user-pagerble-response.dto';
 
 @Injectable()
@@ -38,50 +38,90 @@ export class UserFollowService {
     return toUsers;
   }
 
-  async getFollowingList(
-    dto: UserFollowPagerbleDto,
-  ): Promise<UserPagerbleResponseDto> {
-    const followingCount = await this.prismaService.followTb.count({
-      where: {
-        [dto.type === 'follower' ? 'followerIdx' : 'followeeIdx']: dto.userIdx,
-      },
+  async getFollowingUsersIdx(
+    dto: GetFollowUserDto,
+  ): Promise<{ followingIdxs: string[]; totalCount: number }> {
+    const totalCount = await this.prismaService.followTb.count({
+      where: { followerIdx: dto.userIdx },
     });
 
     const followList = await this.prismaService.followTb.findMany({
-      include: {
-        [dto.type === 'follower' ? 'followee' : 'follower']: {
-          include: {
-            profileImgTb: {
-              where: {
-                deletedAt: null,
-              },
-            },
-            _count: {
-              select: {
-                follower: true,
-                followee: true,
-              },
-            },
-          },
-        },
-      },
-      where: {
-        [dto.type === 'follower' ? 'followerIdx' : 'followeeIdx']: dto.userIdx,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-      skip: (dto.page - 1) * dto.size,
-      take: dto.size,
+      where: { followerIdx: dto.userIdx },
+      select: { followeeIdx: true },
+      ...(dto.page && { skip: (dto.page - 1) * dto.size }),
+      ...(dto.size && { take: dto.size }),
     });
 
     return {
-      totalPage: Math.ceil(followingCount / dto.size),
-      users: followList.map((elem) => {
-        return new UserEntity(
-          dto.type == 'follower' ? elem.followee : elem.follower,
-        );
-      }),
+      followingIdxs: followList.map((follow) => follow.followeeIdx),
+      totalCount,
     };
   }
+
+  async getFollowerUsersIdx(
+    dto: GetFollowUserDto,
+  ): Promise<{ followerIdxs: string[]; totalCount: number }> {
+    const totalCount = await this.prismaService.followTb.count({
+      where: { followeeIdx: dto.userIdx },
+    });
+
+    const followeeList = await this.prismaService.followTb.findMany({
+      where: { followeeIdx: dto.userIdx },
+      select: { followerIdx: true },
+      ...(dto.page && { skip: (dto.page - 1) * dto.size }),
+      ...(dto.size && { take: dto.size }),
+    });
+
+    return {
+      followerIdxs: followeeList.map((follow) => follow.followerIdx),
+      totalCount,
+    };
+  }
+
+  // async getFollowingList(
+  //   dto: UserFollowPagerbleDto,
+  // ): Promise<UserPagerbleResponseDto> {
+  //   const followingCount = await this.prismaService.followTb.count({
+  //     where: {
+  //       [dto.type === 'follower' ? 'followerIdx' : 'followeeIdx']: dto.userIdx,
+  //     },
+  //   });
+
+  //   const followList = await this.prismaService.followTb.findMany({
+  //     include: {
+  //       [dto.type === 'follower' ? 'followee' : 'follower']: {
+  //         include: {
+  //           profileImgTb: {
+  //             where: {
+  //               deletedAt: null,
+  //             },
+  //           },
+  //           _count: {
+  //             select: {
+  //               follower: true,
+  //               followee: true,
+  //             },
+  //           },
+  //         },
+  //       },
+  //     },
+  //     where: {
+  //       [dto.type === 'follower' ? 'followerIdx' : 'followeeIdx']: dto.userIdx,
+  //     },
+  //     orderBy: {
+  //       createdAt: 'desc',
+  //     },
+  //     skip: (dto.page - 1) * dto.size,
+  //     take: dto.size,
+  //   });
+
+  //   return {
+  //     totalPage: Math.ceil(followingCount / dto.size),
+  //     users: followList.map((elem) => {
+  //       return new UserEntity(
+  //         dto.type == 'follower' ? elem.followee : elem.follower,
+  //       );
+  //     }),
+  //   };
+  // }
 }

@@ -1,10 +1,15 @@
 import { AuthGuard } from '../auth/guard/auth.guard';
-import { Controller, Get, Query, Sse, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  MessageEvent,
+  Query,
+  Sse,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
-  ApiParam,
-  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -13,10 +18,10 @@ import { LoginUser } from 'src/auth/model/login-user.model';
 import { Exception } from 'src/decorator/exception.decorator';
 import { NotificationPagerbleResponseDto } from './dto/response/notification-pagerble-response.dto';
 import { NotificationService } from './notification.service';
-import { Observable } from 'rxjs';
-import { NotificationEntity } from './entity/Notification.entity';
+import { Observable, interval, map } from 'rxjs';
 import { GetNotificationDto } from './dto/get-notification.dto';
 import { UserFollowService } from 'src/user/user-follow.service';
+import { SseService } from './sse.service';
 
 @Controller('')
 @ApiTags('user')
@@ -24,6 +29,7 @@ export class NotificationController {
   constructor(
     private readonly notificationService: NotificationService,
     private readonly userFollowService: UserFollowService,
+    private readonly sseService: SseService,
   ) {}
 
   @Get('/user/notification/all')
@@ -53,11 +59,17 @@ export class NotificationController {
     return notificationPagerbleResponseDto;
   }
 
-  @Sse('/sse')
-  @UseGuards(AuthGuard)
-  sendClientNotification(
-    @GetUser() loginUser: LoginUser,
-  ): Observable<NotificationEntity> {
-    return this.notificationService.getNotification(loginUser.idx);
+  @Sse('/notification/sse')
+  sendClientNotification(): Observable<MessageEvent> {
+    return this.sseService.getNotificationObservable().pipe(
+      map((notification) => ({
+        data: notification,
+      })),
+    );
+  }
+
+  @Sse('sse')
+  sse(): Observable<MessageEvent> {
+    return interval(1000).pipe(map((_) => ({ data: { hello: 'world' } })));
   }
 }

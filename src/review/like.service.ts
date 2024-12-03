@@ -7,12 +7,14 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { ReviewService } from './review.service';
 import { ReviewLikeEntity } from './entity/ReviewLike.entity';
 import { ReviewDislikeEntity } from './entity/ReviewDislike.entity';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class ReviewLikeService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly reviewService: ReviewService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async getReviewLike(
@@ -83,6 +85,15 @@ export class ReviewLikeService {
         reviewIdx: reviewIdx,
       },
     });
+
+    if (userIdx != review.user.idx) {
+      this.eventEmitter.emit('notification.create', {
+        senderIdx: userIdx,
+        recipientIdx: review.user.idx,
+        type: 2,
+        reviewIdx: review.idx,
+      });
+    }
 
     return new ReviewLikeEntity(reviewLikeData);
   }

@@ -3,5 +3,5 @@ export class CreateNotificationDto {
   recipientIdx: string;
   type: number;
   reviewIdx?: number;
-  commentContent?: string;
+  commentIdx?: number;
 }

@@ -27,7 +27,7 @@ import { RedisModule } from '@liaoliaots/nestjs-redis';
     EventEmitterModule.forRoot(),
     RedisModule.forRoot({
       config: {
-        host: 'localhost',
+        host: 'redis',
         port: 6379,
       },
     }),

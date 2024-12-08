@@ -5,7 +5,7 @@ import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { ReviewModule } from './review/review.module';
 import { CommentModule } from './comment/comment.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
 import { EmailModule } from '../src/email/email.module';
 import { NotificationModule } from './notification/notification.module';
@@ -25,11 +25,14 @@ import { RedisModule } from '@liaoliaots/nestjs-redis';
     NotificationModule,
     ReportModule,
     EventEmitterModule.forRoot(),
-    RedisModule.forRoot({
-      config: {
-        host: 'redis',
-        port: 6379,
-      },
+    RedisModule.forRootAsync({
+      useFactory: async (configService: ConfigService) => ({
+        config: {
+          host: configService.get<string>('REDIS_HOST'),
+          port: configService.get<number>('REDIS_PORT', 6379),
+        },
+      }),
+      inject: [ConfigService],
     }),
   ],
   controllers: [AppController],

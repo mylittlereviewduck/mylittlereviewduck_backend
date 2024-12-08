@@ -41,7 +41,6 @@ import { GetUser } from 'src/auth/get-user.decorator';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { OptionalAuthGuard } from 'src/auth/guard/optional-auth.guard';
 import { ReviewPagerbleResponseDto } from './dto/response/review-pagerble-response.dto';
-import { ReviewLikeCheckService } from './review-like.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileValidationPipe } from 'src/common/fileValidation.pipe';
 import { ReviewLikeEntity } from './entity/ReviewLike.entity';
@@ -51,6 +50,7 @@ import { ReviewShareEntity } from './entity/ReviewShare.entity';
 import { ReviewBookmarkEntity } from './entity/Reviewbookmark.entity';
 import { BookmarkService } from './bookmark.service';
 import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
+import { ReviewLikeCheckService } from './review-like-check.service';
 
 @Controller('')
 @ApiTags('review')
@@ -622,10 +622,13 @@ export class ReviewController {
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
     @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    dto.userIdx = userIdx;
-    console.log('dto: ', dto);
-    const reviewPagerbleResponseDto =
-      await this.reviewService.getReviewLikedAll(dto);
+    const { totalCount, reviewIdxs } =
+      await this.reviewLikeCheckService.getLikedReviewsIdx({ ...dto, userIdx });
+
+    const reviewPagerbleResponseDto = {
+      totalPage: Math.ceil(totalCount / dto.size),
+      reviews: await this.reviewService.getReviewsByIdx(reviewIdxs),
+    };
 
     if (!loginUser) {
       return reviewPagerbleResponseDto;

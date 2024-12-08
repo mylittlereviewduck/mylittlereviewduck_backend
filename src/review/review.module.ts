@@ -4,7 +4,7 @@ import { ReviewService } from './review.service';
 import { ReviewLikeService } from './like.service';
 import { AuthModule } from 'src/auth/auth.module';
 import { PrismaModule } from 'src/prisma/prisma.module';
-import { ReviewLikeCheckService } from './review-like.service';
+import { ReviewLikeCheckService } from './review-like-check.service';
 import { ReviewBlockService } from './review-block.service';
 import { ReviewBlockCheckService } from './review-block-check.service';
 import { ReviewShareService } from './share.service';

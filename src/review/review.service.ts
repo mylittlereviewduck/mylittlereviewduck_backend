@@ -287,10 +287,9 @@ export class ReviewService {
         accountTb: {
           include: {
             profileImgTb: {
-              orderBy: {
-                idx: 'desc',
+              where: {
+                deletedAt: null,
               },
-              take: 1,
             },
           },
         },
@@ -326,6 +325,55 @@ export class ReviewService {
     }
 
     return new ReviewEntity(review);
+  }
+
+  async getReviewsByIdx(reviewIdxs: number[]): Promise<ReviewEntity[]> {
+    console.log('reviewIdxs: ', reviewIdxs);
+    let reviews = await this.prismaService.reviewTb.findMany({
+      include: {
+        accountTb: {
+          include: {
+            profileImgTb: {
+              where: {
+                deletedAt: null,
+              },
+            },
+          },
+        },
+        tagTb: true,
+        reviewImgTb: {
+          where: {
+            deletedAt: null,
+          },
+        },
+        reviewThumbnailTb: {
+          where: {
+            deletedAt: null,
+          },
+        },
+        _count: {
+          select: {
+            commentTb: true,
+            reviewLikeTb: true,
+            reviewDislikeTb: true,
+            reviewBookmarkTb: true,
+            reviewShareTb: true,
+          },
+        },
+      },
+
+      where: {
+        idx: {
+          in: reviewIdxs,
+        },
+      },
+    });
+
+    // reviews를 reviewIdxs 순서대로 정렬
+    const reviewsMap = new Map(reviews.map((review) => [review.idx, review]));
+    const sortedReviews = reviewIdxs.map((idx) => reviewsMap.get(idx));
+
+    return sortedReviews.map((review) => new ReviewEntity(review));
   }
 
   async getReviewsAll(
@@ -911,73 +959,6 @@ export class ReviewService {
     }
 
     return noon;
-  }
-
-  //쿼리수정해야됨
-  async getReviewLikedAll(
-    dto: ReviewPagerbleDto,
-  ): Promise<ReviewPagerbleResponseDto> {
-    const totalCount = await this.prismaService.reviewTb.count({
-      where: {
-        reviewLikeTb: {
-          some: {
-            accountIdx: dto.userIdx,
-          },
-        },
-      },
-    });
-    console.log('totalCount: ', totalCount);
-
-    const reviewData = await this.prismaService.reviewTb.findMany({
-      include: {
-        accountTb: {
-          include: {
-            profileImgTb: {
-              where: {
-                deletedAt: null,
-              },
-            },
-          },
-        },
-        tagTb: true,
-        reviewImgTb: {
-          where: {
-            deletedAt: null,
-          },
-        },
-        reviewThumbnailTb: {
-          where: {
-            deletedAt: null,
-          },
-        },
-        _count: {
-          select: {
-            commentTb: true,
-            reviewLikeTb: true,
-            reviewDislikeTb: true,
-            reviewBookmarkTb: true,
-            reviewShareTb: true,
-          },
-        },
-      },
-      where: {
-        reviewLikeTb: {
-          some: {
-            accountIdx: dto.userIdx,
-          },
-        },
-      },
-      orderBy: {
-        idx: 'desc',
-      },
-      skip: (dto.page - 1) * dto.size,
-      take: dto.size,
-    });
-
-    return {
-      totalPage: Math.ceil(totalCount / dto.size),
-      reviews: reviewData.map((elem) => new ReviewEntity(elem)),
-    };
   }
 
   async onModuleInit() {

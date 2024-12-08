@@ -126,7 +126,7 @@ export class UserService {
   }
 
   async getUsersByIdx(userIdxs: string[]): Promise<UserEntity[]> {
-    const userData = await this.prismaService.accountTb.findMany({
+    const users = await this.prismaService.accountTb.findMany({
       include: {
         profileImgTb: {
           where: {
@@ -148,7 +148,7 @@ export class UserService {
       },
     });
 
-    return userData.map((user) => new UserEntity(user));
+    return users.map((user) => new UserEntity(user));
   }
 
   async createUser(dto: CreateUserDto): Promise<UserEntity> {

@@ -29,6 +29,8 @@ import {
   ApiBearerAuth,
   ApiParam,
   ApiQuery,
+  ApiConsumes,
+  ApiBody,
 } from '@nestjs/swagger';
 import { Exception } from 'src/decorator/exception.decorator';
 import { CreateReviewDto } from './dto/create-review.dto';
@@ -157,11 +159,25 @@ export class ReviewController {
     return await this.reviewService.createReview(dto);
   }
 
-  @Post('/review/img')
+  @Post('/review/image')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @UseInterceptors(FileInterceptor('image'))
   @ApiOperation({ summary: '리뷰 이미지업로드' })
-  @ApiBearerAuth()
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    required: true,
+    schema: {
+      type: 'object',
+      properties: {
+        image: {
+          type: 'string',
+          format: 'binary',
+          description: '업로드할 이미지 파일(jpg, jpeg, png, gif)',
+        },
+      },
+    },
+  })
   @Exception(
     400,
     '유효하지않은 요청(파일 없는경우, 파일크기 초과한경우(10MB), 허용되는 확장자(jpg, jpeg, png, gif)가 아닌경우)',
@@ -174,7 +190,8 @@ export class ReviewController {
   })
   async uploadReviewImage(
     @UploadedFile(FileValidationPipe) image: Express.Multer.File,
-  ): Promise<{ imgPath: string }> {
+  ): Promise<UploadReviewImageResponseDto> {
+    console.log(image);
     return { imgPath: await this.awsService.uploadImageToS3(image) };
   }
 

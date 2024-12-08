@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ReviewEntity } from './entity/Review.entity';
-import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
 import { ReviewPagerbleResponseDto } from './dto/response/review-pagerble-response.dto';
 import { UserService } from 'src/user/user.service';
+import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
 
 @Injectable()
 export class ReviewBookmarkService {

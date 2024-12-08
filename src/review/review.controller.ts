@@ -49,10 +49,8 @@ import { ReviewDislikeEntity } from './entity/ReviewDislike.entity';
 import { ReviewBlockEntity } from './entity/ReviewBlock.entity';
 import { ReviewShareEntity } from './entity/ReviewShare.entity';
 import { ReviewBookmarkEntity } from './entity/Reviewbookmark.entity';
-import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
-import { GetReviewsAllDto } from './dto/get-reviews-all.dto';
 import { BookmarkService } from './bookmark.service';
-import { UserFollowService } from 'src/user/user-follow.service';
+import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
 
 @Controller('')
 @ApiTags('review')
@@ -77,11 +75,13 @@ export class ReviewController {
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
   async getReviewAll(
     @GetUser() loginUser: LoginUser,
-    @Query() dto: GetReviewsAllDto,
+    @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
+    console.log('dto: ', dto);
+
     const reviewPagerbleResponseDto = await this.reviewService.getReviewsAll({
-      size: dto.size || 10,
-      page: dto.page || 1,
+      size: dto.size,
+      page: dto.page,
       timeframe: dto.timeframe,
     });
 
@@ -119,8 +119,9 @@ export class ReviewController {
     @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
     return await this.reviewService.getHotReviewAll({
-      size: dto.size || 10,
-      page: dto.page || 1,
+      size: dto.size,
+      page: dto.page,
+      timeframe: 'all',
     });
   }
 
@@ -131,8 +132,9 @@ export class ReviewController {
     @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
     return await this.reviewService.getColdReviewAll({
-      size: dto.size || 10,
-      page: dto.page || 1,
+      size: dto.size,
+      page: dto.page,
+      timeframe: 'all',
     });
   }
 
@@ -278,8 +280,8 @@ export class ReviewController {
     const reviewPagerbleResponseDto =
       await this.reviewService.getReviewWithSearch({
         search: search,
-        size: dto.size || 10,
-        page: dto.page || 1,
+        size: dto.size,
+        page: dto.page,
       });
 
     if (!loginUser) {
@@ -469,7 +471,7 @@ export class ReviewController {
   @ApiResponse({ status: 200 })
   async getReviewsByFollowingUsers(
     @GetUser() loginUser: LoginUser,
-    @Query() dto: GetReviewsAllDto,
+    @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
     return await this.reviewService.getLatestReviewsByFollowing({
       size: dto.size,
@@ -488,11 +490,11 @@ export class ReviewController {
   async getReviewAllByUserIdx(
     @GetUser() loginUser: LoginUser,
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
-    @Query() dto: GetReviewsAllDto,
+    @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
     const reviewPagerbleResponseDto = await this.reviewService.getReviewsAll({
-      page: dto.page || 1,
-      size: dto.size || 10,
+      page: dto.page,
+      size: dto.size,
       timeframe: 'all',
       userIdx: userIdx,
     });
@@ -621,6 +623,7 @@ export class ReviewController {
     @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
     dto.userIdx = userIdx;
+    console.log('dto: ', dto);
     const reviewPagerbleResponseDto =
       await this.reviewService.getReviewLikedAll(dto);
 

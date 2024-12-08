@@ -13,7 +13,6 @@ import { UserService } from 'src/user/user.service';
 import { Cron } from '@nestjs/schedule';
 import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
 import { GetReviewWithSearchDto } from './dto/get-review-with-search.dto';
-import { GetReviewsAllDto } from './dto/get-reviews-all.dto';
 import { DEFAULT_REDIS, RedisService } from '@liaoliaots/nestjs-redis';
 import { Redis } from 'ioredis';
 import { GetLatestReveiwsByUserIdxsDto } from './dto/get-latest-reviews-by-userIdxs.dto';
@@ -330,7 +329,7 @@ export class ReviewService {
   }
 
   async getReviewsAll(
-    dto: GetReviewsAllDto,
+    dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
     if (dto.userIdx) {
       const user = await this.userService.getUser({ idx: dto.userIdx });
@@ -426,7 +425,7 @@ export class ReviewService {
   }
 
   async getLatestReviewsByFollowing(
-    dto: GetReviewsAllDto,
+    dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
     const followList = await this.userFollowService.getFollowingUsersIdx({
       userIdx: dto.userIdx,
@@ -927,6 +926,7 @@ export class ReviewService {
         },
       },
     });
+    console.log('totalCount: ', totalCount);
 
     const reviewData = await this.prismaService.reviewTb.findMany({
       include: {

@@ -45,8 +45,8 @@ export class NotificationController {
     const notificationPagerbleResponseDto =
       await this.notificationService.getMyNotificationAll({
         userIdx: loginUser.idx,
-        page: dto.page || 1,
-        size: dto.size || 20,
+        page: dto.page,
+        size: dto.size,
       });
 
     await this.userFollowService.isFollow(

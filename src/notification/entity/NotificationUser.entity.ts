@@ -22,6 +22,7 @@ export class NotificationUserEntity extends PickType(UserEntity, [
     this.idx = data.idx;
     this.email = data.email;
     this.nickname = data.nickname;
-    this.profileImg = data.profileImgTb[0].imgPath;
+    //prettier-ignore
+    this.profileImg = data.profileImgTb[0] ? data.profileImgTb[0].imgPath : null;
   }
 }

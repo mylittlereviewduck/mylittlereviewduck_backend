@@ -17,7 +17,7 @@ const notification = Prisma.validator<Prisma.NotificationTbDefaultArgs>()({
   },
 });
 
-type Notification = Prisma.NotificationTbGetPayload<typeof notification>;
+export type Notification = Prisma.NotificationTbGetPayload<typeof notification>;
 
 //샌더의 유저 정보 필요, 프로필이미지, 닉네임, 팔로우 여부
 export class NotificationEntity {

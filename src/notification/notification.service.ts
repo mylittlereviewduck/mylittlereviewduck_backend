@@ -3,7 +3,7 @@ import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { UserService } from 'src/user/user.service';
-import { NotificationEntity } from './entity/Notification.entity';
+import { Notification, NotificationEntity } from './entity/Notification.entity';
 import { NotificationPagerbleResponseDto } from './dto/response/notification-pagerble-response.dto';
 import { Subject } from 'rxjs';
 import { CommentService } from 'src/comment/comment.service';
@@ -28,9 +28,9 @@ export class NotificationService {
    * @param createNotificationDto 
    * @description
    * type
-   * - 1 = follow
-     - 2 = like Review
-     - 3 = comment
+   * - 1 = follow_user
+     - 2 = like_review
+     - 3 = create_comment
    */
   async createNotification(
     dto: CreateNotificationDto,
@@ -92,7 +92,7 @@ export class NotificationService {
   async getMyNotificationAll(
     dto: GetNotificationDto,
   ): Promise<NotificationPagerbleResponseDto> {
-    let totalCount, notificationData;
+    let totalCount: number, notificationData: Notification[];
 
     await this.prismaService.$transaction(async (tx) => {
       totalCount = await tx.notificationTb.count({
@@ -108,9 +108,17 @@ export class NotificationService {
               profileImgTb: true,
             },
           },
+          notificationTypeTb: {
+            select: {
+              typeName: true,
+            },
+          },
         },
         where: {
           recipientIdx: dto.userIdx,
+        },
+        orderBy: {
+          createdAt: 'desc',
         },
         take: dto.size,
         skip: (dto.page - 1) * dto.size,

@@ -14,6 +14,7 @@ import { AwsModule } from 'src/aws/aws.module';
 import { NotificationModule } from 'src/notification/notification.module';
 import { ReviewBookmarkService } from './review-bookmark.service';
 import { BookmarkService } from './bookmark.service';
+import { RecommendationService } from './recommendation.service';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { BookmarkService } from './bookmark.service';
     ReviewShareCheckService,
     ReviewBlockService,
     ReviewBlockCheckService,
+    RecommendationService,
   ],
   exports: [ReviewService],
 })

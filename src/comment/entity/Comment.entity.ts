@@ -43,6 +43,7 @@ export class CommentEntity {
   @ApiProperty({
     example: 1,
     description: '대댓글일 경우 존재, 대댓글이 달린 댓글 idx',
+    nullable: true,
   })
   commentIdx?: number | undefined;
 

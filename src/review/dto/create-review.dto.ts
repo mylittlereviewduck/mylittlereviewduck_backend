@@ -1,10 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
   ArrayMaxSize,
-  ArrayMinSize,
   IsArray,
   IsInt,
-  IsOptional,
   IsString,
   Length,
   Max,
@@ -43,7 +41,7 @@ export class CreateReviewDto {
 
   @ApiProperty({
     example: ['태그1', '태그2', '태그3'],
-    description: '태그, 리스트 형태',
+    description: '태그, 리스트 형태, 0-10개, 16자 제한',
     required: false,
   })
   @IsArray()

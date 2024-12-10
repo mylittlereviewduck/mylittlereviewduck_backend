@@ -6,10 +6,25 @@ export class NotificationPagerbleResponseDto {
   totalPage: number;
 
   @ApiProperty({
-    description: '알림리스트',
     isArray: true,
     type: NotificationEntity,
     example: [
+      {
+        recipientIdx: '344e753e-9071-47b2-b651-bc32a0a92b1f',
+        sender: {
+          idx: 'a3a066c8-845a-41d5-9862-54ea1a918a29',
+          email: 'test2@a.com',
+          nickname: 'nickname1',
+          profileImg: null,
+          isMyFollowing: true,
+        },
+        type: 'follow_user',
+        reviewIdx: null,
+        content: 'nickname1님이 회원님을 팔로우하기 시작했습니다.',
+        commentIdx: null,
+        createdAt: '2024-12-09T06:13:03.806Z',
+        readAt: null,
+      },
       {
         recipientIdx: '344e753e-9071-47b2-b651-bc32a0a92b1f',
         sender: {

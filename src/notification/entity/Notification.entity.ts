@@ -40,9 +40,9 @@ export class NotificationEntity {
   sender: NotificationUserEntity;
 
   @ApiProperty({
-    example: 'comment',
+    example: 'follow_user / like_review / create_comment',
     description:
-      'Type: 1 => 팔로우한 경우, 2 => 리뷰 좋아요한 경우, 3 => 댓글 남긴 경우',
+      'follow_user => 팔로우한 경우, like_review => 리뷰 좋아요한 경우, create_comment => 댓글 남긴 경우',
   })
   type: string;
 

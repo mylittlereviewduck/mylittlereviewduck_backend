@@ -56,7 +56,7 @@ export class ReviewEntity {
 
   @ApiProperty({
     example: ['태그1', '태그2', '태그3'],
-    description: '태그 개수 제한x, 최소1개',
+    description: '태그 0-10개',
   })
   tags: string[] | null;
 
@@ -64,6 +64,7 @@ export class ReviewEntity {
     example:
       'https://s3.ap-northeast-2.amazonaws.com/todayreview/1723963141509',
     description: '썸네일 이미지',
+    nullable: true,
   })
   @IsString()
   thumbnail: string | null;
@@ -71,6 +72,7 @@ export class ReviewEntity {
   @ApiProperty({
     example: '썸네일 이미지 설명',
     description: '썸네일 이미지 설명',
+    nullable: true,
   })
   @IsString()
   thumbnailContent: string | null;
@@ -102,8 +104,9 @@ export class ReviewEntity {
   @ApiProperty({
     example: '2024-08-01Tq07:58:57.844Z',
     description: '수정일 타임스탬프',
+    nullable: true,
   })
-  updatedAt: Date;
+  updatedAt: Date | null;
 
   @ApiProperty({ example: 10, description: '조회수' })
   viewCount: number = 0;

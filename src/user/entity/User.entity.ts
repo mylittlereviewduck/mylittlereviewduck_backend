@@ -26,19 +26,23 @@ export class UserEntity {
   @ApiProperty({ example: 'abc123@naver.com', description: '이메일형식' })
   email: string;
 
-  @ApiProperty({ example: '유저 프로필 소개', description: '유저 프로필' })
+  //prettier-ignore
+  @ApiProperty({example: '유저 프로필 소개',description: '유저 프로필', nullable: true})
   profile: string | null;
 
-  @ApiProperty({ example: 'example.png', description: '프로필 이미지 경로' })
+  //prettier-ignore
+  @ApiProperty({ example: 'example.png', description: '프로필 이미지 경로', nullable: true })
   profileImg: string | null;
 
   @ApiProperty({ example: '닉네임', description: '닉네임' })
   nickname: string;
 
-  @ApiProperty({ example: '스포츠', description: '관심사1, 없으면 null' })
+  //prettier-ignore
+  @ApiProperty({ example: '스포츠', description: '관심사1, 없으면 null', nullable: true })
   interest1: string | null;
 
-  @ApiProperty({ example: '여행', description: '관심사2, 없으면 null' })
+  //prettier-ignore
+  @ApiProperty({ example: '여행', description: '관심사2, 없으면 null',nullable: true })
   interest2: string | null;
 
   @ApiProperty({ example: 'false', description: '관리자 여부' })
@@ -53,13 +57,13 @@ export class UserEntity {
   @ApiProperty({ example: '2024-08-01T07:58:57.844Z', description: '정지횟수' })
   suspensionCount: number;
 
-  @ApiProperty({ example: '2024-08-01T07:58:57.844Z', description: '정지기간' })
+  //prettier-ignore
+  @ApiProperty({ example: '2024-08-01T07:58:57.844Z', description: '정지기간',nullable: true })
   suspendExpireAt: Date | null;
 
   @ApiProperty({
     example: '111',
     description: '팔로잉수',
-    nullable: true,
   })
   followingCount?: number;
 

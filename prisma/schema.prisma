@@ -51,6 +51,7 @@ model AccountTb {
   reviewLikeTb                                        ReviewLikeTb[]
   reviewShareTb                                       ReviewShareTb[]
   reviewTb                                            ReviewTb[]
+  searchHistoryTb                                     SearchHistoryTb[]
 
   @@map("account_tb")
 }
@@ -282,6 +283,16 @@ model ReportTypeTb {
   reportTb ReportTb[]
 
   @@map("report_type_tb")
+}
+
+model SearchHistoryTb {
+  idx        Int        @id(map: "search_history_pkey") @default(autoincrement())
+  accountIdx String?    @map("account_idx") @db.VarChar
+  keyword    String     @db.VarChar
+  createdAt  DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  accountTb  AccountTb? @relation(fields: [accountIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "search_history_account_idx_fkey")
+
+  @@map("search_history_tb")
 }
 
 view AccountInfoView {

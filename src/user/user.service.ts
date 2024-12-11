@@ -175,10 +175,9 @@ export class UserService {
         throw new UnauthorizedException('Authentication TimeOut');
       }
 
-      const salt = this.configService.get('BCRYPT_SALT');
-      console.log('salt: ', salt);
+      const saltRounds = this.configService.get<number>('BCRYPT_SALT_ROUNDS');
+      const salt = await this.bcryptService.genSalt(saltRounds);
       const hashedPw = await this.bcryptService.hash(dto.pw, salt);
-      console.log('hashedPw: ', hashedPw);
 
       newUser = await tx.accountTb.create({
         data: {

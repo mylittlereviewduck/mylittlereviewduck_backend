@@ -152,6 +152,19 @@ export class UserService {
     return users.map((user) => new UserEntity(user));
   }
 
+  async getUserPasswordByIdx(userIdx: string): Promise<string> {
+    const user = await this.prismaService.accountTb.findUnique({
+      select: {
+        pw: true,
+      },
+      where: {
+        idx: userIdx,
+      },
+    });
+
+    return user.pw;
+  }
+
   async createUser(dto: CreateUserDto): Promise<UserEntity> {
     let newUser;
     await this.prismaService.$transaction(async (tx) => {

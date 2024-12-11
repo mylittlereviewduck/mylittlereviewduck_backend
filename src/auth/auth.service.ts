@@ -15,6 +15,8 @@ import { SocialLoginProvider } from './model/social-login-provider.model';
 import { NaverStrategy } from './strategy/naver.strategy';
 import { KakaoStrategy } from './strategy/kakao.strategy';
 import { LoginResponseDto } from '../../src/auth/dto/response/login-response.dto';
+import { ConfigService } from '@nestjs/config';
+import { BcryptService } from './bcrypt.service';
 
 @Injectable()
 export class AuthService {
@@ -25,6 +27,8 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly prismaService: PrismaService,
+    private readonly configService: ConfigService,
+    private readonly bcryptService: BcryptService,
     private readonly googleStrategy: GoogleStrategy,
     private readonly naverStrategy: NaverStrategy,
     private readonly kakaoStrategy: KakaoStrategy,
@@ -37,11 +41,17 @@ export class AuthService {
   async login(dto: LoginDto): Promise<LoginResponseDto> {
     const user = await this.userService.getUser({
       email: dto.email,
-      pw: dto.pw,
     });
 
     if (!user) {
       throw new UnauthorizedException('Unauthorized');
+    }
+
+    const userPw = await this.userService.getUserPasswordByIdx(user.idx);
+    const isMatch = await this.bcryptService.compare(dto.pw, userPw);
+
+    if (!isMatch) {
+      throw new UnauthorizedException('Invalid password');
     }
 
     //액세스 토큰 15분

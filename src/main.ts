@@ -32,6 +32,9 @@ async function bootstrap() {
     )
     .build();
 
+  console.log('MAIL_USER:', process.env.MAIL_USER);
+  console.log('MAIL_PASS:', process.env.MAIL_PASS);
+
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 

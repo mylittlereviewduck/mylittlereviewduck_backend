@@ -1,3 +1,4 @@
+import { ConfigService } from '@nestjs/config';
 import { EmailAuthService } from './../auth/email-auth.service';
 import {
   ConflictException,
@@ -11,7 +12,6 @@ import { CreateUserOAtuhDto } from './dto/create-user-oauth.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateMyInfoDto } from './dto/update-my-info.dto';
 import { GetUserDto } from './dto/get-user.dto';
-import { UserWithProvider } from './model/user-with-provider.model';
 import { GetUsersAllDto } from './dto/get-users-all.dto';
 import { Prisma } from '@prisma/client';
 import { UserListResponseDto } from './dto/response/user-list-response.dto';
@@ -23,6 +23,7 @@ export class UserService {
     private readonly prismaService: PrismaService,
     private readonly bcryptService: BcryptService,
     private readonly emailAuthService: EmailAuthService,
+    private readonly configService: ConfigService,
   ) {}
 
   async getUser(dto: GetUserDto): Promise<UserEntity | undefined> {
@@ -174,10 +175,15 @@ export class UserService {
         throw new UnauthorizedException('Authentication TimeOut');
       }
 
+      const salt = this.configService.get('BCRYPT_SALT');
+      console.log('salt: ', salt);
+      const hashedPw = await this.bcryptService.hash(dto.pw, salt);
+      console.log('hashedPw: ', hashedPw);
+
       newUser = await tx.accountTb.create({
         data: {
           email: dto.email,
-          pw: dto.pw,
+          pw: hashedPw,
           provider: 'local',
         },
       });

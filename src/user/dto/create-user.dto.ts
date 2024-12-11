@@ -4,10 +4,10 @@ import { IsEmail, IsInt, Length, Matches, Max, Min } from 'class-validator';
 export class CreateUserDto {
   @ApiProperty({
     example: 'abc123@naver.com',
-    description: '2-20자, 이메일형식',
+    description: '6-30자, 이메일형식',
   })
   @IsEmail()
-  @Length(2, 20)
+  @Length(6, 30)
   email: string;
 
   @ApiProperty({

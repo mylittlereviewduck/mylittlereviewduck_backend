@@ -39,8 +39,6 @@ export class NotificationService {
     let comment: CommentEntity;
     let review: ReviewEntity;
 
-    console.log('알림생성시작');
-
     const sender = await this.userService.getUser({
       idx: dto.senderIdx,
     });

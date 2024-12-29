@@ -8,7 +8,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class ReportService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async getReportByIdx(dto: GetReportDto): Promise<ReportEntity | undefined> {
+  async getReportByIdx(dto: GetReportDto): Promise<ReportEntity | null> {
     const reportData = await this.prismaService.reportTb.findFirst({
       where: {
         reporterIdx: dto.reporterIdx,
@@ -16,6 +16,10 @@ export class ReportService {
         reviewIdx: dto.reviewIdx,
       },
     });
+
+    if (!reportData) {
+      return null;
+    }
 
     return new ReportEntity(reportData);
   }

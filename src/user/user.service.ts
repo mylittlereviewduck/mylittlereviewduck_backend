@@ -26,9 +26,9 @@ export class UserService {
     private readonly configService: ConfigService,
   ) {}
 
-  async getUser(dto: GetUserDto): Promise<UserEntity | undefined> {
+  async getUser(dto: GetUserDto): Promise<UserEntity | null> {
     if (!dto.idx && !dto.nickname && !dto.email && !dto.pw) {
-      return undefined;
+      return null;
     }
 
     const userData = await this.prismaService.accountTb.findFirst({
@@ -54,7 +54,7 @@ export class UserService {
     });
 
     if (!userData) {
-      return undefined;
+      return null;
     }
 
     return new UserEntity(userData);

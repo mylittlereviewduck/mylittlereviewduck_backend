@@ -59,11 +59,11 @@ describe('AuthService test', () => {
     //prettier-ignore
     userService = module.get<UserService>(UserService) as jest.Mocked<UserService>;
     //prettier-ignore
-    bcryptService = module.get<BcryptService>(BcryptService,) as jest.Mocked<BcryptService>;
+    bcryptService = module.get<BcryptService>(BcryptService) as jest.Mocked<BcryptService>;
     //prettier-ignore
     jwtService = module.get<JwtService>(JwtService) as jest.Mocked<JwtService>;
     //prettier-ignore
-    configService = module.get<ConfigService>(ConfigService,) as jest.Mocked<ConfigService>;
+    configService = module.get<ConfigService>(ConfigService) as jest.Mocked<ConfigService>;
   });
 
   describe('login', () => {

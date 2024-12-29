@@ -10,7 +10,7 @@ import { NaverStrategy } from './../../src/auth/strategy/naver.strategy';
 import { KakaoStrategy } from './../../src/auth/strategy/kakao.strategy';
 import { LoginDto } from './../../src/auth/dto/login.dto';
 import { UnauthorizedException } from '@nestjs/common';
-import { userData } from './data/user';
+import { userData } from './../data/user';
 
 // 자동모킹
 // jest.mock('./../../src/user/user.service');

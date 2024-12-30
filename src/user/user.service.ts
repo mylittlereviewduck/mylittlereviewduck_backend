@@ -29,12 +29,17 @@ export class UserService {
     private readonly configService: ConfigService,
   ) {}
 
-  async getUser(dto: GetUserDto): Promise<UserEntity | null> {
+  async getUser(
+    dto: GetUserDto,
+    tx?: Prisma.TransactionClient,
+  ): Promise<UserEntity | null> {
     if (!dto.idx && !dto.nickname && !dto.email && !dto.pw) {
       return null;
     }
 
-    const userData = await this.prismaService.accountTb.findFirst({
+    const prisma = tx ?? this.prismaService;
+
+    const userData = await prisma.accountTb.findFirst({
       include: {
         profileImgTb: {
           where: {
@@ -171,7 +176,7 @@ export class UserService {
   async createUser(dto: CreateUserDto): Promise<UserEntity> {
     let newUser;
     await this.prismaService.$transaction(async (tx) => {
-      const emailDuplicatedUser = await this.getUser({ email: dto.email });
+      const emailDuplicatedUser = await this.getUser({ email: dto.email }, tx);
 
       if (emailDuplicatedUser) {
         throw new ConflictException('Email Duplicated');
@@ -195,7 +200,7 @@ export class UserService {
       const salt = await this.bcryptService.genSalt(saltRounds);
       const hashedPw = await this.bcryptService.hash(dto.pw, salt);
 
-      newUser = await tx.accountTb.create({
+      newUser = await this.prismaService.accountTb.create({
         data: {
           email: dto.email,
           pw: hashedPw,
@@ -203,7 +208,7 @@ export class UserService {
         },
       });
 
-      newUser = await tx.accountTb.update({
+      newUser = await this.prismaService.accountTb.update({
         data: {
           nickname: newUser.serialNumber + '번째 오리',
         },

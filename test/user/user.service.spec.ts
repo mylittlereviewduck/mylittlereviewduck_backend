@@ -1,3 +1,4 @@
+import { AccountTb, Prisma } from '@prisma/client';
 import { createMockContext } from './../context';
 import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -7,8 +8,10 @@ import { PrismaService } from './../../src/prisma/prisma.service';
 import { GetUserDto } from './../../src/user/dto/get-user.dto';
 import { UserService } from './../../src/user/user.service';
 import { getUserData } from './../../test/data/get-user.data';
-import { userEntityData } from './../../test/data/user.entity.data';
 import { UserEntity } from 'src/user/entity/User.entity';
+import { CreateUserDto } from 'src/user/dto/create-user.dto';
+import { userEntityData } from 'test/data/user.entity.data';
+import { ConflictException } from '@nestjs/common';
 
 const mockEmailAuthService = {
   getEmailWithVerificationCode: jest.fn(),
@@ -24,6 +27,7 @@ const mockConfigService = {
   get: jest.fn(),
 };
 const mockPrismaService = createMockContext().prisma;
+let userService: UserService;
 
 describe('user service test', () => {
   let userService: UserService;
@@ -59,7 +63,7 @@ describe('user service test', () => {
     jest.clearAllMocks();
   });
 
-  it('getUser UserEntity 반환', async () => {
+  it('getUser 성공', async () => {
     const dto: GetUserDto = {
       email: 'test1@a.com',
     };
@@ -78,5 +82,32 @@ describe('user service test', () => {
     mockPrismaService.accountTb.findFirst.mockResolvedValue(null);
 
     await expect(userService.getUser(dto)).resolves.toEqual(null);
+  });
+
+  it('createUser 실패: ConflictException 반환', async () => {
+    const dto: CreateUserDto = {
+      email: 'test1@a.com',
+      pw: '1234',
+    };
+
+    const userData = getUserData;
+
+    jest
+      .spyOn(prismaService, '$transaction')
+      .mockImplementation(async (callback) => {
+        const txMock = {
+          accountTb: {
+            create: jest.fn(),
+            update: jest.fn(),
+            findFirst: jest.fn().mockResolvedValue(userData),
+          },
+        } as unknown as Prisma.TransactionClient;
+
+        return callback(txMock);
+      });
+
+    await expect(userService.createUser(dto)).rejects.toThrow(
+      ConflictException,
+    );
   });
 });

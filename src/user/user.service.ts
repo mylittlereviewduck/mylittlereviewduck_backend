@@ -2,9 +2,11 @@ import { ConfigService } from '@nestjs/config';
 import { EmailAuthService } from './../auth/email-auth.service';
 import {
   ConflictException,
+  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
+  forwardRef,
 } from '@nestjs/common';
 import { UserEntity } from './entity/User.entity';
 import { PrismaService } from '../../src/prisma/prisma.service';
@@ -22,6 +24,7 @@ export class UserService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly bcryptService: BcryptService,
+    @Inject(forwardRef(() => EmailAuthService))
     private readonly emailAuthService: EmailAuthService,
     private readonly configService: ConfigService,
   ) {}

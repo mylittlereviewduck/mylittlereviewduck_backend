@@ -10,11 +10,7 @@ import { NaverStrategy } from './../../src/auth/strategy/naver.strategy';
 import { KakaoStrategy } from './../../src/auth/strategy/kakao.strategy';
 import { LoginDto } from './../../src/auth/dto/login.dto';
 import { UnauthorizedException } from '@nestjs/common';
-import { userData } from './../data/user';
-
-// 자동모킹
-// jest.mock('./../../src/user/user.service');
-// jest.mock('./../../src/auth/bcrypt.service');
+import { userEntityData } from 'test/data/user.entity.data';
 
 const mockUserService = {
   getUser: jest.fn(),
@@ -66,6 +62,11 @@ describe('AuthService test', () => {
     configService = module.get<ConfigService>(ConfigService) as jest.Mocked<ConfigService>;
   });
 
+  afterEach(() => {
+    // 각 테스트 이후에는 모의 함수 호출 기록 등을 리셋
+    jest.clearAllMocks();
+  });
+
   describe('login', () => {
     const loginDto: LoginDto = {
       email: 'test@example.com',
@@ -73,7 +74,7 @@ describe('AuthService test', () => {
     };
 
     it('로그인 성공시 액세스토큰, 리프레쉬토큰 반환', async () => {
-      const mockUser = userData;
+      const mockUser = userEntityData;
       const mockPassword = 'hashedPassword';
 
       userService.getUser.mockResolvedValue(mockUser);
@@ -107,7 +108,7 @@ describe('AuthService test', () => {
     });
 
     it('비밀번호 불일치시 unauthorizedException 반환', async () => {
-      const mockUser = userData;
+      const mockUser = userEntityData;
       const mockPassword = 'hashedPassword';
 
       userService.getUser.mockResolvedValue(mockUser);

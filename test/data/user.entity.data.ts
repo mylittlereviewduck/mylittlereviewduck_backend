@@ -1,4 +1,6 @@
-export const userData = {
+import { UserEntity } from 'src/user/entity/User.entity';
+
+export const userEntityData: UserEntity = {
   isMyFollowing: false,
   isMyBlock: false,
   idx: '344e753e-9071-47b2-b651-bc32a0a92b1f',

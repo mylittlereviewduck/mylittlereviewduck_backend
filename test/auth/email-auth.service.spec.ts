@@ -1,13 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { describe } from 'node:test';
-import { SendEmailVerificationDto } from 'src/auth/dto/send-email-verification.dto';
-import { EmailAuthService } from 'src/auth/email-auth.service';
-import { EmailService } from 'src/email/email.service';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { UserService } from 'src/user/user.service';
-import { userData } from 'test/data/user';
-import { MockContext, Context, createMockContext } from './../context';
-import { ConflictException, UnauthorizedException } from '@nestjs/common';
+import { SendEmailVerificationDto } from './../../src/auth/dto/send-email-verification.dto';
+import { EmailAuthService } from './../../src/auth/email-auth.service';
+import { EmailService } from './../../src/email/email.service';
+import { PrismaService } from './../../src/prisma/prisma.service';
+import { UserService } from './../../src/user/user.service';
+import { createMockContext } from './../context';
+import { ConflictException } from '@nestjs/common';
+import { userEntityData } from './../../test/data/user.entity.data';
 
 const mockEmailService = {
   sendEmail: jest.fn(),
@@ -17,24 +16,20 @@ const mockUserService = {
   getUser: jest.fn(),
 };
 
-const mockPrismaService = createMockContext().prisma;
+const prismaService = createMockContext().prisma;
 
 describe('email auth service', () => {
   let emailAuthService: EmailAuthService;
   let emailService: jest.Mocked<EmailService>;
-  let prismaService: jest.Mocked<PrismaService>;
   let userService: jest.Mocked<UserService>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         EmailAuthService,
-        // EmailService,
-        // UserService,
         { provide: EmailService, useValue: mockEmailService },
         { provide: UserService, useValue: mockUserService },
-        { provide: PrismaService, useValue: mockPrismaService },
-        // PrismaService,
+        { provide: PrismaService, useValue: prismaService },
       ],
     }).compile();
 
@@ -43,8 +38,11 @@ describe('email auth service', () => {
     emailService = module.get<EmailService>(EmailService) as jest.Mocked<EmailService>;
     //prettier-ignore
     userService = module.get<UserService>(UserService) as jest.Mocked<UserService>;
-    //prettier-ignore
-    prismaService = module.get<PrismaService>(PrismaService) as jest.Mocked<PrismaService>
+  });
+
+  afterEach(() => {
+    // 각 테스트 이후에는 모의 함수 호출 기록 등을 리셋
+    jest.clearAllMocks();
   });
 
   it('인증번호 이메일 전송 성공', async () => {
@@ -54,7 +52,7 @@ describe('email auth service', () => {
 
     userService.getUser.mockResolvedValue(null);
 
-    mockPrismaService.verifiedEmailTb.deleteMany.mockResolvedValue({
+    prismaService.verifiedEmailTb.deleteMany.mockResolvedValue({
       count: 1,
     });
 
@@ -68,7 +66,7 @@ describe('email auth service', () => {
     const dto: SendEmailVerificationDto = {
       email: 'test1@a.com',
     };
-    const user = userData;
+    const user = userEntityData;
 
     userService.getUser.mockResolvedValue(user);
 

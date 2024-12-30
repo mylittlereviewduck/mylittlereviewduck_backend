@@ -11,7 +11,7 @@ import { getUserData } from './../../test/data/get-user.data';
 import { UserEntity } from 'src/user/entity/User.entity';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { userEntityData } from 'test/data/user.entity.data';
-import { ConflictException } from '@nestjs/common';
+import { ConflictException, UnauthorizedException } from '@nestjs/common';
 
 const mockEmailAuthService = {
   getEmailWithVerificationCode: jest.fn(),
@@ -108,6 +108,34 @@ describe('user service test', () => {
 
     await expect(userService.createUser(dto)).rejects.toThrow(
       ConflictException,
+    );
+  });
+
+  it('createUser 실패: UnauthorizedException 반환', async () => {
+    const dto: CreateUserDto = {
+      email: 'test1@a.com',
+      pw: '1234',
+    };
+
+    const userData = getUserData;
+
+    jest
+      .spyOn(prismaService, '$transaction')
+      .mockImplementation(async (callback) => {
+        const txMock = {
+          accountTb: {
+            create: jest.fn(),
+            update: jest.fn(),
+            findFirst: jest.fn().mockResolvedValue(null),
+            findUnique: jest.fn().mockResolvedValue(null),
+          },
+        } as unknown as Prisma.TransactionClient;
+
+        return callback(txMock);
+      });
+
+    await expect(userService.createUser(dto)).rejects.toThrow(
+      UnauthorizedException,
     );
   });
 });

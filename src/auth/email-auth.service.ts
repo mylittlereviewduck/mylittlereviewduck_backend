@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { EmailService } from '../email/email.service';
 import { UserService } from 'src/user/user.service';
-import { VerifiedEmailTb } from '@prisma/client';
+import { Prisma, VerifiedEmailTb } from '@prisma/client';
 
 @Injectable()
 export class EmailAuthService {
@@ -55,8 +55,11 @@ export class EmailAuthService {
   async getEmailWithVerificationCode(
     email: string,
     verificationCode?: number,
-  ): Promise<VerifiedEmailTb> {
-    return await this.prismaService.verifiedEmailTb.findUnique({
+    tx?: Prisma.TransactionClient,
+  ): Promise<VerifiedEmailTb | null> {
+    const prisma = tx ?? this.prismaService;
+
+    return await prisma.verifiedEmailTb.findUnique({
       where: {
         email: email,
         code: verificationCode,

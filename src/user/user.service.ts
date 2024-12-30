@@ -183,7 +183,11 @@ export class UserService {
       }
 
       const authenticatedEmail =
-        await this.emailAuthService.getEmailWithVerificationCode(dto.email);
+        await this.emailAuthService.getEmailWithVerificationCode(
+          dto.email,
+          undefined,
+          tx,
+        );
 
       if (!authenticatedEmail || authenticatedEmail.isVerified !== true) {
         throw new UnauthorizedException('Unauthorized Email');

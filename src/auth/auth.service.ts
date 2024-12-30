@@ -54,19 +54,19 @@ export class AuthService {
       throw new UnauthorizedException('Invalid password');
     }
 
-    //액세스 토큰 15분
-    //리프레쉬 토큰 12시간
+    //액세스 토큰 30분
+    //리프레쉬 토큰 2주
     const accessToken = await this.generateToken(
       'access',
       user.idx,
       user.isAdmin,
-      15 * 60,
+      30 * 60,
     );
     const refreshToken = await this.generateToken(
       'refresh',
       user.idx,
       user.isAdmin,
-      12 * 3600,
+      14 * 24 * 3600,
     );
     return { accessToken, refreshToken };
   }

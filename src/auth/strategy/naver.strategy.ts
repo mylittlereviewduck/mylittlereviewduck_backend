@@ -74,14 +74,14 @@ export class NaverStrategy implements ISocialAuthStrategy {
       'access',
       user.idx,
       user.isAdmin,
-      5 * 60,
+      30 * 60,
     );
 
     const refreshToken = await this.authService.generateToken(
       'refresh',
       user.idx,
       user.isAdmin,
-      12 * 3600,
+      14 * 24 * 3600,
     );
 
     return { accessToken, refreshToken };

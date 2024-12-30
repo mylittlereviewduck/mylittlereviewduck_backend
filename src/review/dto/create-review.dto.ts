@@ -21,7 +21,7 @@ export class CreateReviewDto {
     required: true,
   })
   @IsString()
-  @Length(1, 100)
+  @Length(1, 150)
   title: string;
 
   @ApiProperty({
@@ -30,7 +30,7 @@ export class CreateReviewDto {
     required: true,
   })
   @IsString()
-  @Length(1, 10000)
+  @Length(1, 5000)
   content: string;
 
   @ApiProperty({ example: '3', description: '별점 0-5점', required: true })
@@ -45,6 +45,7 @@ export class CreateReviewDto {
     required: false,
   })
   @IsArray()
+  @Length(1, 16, { each: true })
   @IsString({ each: true })
   tags: string[];
 
@@ -62,6 +63,7 @@ export class CreateReviewDto {
     description: '썸네일 이미지 설명',
     required: false,
   })
+  @Length(0, 32)
   @IsString()
   thumbnailContent: string | null;
 

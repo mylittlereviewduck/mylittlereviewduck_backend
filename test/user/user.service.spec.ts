@@ -1,4 +1,4 @@
-import { AccountTb, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { createMockContext } from './../context';
 import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -10,7 +10,6 @@ import { UserService } from './../../src/user/user.service';
 import { getUserData } from './../../test/data/get-user.data';
 import { UserEntity } from 'src/user/entity/User.entity';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
-import { userEntityData } from 'test/data/user.entity.data';
 import { ConflictException, UnauthorizedException } from '@nestjs/common';
 
 const mockEmailAuthService = {
@@ -56,11 +55,6 @@ describe('user service test', () => {
     configService = module.get<ConfigService>(ConfigService) as jest.Mocked<ConfigService>;
     //prettier-ignore
     bcryptService = module.get<BcryptService>(BcryptService) as jest.Mocked<BcryptService>;
-  });
-
-  afterEach(() => {
-    // 각 테스트 이후에는 모의 함수 호출 기록 등을 리셋
-    jest.clearAllMocks();
   });
 
   it('getUser 성공', async () => {

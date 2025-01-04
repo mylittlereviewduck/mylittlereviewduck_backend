@@ -34,18 +34,25 @@ export class ReviewService {
     setInterval(
       async () => {
         const keys = await this.redis.keys(`review:*:viewCount`);
-        for (const key of keys) {
-          const reviewIdx = key.split(':')[1];
-          const viewCount = await this.redis.get(key);
-          await this.prismaService.reviewTb.update({
-            where: {
-              idx: parseInt(reviewIdx, 10),
-            },
-            data: {
-              viewCount: parseInt(viewCount, 10),
-            },
+        const batchSize = 100;
+
+        for (let i = 0; i < keys.length; i += batchSize) {
+          const batchKeys = keys.slice(i, i + batchSize);
+
+          const updates = batchKeys.map(async (key) => {
+            const reviewIdx = key.split(':')[1];
+            const viewCount = await this.redis.get(key);
+            await this.prismaService.reviewTb.update({
+              where: {
+                idx: parseInt(reviewIdx, 10),
+              },
+              data: {
+                viewCount: parseInt(viewCount, 10),
+              },
+            });
+            await this.redis.del(key);
           });
-          await this.redis.del(key);
+          Promise.all(updates);
         }
       },
       10 * 60 * 1000,
@@ -328,7 +335,6 @@ export class ReviewService {
   }
 
   async getReviewsByIdx(reviewIdxs: number[]): Promise<ReviewEntity[]> {
-    console.log('reviewIdxs: ', reviewIdxs);
     let reviews = await this.prismaService.reviewTb.findMany({
       include: {
         accountTb: {
@@ -492,17 +498,33 @@ export class ReviewService {
   }
 
   async getViewCount(reviewIdx: number): Promise<number> {
+    await this.redis.del(`review:*:viewCount`);
+
     let viewCount = parseInt(
       await this.redis.get(`review:${reviewIdx}:viewCount`),
       10,
     );
 
     if (!viewCount) {
+      console.log(viewCount, '가 존재하지 않습니다');
       const review = await this.getReviewByIdx(reviewIdx);
       viewCount = review.viewCount;
 
       await this.redis.set(`review:${reviewIdx}:viewCount`, viewCount);
+    } else {
+      console.log(viewCount, '가 존재합니다');
     }
+
+    await this.prismaService.reviewTb.update({
+      data: {
+        viewCount: {
+          increment: 1,
+        },
+      },
+      where: {
+        idx: reviewIdx,
+      },
+    });
 
     return viewCount;
   }

@@ -1,6 +1,5 @@
 import { UserBlockCheckService } from './../user/user-block-check.service';
 import { AwsService } from '../aws/aws.service';
-import { ReviewShareCheckService } from './review-share.service';
 import { ReviewShareService } from './share.service';
 import { ReviewBlockService } from './review-block.service';
 import { ReviewBlockCheckService } from './review-block-check.service';
@@ -54,7 +53,6 @@ import { BookmarkService } from './bookmark.service';
 import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
 import { ReviewLikeCheckService } from './review-like-check.service';
 import { RecommendationService } from './recommendation.service';
-import { log } from 'console';
 
 @Controller('')
 @ApiTags('review')
@@ -66,7 +64,6 @@ export class ReviewController {
     private readonly bookmarkService: BookmarkService,
     private readonly reviewBookmarkService: ReviewBookmarkService,
     private readonly reviewShareService: ReviewShareService,
-    private readonly reviewShareCheckService: ReviewShareCheckService,
     private readonly reviewBlockService: ReviewBlockService,
     private readonly reviewBlockCheckService: ReviewBlockCheckService,
     private readonly awsService: AwsService,
@@ -82,8 +79,6 @@ export class ReviewController {
     @GetUser() loginUser: LoginUser,
     @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    console.log('dto: ', dto);
-
     const reviewPagerbleResponseDto = await this.reviewService.getReviewsAll({
       size: dto.size,
       page: dto.page,
@@ -211,10 +206,9 @@ export class ReviewController {
   ): Promise<ReviewEntity> {
     const reviewEntity = await this.reviewService.getReviewByIdx(reviewIdx);
 
-    const addedViewCount = await this.reviewService.getViewCount(
-      reviewEntity.idx,
-    );
-    reviewEntity.viewCount = reviewEntity.viewCount + addedViewCount;
+    const viewCount = await this.reviewService.getViewCount(reviewEntity.idx);
+
+    reviewEntity.viewCount = viewCount + 1;
     await this.reviewService.increaseViewCount(reviewEntity.idx);
 
     if (!loginUser) {
@@ -234,10 +228,6 @@ export class ReviewController {
     ]);
 
     await this.reviewBlockCheckService.isReviewBlocked(loginUser.idx, [
-      reviewEntity,
-    ]);
-
-    await this.reviewShareCheckService.isReviewShared(loginUser.idx, [
       reviewEntity,
     ]);
 

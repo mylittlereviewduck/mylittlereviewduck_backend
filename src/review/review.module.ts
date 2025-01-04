@@ -8,7 +8,6 @@ import { ReviewLikeCheckService } from './review-like-check.service';
 import { ReviewBlockService } from './review-block.service';
 import { ReviewBlockCheckService } from './review-block-check.service';
 import { ReviewShareService } from './share.service';
-import { ReviewShareCheckService } from './review-share.service';
 import { UserModule } from 'src/user/user.module';
 import { AwsModule } from 'src/aws/aws.module';
 import { NotificationModule } from 'src/notification/notification.module';
@@ -33,7 +32,6 @@ import { RecommendationService } from './recommendation.service';
     BookmarkService,
     ReviewBookmarkService,
     ReviewShareService,
-    ReviewShareCheckService,
     ReviewBlockService,
     ReviewBlockCheckService,
     RecommendationService,

@@ -498,33 +498,17 @@ export class ReviewService {
   }
 
   async getViewCount(reviewIdx: number): Promise<number> {
-    await this.redis.del(`review:*:viewCount`);
-
     let viewCount = parseInt(
       await this.redis.get(`review:${reviewIdx}:viewCount`),
       10,
     );
 
     if (!viewCount) {
-      console.log(viewCount, '가 존재하지 않습니다');
       const review = await this.getReviewByIdx(reviewIdx);
       viewCount = review.viewCount;
 
       await this.redis.set(`review:${reviewIdx}:viewCount`, viewCount);
-    } else {
-      console.log(viewCount, '가 존재합니다');
     }
-
-    await this.prismaService.reviewTb.update({
-      data: {
-        viewCount: {
-          increment: 1,
-        },
-      },
-      where: {
-        idx: reviewIdx,
-      },
-    });
 
     return viewCount;
   }

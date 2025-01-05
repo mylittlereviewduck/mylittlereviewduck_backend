@@ -50,6 +50,7 @@ export class UserService {
           select: {
             followee: true,
             follower: true,
+            reviewTb: true,
           },
         },
       },
@@ -100,6 +101,7 @@ export class UserService {
           select: {
             followee: true,
             follower: true,
+            reviewTb: true,
           },
         },
       },
@@ -146,6 +148,7 @@ export class UserService {
           select: {
             followee: true,
             follower: true,
+            reviewTb: true,
           },
         },
       },
@@ -247,6 +250,7 @@ export class UserService {
           select: {
             followee: true,
             follower: true,
+            reviewTb: true,
           },
         },
       },
@@ -285,6 +289,7 @@ export class UserService {
           select: {
             followee: true,
             follower: true,
+            reviewTb: true,
           },
         },
       },

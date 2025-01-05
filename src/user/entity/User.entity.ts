@@ -4,11 +4,11 @@ import { Prisma } from '@prisma/client';
 const user = Prisma.validator<Prisma.AccountTbDefaultArgs>()({
   include: {
     profileImgTb: true,
-
     _count: {
       select: {
         follower: true,
         followee: true,
+        reviewTb: true,
       },
     },
   },
@@ -61,6 +61,9 @@ export class UserEntity {
   @ApiProperty({ example: '2024-08-01T07:58:57.844Z', description: '정지기간',nullable: true })
   suspendExpireAt: Date | null;
 
+  @ApiProperty({ example: '30', description: '작성한 리뷰 수' })
+  reviewCount: number;
+
   @ApiProperty({
     example: '111',
     description: '팔로잉수',
@@ -99,6 +102,7 @@ export class UserEntity {
     this.serialNumber = data.serialNumber;
     this.suspensionCount = data.suspensionCount;
     this.suspendExpireAt = data.suspendExpireAt;
+    this.reviewCount = data._count.reviewTb;
     this.createdAt = data.createdAt;
     this.followingCount = data._count.follower;
     this.followerCount = data._count.followee;

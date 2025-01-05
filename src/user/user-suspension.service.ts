@@ -48,6 +48,7 @@ export class UserSuspensionService {
           select: {
             follower: true,
             followee: true,
+            reviewTb: true,
           },
         },
       },

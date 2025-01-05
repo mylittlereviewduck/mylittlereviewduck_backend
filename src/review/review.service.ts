@@ -414,7 +414,6 @@ export class ReviewService {
 
     const reviewCount = await this.prismaService.reviewTb.count({
       where: {
-        //문법공부
         ...(dto.userIdx && { accountIdx: dto.userIdx }),
         ...(dto.userIdxs && { accountIdx: { in: dto.userIdxs } }),
         createdAt: {

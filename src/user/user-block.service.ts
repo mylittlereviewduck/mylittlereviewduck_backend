@@ -96,6 +96,7 @@ export class UserBlockService {
               select: {
                 follower: true,
                 followee: true,
+                reviewTb: true,
               },
             },
           },

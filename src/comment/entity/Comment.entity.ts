@@ -1,12 +1,22 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Prisma } from '@prisma/client';
 import { ReviewUserEntity } from 'src/review/entity/ReviewUser.entity';
+import { UserEntity } from 'src/user/entity/User.entity';
 
 const comment = Prisma.validator<Prisma.CommentTbDefaultArgs>()({
   include: {
     accountTb: {
       include: {
         profileImgTb: true,
+      },
+    },
+    commentTagTb: {
+      include: {
+        accountTb: {
+          include: {
+            profileImgTb: true,
+          },
+        },
       },
     },
     _count: {
@@ -45,13 +55,39 @@ export class CommentEntity {
     description: '대댓글일 경우 존재, 대댓글이 달린 댓글 idx',
     nullable: true,
   })
-  commentIdx?: number | undefined;
+  commentIdx: number | null;
 
   @ApiProperty({ example: '댓글내용입니다', description: '댓글 내용' })
   content: string;
 
   @ApiProperty({ example: '3', description: '댓글 좋아요 수' })
   likeCount: number;
+
+  @ApiProperty({
+    examples: [
+      {
+        isMyFollowing: false,
+        isMyBlock: false,
+        idx: '344e753e-9071-47b2-b651-bc32a0a92b1f',
+        email: 'test1@a.com',
+        profile: null,
+        profileImg:
+          'https://s3.ap-northeast-2.amazonaws.com/todayreview/1724893124840.png',
+        nickname: '23번째 오리',
+        interest1: null,
+        interest2: null,
+        isAdmin: false,
+        serialNumber: 23,
+        suspensionCount: 17,
+        suspendExpireAt: null,
+        createdAt: '2024-08-20T11:36:44.732Z',
+        followingCount: 6,
+        followerCount: 6,
+      },
+    ],
+    description: '유저 리스트',
+  })
+  tagUsers: ReviewUserEntity[];
 
   @ApiProperty({
     example: '2024-08-01T07:58:57.844Z',
@@ -71,6 +107,8 @@ export class CommentEntity {
     this.reviewIdx = data.reviewIdx;
     this.commentIdx = data.commentIdx;
     this.content = data.content;
+    //prettier-ignore
+    this.tagUsers = data.commentTagTb[0] && data.commentTagTb.map(tag => new ReviewUserEntity(tag.accountTb));
     this.likeCount = data._count.commentLikeTb;
     this.createdAt = data.createdAt;
   }

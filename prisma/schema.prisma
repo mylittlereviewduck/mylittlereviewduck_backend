@@ -38,6 +38,7 @@ model AccountTb {
   blocker                                             AccountBlockTb[]   @relation("account_block_tb_blocker_idxToaccount_tb")
   blocked                                             AccountBlockTb[]   @relation("account_block_tb_blocked_idxToaccount_tb")
   commentLikeTb                                       CommentLikeTb[]
+  commentTagTb                                        CommentTagTb[]
   commentTb                                           CommentTb[]
   follower                                            FollowTb[]         @relation("follow_tb_follower_idxToaccount_tb")
   followee                                            FollowTb[]         @relation("follow_tb_followee_idxToaccount_tb")
@@ -66,6 +67,7 @@ model CommentTb {
   updatedAt      DateTime?        @map("updated_at") @db.Timestamptz(6)
   accountIdx     String           @map("account_idx") @db.VarChar
   commentLikeTb  CommentLikeTb[]
+  commentTagTb   CommentTagTb[]
   accountTb      AccountTb        @relation(fields: [accountIdx], references: [idx], onDelete: Cascade, map: "fk_account_tb_to_comment_tb")
   reviewTb       ReviewTb         @relation(fields: [reviewIdx], references: [idx], onDelete: Cascade, map: "fk_review_tb_to_comment_tb")
   notificationTb NotificationTb[]
@@ -293,6 +295,16 @@ model SearchHistoryTb {
   accountTb  AccountTb? @relation(fields: [accountIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "search_history_account_idx_fkey")
 
   @@map("search_history_tb")
+}
+
+model CommentTagTb {
+  idx        Int       @id @default(autoincrement())
+  commentIdx Int       @map("comment_idx")
+  accountIdx String    @map("account_idx") @db.VarChar
+  accountTb  AccountTb @relation(fields: [accountIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "comment_tag_tb_account_tb_fk")
+  commentTb  CommentTb @relation(fields: [commentIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "comment_tag_tb_comment_tb_fk")
+
+  @@map("comment_tag_tb")
 }
 
 view AccountInfoView {

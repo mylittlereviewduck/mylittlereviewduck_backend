@@ -37,6 +37,15 @@ export class CommentService {
             profileImgTb: true,
           },
         },
+        commentTagTb: {
+          include: {
+            accountTb: {
+              include: {
+                profileImgTb: true,
+              },
+            },
+          },
+        },
         _count: {
           select: {
             commentLikeTb: true,
@@ -57,11 +66,9 @@ export class CommentService {
   }
 
   async getCommentAll(
-    commentPagerbleDto: CommentPagerbleDto,
+    dto: CommentPagerbleDto,
   ): Promise<CommentPagerbleResponseDto> {
-    const review = await this.reviewService.getReviewByIdx(
-      commentPagerbleDto.reviewIdx,
-    );
+    const review = await this.reviewService.getReviewByIdx(dto.reviewIdx);
 
     if (!review) {
       throw new NotFoundException('Not Found Review');
@@ -69,7 +76,7 @@ export class CommentService {
 
     const totalCount = await this.prismaService.commentTb.count({
       where: {
-        reviewIdx: commentPagerbleDto.reviewIdx,
+        reviewIdx: dto.reviewIdx,
       },
     });
 
@@ -80,6 +87,15 @@ export class CommentService {
             profileImgTb: true,
           },
         },
+        commentTagTb: {
+          include: {
+            accountTb: {
+              include: {
+                profileImgTb: true,
+              },
+            },
+          },
+        },
         _count: {
           select: {
             commentLikeTb: true,
@@ -87,17 +103,18 @@ export class CommentService {
         },
       },
       where: {
-        reviewIdx: commentPagerbleDto.reviewIdx,
+        reviewIdx: dto.reviewIdx,
         deletedAt: {
           equals: null,
         },
       },
-      take: commentPagerbleDto.size,
-      skip: (commentPagerbleDto.page - 1) * commentPagerbleDto.size,
+      take: dto.size,
+      skip: (dto.page - 1) * dto.size,
     });
+    console.log('commentData: ', commentData);
 
     return {
-      totalPage: Math.ceil(totalCount / commentPagerbleDto.size),
+      totalPage: Math.ceil(totalCount / dto.size),
       comments: commentData.map((comment) => new CommentEntity(comment)),
     };
   }
@@ -105,19 +122,38 @@ export class CommentService {
   async createComment(
     userIdx: string,
     reviewIdx: number,
-    createCommentDto: CreateCommentDto,
+    dto: CreateCommentDto,
   ): Promise<CommentEntity> {
+    let comment;
     const review = await this.reviewService.getReviewByIdx(reviewIdx);
 
     if (!review) {
       throw new NotFoundException('Not Found Review');
     }
 
+    if (dto.commentIdx) {
+      comment = await this.getCommentByIdx(reviewIdx, dto.commentIdx);
+    }
+
+    if (dto.commentIdx && !comment) {
+      throw new NotFoundException('Not Found Comment');
+    }
+
+    //태그테이블 데이터 생성
     const commentData = await this.prismaService.commentTb.create({
       include: {
         accountTb: {
           include: {
             profileImgTb: true,
+          },
+        },
+        commentTagTb: {
+          include: {
+            accountTb: {
+              include: {
+                profileImgTb: true,
+              },
+            },
           },
         },
         _count: {
@@ -129,8 +165,15 @@ export class CommentService {
       data: {
         reviewIdx: reviewIdx,
         accountIdx: userIdx,
-        content: createCommentDto.content,
-        commentIdx: createCommentDto.commentIdx,
+        content: dto.content,
+        ...(dto.commentIdx && { commentIdx: dto.commentIdx }),
+        commentTagTb: {
+          createMany: {
+            data: dto.userIdxs.map((userIdx) => ({
+              accountIdx: userIdx,
+            })),
+          },
+        },
       },
     });
 
@@ -152,7 +195,7 @@ export class CommentService {
     userIdx: string,
     reviewIdx: number,
     commentIdx: number,
-    updateCommentDto: UpdateCommentDto,
+    dto: UpdateCommentDto,
   ): Promise<CommentEntity> {
     const comment = await this.getCommentByIdx(reviewIdx, commentIdx);
 
@@ -171,6 +214,15 @@ export class CommentService {
             profileImgTb: true,
           },
         },
+        commentTagTb: {
+          include: {
+            accountTb: {
+              include: {
+                profileImgTb: true,
+              },
+            },
+          },
+        },
         _count: {
           select: {
             commentLikeTb: true,
@@ -178,7 +230,7 @@ export class CommentService {
         },
       },
       data: {
-        content: updateCommentDto.content,
+        content: dto.content,
         updatedAt: new Date(),
       },
       where: {

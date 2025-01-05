@@ -1,17 +1,37 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, Length } from 'class-validator';
+import {
+  ArrayMaxSize,
+  IsArray,
+  IsInt,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Length,
+} from 'class-validator';
 
 export class CreateCommentDto {
   @ApiProperty({
     example: 1,
-    description: '대댓글일경우존재, 댓글idx',
+    description: '대댓글의 경우 존재, 댓글idx',
     required: false,
     nullable: true,
   })
-  commentIdx?: number | null;
+  @IsOptional()
+  @IsInt()
+  commentIdx: number | null;
+
+  @ApiProperty({
+    description: '유저태그 시 존재, 유저idx list',
+    required: false,
+    nullable: true,
+  })
+  @IsArray()
+  @IsUUID(4, { each: true })
+  @ArrayMaxSize(10)
+  userIdxs: string[];
 
   @ApiProperty({ example: '댓글 내용' })
   @Length(1, 3000)
-  @IsString({})
+  @IsString()
   content: string;
 }

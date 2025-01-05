@@ -502,7 +502,6 @@ export class ReviewService {
       await this.redis.get(`review:${reviewIdx}:viewCount`),
       10,
     );
-
     if (!viewCount) {
       const review = await this.getReviewByIdx(reviewIdx);
       viewCount = review.viewCount;

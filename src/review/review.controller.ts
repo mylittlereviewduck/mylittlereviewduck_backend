@@ -1,3 +1,4 @@
+import { ReviewWithUserStatusService } from './review-with-user-status.service';
 import { UserBlockCheckService } from './../user/user-block-check.service';
 import { AwsService } from '../aws/aws.service';
 import { ReviewShareService } from './share.service';
@@ -69,6 +70,7 @@ export class ReviewController {
     private readonly awsService: AwsService,
     private readonly userBlockCheckService: UserBlockCheckService,
     private readonly recommendationService: RecommendationService,
+    private readonly reviewWithUserStatusService: ReviewWithUserStatusService,
   ) {}
 
   @Get('/review/all')
@@ -477,41 +479,17 @@ export class ReviewController {
   @ApiParam({ name: 'userIdx', type: 'number', description: '유저식별자' })
   @Exception(400, '유효하지않은 요청')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
-  async getBookmarkedReviewByuserIdx(
+  async getBookmarkedReviewsByuserIdx(
     @GetUser() loginUser: LoginUser,
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
     @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    dto.userIdx = userIdx;
-
-    const reviewPagerbleResponseDto =
-      await this.reviewBookmarkService.getBookmarkedReviewAll(dto);
-
-    if (!loginUser) {
-      return reviewPagerbleResponseDto;
-    }
-
-    await this.reviewLikeCheckService.isReviewLiked(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
-
-    await this.reviewLikeCheckService.isReviewDisliked(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
-
-    await this.reviewBlockCheckService.isReviewBlocked(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
-
-    await this.userBlockCheckService.isBlockedUser(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews.map((elem) => elem.user),
-    );
-
-    return reviewPagerbleResponseDto;
+    return await this.reviewService.getBookmarkedReviewsWithUserStatus({
+      size: dto.size,
+      page: dto.page,
+      loginUserIdx: loginUser && loginUser.idx,
+      userIdx,
+    });
   }
 
   @Get('/user/:userIdx/review/commented')

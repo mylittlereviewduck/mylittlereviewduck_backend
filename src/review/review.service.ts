@@ -21,6 +21,8 @@ import { GetReviewsWithUserStatusDto } from './dto/get-reviews-with-user-status.
 import { ReviewWithUserStatusService } from './review-with-user-status.service';
 import { GetReviewsAllDto } from './dto/get-reviews-all.dto';
 import { GetReviewDetailDto } from './dto/get-review-detail.dto';
+import { BookmarkReviewDto } from './dto/get-bookmarked-review-with-user-status.dto';
+import { ReviewBookmarkService } from './review-bookmark.service';
 
 @Injectable()
 export class ReviewService {
@@ -32,6 +34,7 @@ export class ReviewService {
     private readonly userService: UserService,
     private readonly redisService: RedisService,
     private readonly userFollowService: UserFollowService,
+    private readonly reviewBookmarkService: ReviewBookmarkService,
     private readonly reviewWithUserStatusService: ReviewWithUserStatusService,
   ) {
     this.redis = this.redisService.getOrThrow(DEFAULT_REDIS);
@@ -953,6 +956,46 @@ export class ReviewService {
         return review;
       },
     );
+
+    return reviewPagerbleResponseDto;
+  }
+
+  async getBookmarkedReviewsWithUserStatus(
+    dto: BookmarkReviewDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    const reviewPagerbleResponseDto =
+      await this.reviewBookmarkService.getBookmarkedReviewAll({
+        ...dto,
+      });
+
+    if (!dto.loginUserIdx) {
+      return reviewPagerbleResponseDto;
+    }
+
+    const reviewIdxs = reviewPagerbleResponseDto.reviews.map(
+      (review) => review.idx,
+    );
+
+    const userStatuses = await this.reviewWithUserStatusService.getUserStatus(
+      dto.loginUserIdx,
+      reviewIdxs,
+      null,
+    );
+
+    const statusMap = new Map(
+      userStatuses.map((status) => [status.reviewIdx, status]),
+    );
+
+    reviewPagerbleResponseDto.reviews.map((review) => {
+      const userStatus = statusMap.get(review.idx);
+      if (userStatus) {
+        review.isMyLike = userStatus.isMyLike;
+        review.isMyDislike = userStatus.isMyDislike;
+        review.isMyBookmark = userStatus.isMyBookmark;
+        review.isMyBlock = userStatus.isMyBlock;
+      }
+      return review;
+    });
 
     return reviewPagerbleResponseDto;
   }

@@ -24,6 +24,8 @@ export class ReviewPagerbleDto {
 
   userIdxs?: string[];
 
+  loginUserIdx?: string;
+
   @ApiProperty({
     description:
       '검색기간: "1D" or "7D" or "1M" or 1Y" or all 로 주어져야합니다.',

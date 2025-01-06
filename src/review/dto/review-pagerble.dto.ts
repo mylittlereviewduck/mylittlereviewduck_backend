@@ -10,7 +10,7 @@ export class ReviewPagerbleDto {
   })
   @IsOptional()
   @Type(() => Number)
-  size?: number = 10;
+  size: number = 10;
 
   @ApiProperty({
     description: '가져올 페이지',
@@ -18,7 +18,7 @@ export class ReviewPagerbleDto {
   })
   @IsOptional()
   @Type(() => Number)
-  page?: number = 1;
+  page: number = 1;
 
   userIdx?: string;
 

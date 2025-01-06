@@ -14,6 +14,7 @@ import { NotificationModule } from 'src/notification/notification.module';
 import { ReviewBookmarkService } from './review-bookmark.service';
 import { BookmarkService } from './bookmark.service';
 import { RecommendationService } from './recommendation.service';
+import { ReviewWithUserStatusService } from './review-with-user-status.service';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { RecommendationService } from './recommendation.service';
     ReviewBlockService,
     ReviewBlockCheckService,
     RecommendationService,
+    ReviewWithUserStatusService,
   ],
   exports: [ReviewService],
 })

@@ -519,38 +519,11 @@ export class ReviewController {
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
     @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    const reviewPagerbleResponseDto = await this.reviewService.getReviewsAll({
-      page: dto.page,
-      size: dto.size,
-      timeframe: 'all',
-      userIdx: userIdx,
+    return await this.reviewService.getReviewsWithUserStatus({
+      ...dto,
+      userIdx,
+      loginUserIdx: loginUser && loginUser.idx,
     });
-
-    if (!loginUser) {
-      return reviewPagerbleResponseDto;
-    }
-
-    await this.reviewLikeCheckService.isReviewLiked(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
-
-    await this.reviewLikeCheckService.isReviewDisliked(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
-
-    await this.reviewBlockCheckService.isReviewBlocked(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
-
-    await this.userBlockCheckService.isBlockedUser(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews.map((elem) => elem.user),
-    );
-
-    return reviewPagerbleResponseDto;
   }
 
   @Get('/user/:userIdx/review/bookmark')

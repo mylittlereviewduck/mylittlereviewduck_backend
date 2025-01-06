@@ -17,6 +17,11 @@ import { DEFAULT_REDIS, RedisService } from '@liaoliaots/nestjs-redis';
 import { Redis } from 'ioredis';
 import { GetLatestReveiwsByUserIdxsDto } from './dto/get-latest-reviews-by-userIdxs.dto';
 import { UserFollowService } from 'src/user/user-follow.service';
+import { GetReviewsWithUserStatusDto } from './dto/get-reviews-with-user-status.dto';
+import { ReviewLikeCheckService } from './review-like-check.service';
+import { UserBlockCheckService } from 'src/user/user-block-check.service';
+import { ReviewBlockCheckService } from './review-block-check.service';
+import { ReviewWithUserStatusService } from './review-with-user-status.service';
 
 @Injectable()
 export class ReviewService {
@@ -28,6 +33,7 @@ export class ReviewService {
     private readonly userService: UserService,
     private readonly redisService: RedisService,
     private readonly userFollowService: UserFollowService,
+    private readonly reviewWithUserStatusService: ReviewWithUserStatusService,
   ) {
     this.redis = this.redisService.getOrThrow(DEFAULT_REDIS);
 
@@ -860,6 +866,68 @@ export class ReviewService {
       totalPage: Math.ceil(coldReviews.length / dto.size),
       reviews: coldReviews.slice(startIndex, startIndex + dto.size),
     };
+  }
+
+  //기존 135ms
+  //100-110ms로 개선
+  async getReviewsWithUserStatus(
+    dto: GetReviewsWithUserStatusDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    const reviewPagerbleResponseDto = await this.getReviewsAll({
+      page: dto.page,
+      size: dto.size,
+      timeframe: 'all',
+      userIdx: dto.userIdx,
+    });
+
+    if (!dto.loginUserIdx) {
+      return reviewPagerbleResponseDto;
+    }
+
+    // await this.reviewLikeCheckService.isReviewLiked(
+    //   dto.loginUserIdx,
+    //   reviewPagerbleResponseDto.reviews,
+    // );
+
+    // await this.reviewLikeCheckService.isReviewDisliked(
+    //   dto.loginUserIdx,
+    //   reviewPagerbleResponseDto.reviews,
+    // );
+
+    // await this.reviewBlockCheckService.isReviewBlocked(
+    //   dto.loginUserIdx,
+    //   reviewPagerbleResponseDto.reviews,
+    // );
+
+    // await this.userBlockCheckService.isBlockedUser(
+    //   dto.loginUserIdx,
+    //   reviewPagerbleResponseDto.reviews.map((elem) => elem.user),
+    // );
+
+    const userStatuses = await this.reviewWithUserStatusService.getUserStatus(
+      dto.loginUserIdx,
+      reviewPagerbleResponseDto.reviews.map((review) => review.idx),
+      null,
+    );
+
+    const statusMap = new Map(
+      userStatuses.map((status) => [status.reviewIdx, status]),
+    );
+
+    reviewPagerbleResponseDto.reviews = reviewPagerbleResponseDto.reviews.map(
+      (review) => {
+        const userStatus = statusMap.get(review.idx);
+        if (userStatus) {
+          review.isMyLike = userStatus.isMyLike;
+          review.isMyDislike = userStatus.isMyDislike;
+          review.isMyBookmark = userStatus.isMyBookmark;
+          review.isMyBlock = userStatus.isMyBlock;
+        }
+        return review;
+      },
+    );
+
+    return reviewPagerbleResponseDto;
   }
 
   async getReviewsCommented(

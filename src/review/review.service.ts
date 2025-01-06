@@ -22,6 +22,7 @@ import { ReviewLikeCheckService } from './review-like-check.service';
 import { UserBlockCheckService } from 'src/user/user-block-check.service';
 import { ReviewBlockCheckService } from './review-block-check.service';
 import { ReviewWithUserStatusService } from './review-with-user-status.service';
+import { GetReviewsAllDto } from './dto/get-reviews-all.dto';
 
 @Injectable()
 export class ReviewService {
@@ -389,7 +390,7 @@ export class ReviewService {
   }
 
   async getReviewsAll(
-    dto: ReviewPagerbleDto,
+    dto: GetReviewsAllDto,
   ): Promise<ReviewPagerbleResponseDto> {
     if (dto.userIdx) {
       const user = await this.userService.getUser({ idx: dto.userIdx });
@@ -876,8 +877,8 @@ export class ReviewService {
     const reviewPagerbleResponseDto = await this.getReviewsAll({
       page: dto.page,
       size: dto.size,
-      timeframe: 'all',
-      userIdx: dto.userIdx,
+      timeframe: dto.timeframe,
+      ...(dto.userIdx && { userIdx: dto.userIdx }),
     });
 
     if (!dto.loginUserIdx) {

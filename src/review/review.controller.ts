@@ -75,41 +75,14 @@ export class ReviewController {
   @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '최신 리뷰목록보기' })
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
-  async getReviewAll(
+  async getLatestReviewAll(
     @GetUser() loginUser: LoginUser,
     @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    const reviewPagerbleResponseDto = await this.reviewService.getReviewsAll({
-      size: dto.size,
-      page: dto.page,
-      timeframe: dto.timeframe,
+    return await this.reviewService.getReviewsWithUserStatus({
+      ...dto,
+      loginUserIdx: loginUser && loginUser.idx,
     });
-
-    if (!loginUser) {
-      return reviewPagerbleResponseDto;
-    }
-
-    await this.reviewLikeCheckService.isReviewLiked(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
-
-    await this.reviewLikeCheckService.isReviewDisliked(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
-
-    await this.reviewBlockCheckService.isReviewBlocked(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
-
-    await this.userBlockCheckService.isBlockedUser(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews.map((elem) => elem.user),
-    );
-
-    return reviewPagerbleResponseDto;
   }
 
   @Get('/review/hot')

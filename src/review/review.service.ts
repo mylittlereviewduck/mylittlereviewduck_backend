@@ -18,11 +18,9 @@ import { Redis } from 'ioredis';
 import { GetLatestReveiwsByUserIdxsDto } from './dto/get-latest-reviews-by-userIdxs.dto';
 import { UserFollowService } from 'src/user/user-follow.service';
 import { GetReviewsWithUserStatusDto } from './dto/get-reviews-with-user-status.dto';
-import { ReviewLikeCheckService } from './review-like-check.service';
-import { UserBlockCheckService } from 'src/user/user-block-check.service';
-import { ReviewBlockCheckService } from './review-block-check.service';
 import { ReviewWithUserStatusService } from './review-with-user-status.service';
 import { GetReviewsAllDto } from './dto/get-reviews-all.dto';
+import { GetReviewDetailDto } from './dto/get-review-detail.dto';
 
 @Injectable()
 export class ReviewService {
@@ -387,6 +385,34 @@ export class ReviewService {
     const sortedReviews = reviewIdxs.map((idx) => reviewsMap.get(idx));
 
     return sortedReviews.map((review) => new ReviewEntity(review));
+  }
+
+  async getReviewDetail(dto: GetReviewDetailDto): Promise<ReviewEntity> {
+    const reviewEntity = await this.getReviewByIdx(dto.reviewIdx);
+
+    const viewCount = await this.getViewCount(reviewEntity.idx);
+
+    reviewEntity.viewCount = viewCount + 1;
+    await this.increaseViewCount(reviewEntity.idx);
+
+    if (!dto.loginUserIdx) {
+      return reviewEntity;
+    }
+
+    const userStatus = await this.reviewWithUserStatusService.getUserStatus(
+      dto.loginUserIdx,
+      [dto.reviewIdx],
+      null,
+    );
+
+    if (userStatus[0]) {
+      reviewEntity.isMyLike = userStatus[0].isMyLike;
+      reviewEntity.isMyDislike = userStatus[0].isMyDislike;
+      reviewEntity.isMyBookmark = userStatus[0].isMyBookmark;
+      reviewEntity.isMyBlock = userStatus[0].isMyBlock;
+    }
+
+    return reviewEntity;
   }
 
   async getReviewsAll(

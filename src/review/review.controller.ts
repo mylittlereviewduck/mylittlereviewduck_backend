@@ -173,42 +173,14 @@ export class ReviewController {
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
   @ApiResponse({ status: 200, type: ReviewEntity })
-  async getReviewWithIdx(
+  async getReviewDetail(
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
   ): Promise<ReviewEntity> {
-    const reviewEntity = await this.reviewService.getReviewByIdx(reviewIdx);
-
-    const viewCount = await this.reviewService.getViewCount(reviewEntity.idx);
-
-    reviewEntity.viewCount = viewCount + 1;
-    await this.reviewService.increaseViewCount(reviewEntity.idx);
-
-    if (!loginUser) {
-      return reviewEntity;
-    }
-
-    await this.reviewLikeCheckService.isReviewLiked(loginUser.idx, [
-      reviewEntity,
-    ]);
-
-    await this.reviewLikeCheckService.isReviewDisliked(loginUser.idx, [
-      reviewEntity,
-    ]);
-
-    await this.reviewBookmarkService.isReviewBookmarked(loginUser.idx, [
-      reviewEntity,
-    ]);
-
-    await this.reviewBlockCheckService.isReviewBlocked(loginUser.idx, [
-      reviewEntity,
-    ]);
-
-    await this.userBlockCheckService.isBlockedUser(loginUser.idx, [
-      reviewEntity.user,
-    ]);
-
-    return reviewEntity;
+    return await this.reviewService.getReviewDetail({
+      ...(loginUser && { loginUserIdx: loginUser.idx }),
+      reviewIdx,
+    });
   }
 
   @Put('/review/:reviewIdx')

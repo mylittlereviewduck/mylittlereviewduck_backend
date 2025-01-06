@@ -5,5 +5,5 @@ export class GetReviewsWithUserStatusDto {
   page: number;
   timeframe: ReviewTimeframe;
   userIdx?: string;
-  loginUserIdx?: string;
+  loginUserIdx: string;
 }

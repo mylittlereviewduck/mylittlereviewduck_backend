@@ -3,6 +3,7 @@ import {
   ArrayMaxSize,
   IsArray,
   IsInt,
+  IsOptional,
   IsString,
   Length,
   Max,
@@ -56,7 +57,8 @@ export class CreateReviewDto {
     required: false,
   })
   @IsString()
-  thumbnail: string | null;
+  @IsOptional()
+  thumbnail?: string | null;
 
   @ApiProperty({
     example: '썸네일 이미지 설명',
@@ -65,6 +67,7 @@ export class CreateReviewDto {
   })
   @Length(0, 32)
   @IsString()
+  @IsOptional()
   thumbnailContent: string | null;
 
   @ApiProperty({
@@ -87,5 +90,6 @@ export class CreateReviewDto {
   @ArrayMaxSize(6)
   @ValidateNested({ each: true })
   @Type(() => ReviewImage)
-  images: ReviewImage[];
+  @IsOptional()
+  images?: ReviewImage[];
 }

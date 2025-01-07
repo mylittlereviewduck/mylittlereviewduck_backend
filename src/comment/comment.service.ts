@@ -111,7 +111,6 @@ export class CommentService {
       take: dto.size,
       skip: (dto.page - 1) * dto.size,
     });
-    console.log('commentData: ', commentData);
 
     return {
       totalPage: Math.ceil(totalCount / dto.size),
@@ -119,20 +118,16 @@ export class CommentService {
     };
   }
 
-  async createComment(
-    userIdx: string,
-    reviewIdx: number,
-    dto: CreateCommentDto,
-  ): Promise<CommentEntity> {
+  async createComment(dto: CreateCommentDto): Promise<CommentEntity> {
     let comment;
-    const review = await this.reviewService.getReviewByIdx(reviewIdx);
+    const review = await this.reviewService.getReviewByIdx(dto.reviewIdx);
 
     if (!review) {
       throw new NotFoundException('Not Found Review');
     }
 
     if (dto.commentIdx) {
-      comment = await this.getCommentByIdx(reviewIdx, dto.commentIdx);
+      comment = await this.getCommentByIdx(dto.reviewIdx, dto.commentIdx);
     }
 
     if (dto.commentIdx && !comment) {
@@ -163,8 +158,8 @@ export class CommentService {
         },
       },
       data: {
-        reviewIdx: reviewIdx,
-        accountIdx: userIdx,
+        reviewIdx: dto.reviewIdx,
+        accountIdx: dto.loginUserIdx,
         content: dto.content,
         ...(dto.commentIdx && { commentIdx: dto.commentIdx }),
         commentTagTb: {
@@ -177,9 +172,9 @@ export class CommentService {
       },
     });
 
-    if (userIdx !== review.user.idx) {
+    if (dto.loginUserIdx !== review.user.idx) {
       this.eventEmitter.emit('notification.create', {
-        senderIdx: userIdx,
+        senderIdx: dto.loginUserIdx,
         recipientIdx: review.user.idx,
         type: 3,
         reviewIdx: review.idx,

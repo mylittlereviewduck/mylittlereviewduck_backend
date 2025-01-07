@@ -28,10 +28,15 @@ export class CreateCommentDto {
   @IsArray()
   @IsUUID(4, { each: true })
   @ArrayMaxSize(10)
-  userIdxs: string[];
+  @IsOptional()
+  userIdxs?: string[];
 
   @ApiProperty({ example: '댓글 내용' })
   @Length(1, 3000)
   @IsString()
   content: string;
+
+  reviewIdx?: number;
+
+  loginUserIdx: string;
 }

@@ -3,8 +3,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { ReviewEntity } from './entity/Review.entity';
 import { ReviewPagerbleResponseDto } from './dto/response/review-pagerble-response.dto';
 import { UserService } from 'src/user/user.service';
-import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
-import { BookmarkReviewDto } from './dto/get-bookmarked-review-with-user-status.dto';
+import { GetReviewsWithLoginUserDto } from './dto/get-reviews-with-login-user.dto';
 
 @Injectable()
 export class ReviewBookmarkService {
@@ -43,7 +42,7 @@ export class ReviewBookmarkService {
   }
 
   async getBookmarkedReviewAll(
-    dto: BookmarkReviewDto,
+    dto: GetReviewsWithLoginUserDto,
   ): Promise<ReviewPagerbleResponseDto> {
     const user = await this.userService.getUser({ idx: dto.userIdx });
 

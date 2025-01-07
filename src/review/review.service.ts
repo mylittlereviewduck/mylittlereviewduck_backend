@@ -17,11 +17,10 @@ import { DEFAULT_REDIS, RedisService } from '@liaoliaots/nestjs-redis';
 import { Redis } from 'ioredis';
 import { GetLatestReveiwsByUserIdxsDto } from './dto/get-latest-reviews-by-userIdxs.dto';
 import { UserFollowService } from 'src/user/user-follow.service';
-import { GetReviewsWithUserStatusDto } from './dto/get-reviews-with-user-status.dto';
 import { ReviewWithUserStatusService } from './review-with-user-status.service';
-import { GetReviewsAllDto } from './dto/get-reviews-all.dto';
+import { GetReviewsDto } from './dto/get-reviews.dto';
 import { GetReviewDetailDto } from './dto/get-review-detail.dto';
-import { BookmarkReviewDto } from './dto/get-bookmarked-review-with-user-status.dto';
+import { GetReviewsWithLoginUserDto } from './dto/get-reviews-with-login-user.dto';
 import { ReviewBookmarkService } from './review-bookmark.service';
 
 @Injectable()
@@ -418,9 +417,7 @@ export class ReviewService {
     return reviewEntity;
   }
 
-  async getReviewsAll(
-    dto: GetReviewsAllDto,
-  ): Promise<ReviewPagerbleResponseDto> {
+  async getReviewsAll(dto: GetReviewsDto): Promise<ReviewPagerbleResponseDto> {
     if (dto.userIdx) {
       const user = await this.userService.getUser({ idx: dto.userIdx });
 
@@ -901,7 +898,7 @@ export class ReviewService {
   //기존 135ms
   //100-110ms로 개선
   async getReviewsWithUserStatus(
-    dto: GetReviewsWithUserStatusDto,
+    dto: GetReviewsWithLoginUserDto,
   ): Promise<ReviewPagerbleResponseDto> {
     const reviewPagerbleResponseDto = await this.getReviewsAll({
       page: dto.page,
@@ -961,7 +958,7 @@ export class ReviewService {
   }
 
   async getBookmarkedReviewsWithUserStatus(
-    dto: BookmarkReviewDto,
+    dto: GetReviewsWithLoginUserDto,
   ): Promise<ReviewPagerbleResponseDto> {
     const reviewPagerbleResponseDto =
       await this.reviewBookmarkService.getBookmarkedReviewAll({
@@ -1001,7 +998,7 @@ export class ReviewService {
   }
 
   async getReviewsCommented(
-    dto: ReviewPagerbleDto,
+    dto: GetReviewsDto,
   ): Promise<ReviewPagerbleResponseDto> {
     const user = await this.userService.getUser({ idx: dto.userIdx });
 
@@ -1009,29 +1006,25 @@ export class ReviewService {
       throw new NotFoundException('Not Found User');
     }
 
-    const countSQLResult: { count: bigint }[] = await this.prismaService
-      .$queryRaw`
-      SELECT count(*)
-      FROM review_tb r
-      JOIN comment_tb c ON r.idx = c.review_idx
-      WHERE c.account_idx = ${dto.userIdx}
-      AND r.deleted_at IS NULL;
-    `;
+    // const countSQLResult: { count: bigint }[] = await this.prismaService
+    //   .$queryRaw`
+    //   SELECT count(*)
+    //   FROM review_tb r
+    //   JOIN comment_tb c ON r.idx = c.review_idx
+    //   WHERE c.account_idx = ${dto.userIdx}
+    //   AND r.deleted_at IS NULL;
+    // `;
 
-    // 왜안되는지 공부
-    // const totalCount2 = await this.prismaService.reviewTb.count({
-    //   where: {
-    //     deletedAt: null,
-    //     commentTb: {
-    //       some: {
-    //         accountIdx: dto.userIdx,
-    //       },
-    //     },
-    //   },
-    // });
-    // console.log('totalCount2: ', totalCount2);
-
-    const totalCount: number = Number(countSQLResult[0].count);
+    const totalCount = await this.prismaService.reviewTb.count({
+      where: {
+        deletedAt: null,
+        commentTb: {
+          some: {
+            accountIdx: dto.userIdx,
+          },
+        },
+      },
+    });
 
     const reviewData = await this.prismaService.reviewTb.findMany({
       include: {
@@ -1074,7 +1067,7 @@ export class ReviewService {
         },
       },
       orderBy: {
-        idx: 'desc',
+        commentTb: {},
       },
       skip: (dto.page - 1) * dto.size,
       take: dto.size,
@@ -1084,6 +1077,67 @@ export class ReviewService {
       totalPage: Math.ceil(totalCount / dto.size),
       reviews: reviewData.map((elem) => new ReviewEntity(elem)),
     };
+  }
+
+  async getReviewsCommentedWithUserStatus(
+    dto: GetReviewsWithLoginUserDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    console.log('dto', dto);
+    const reviewPagerbleResponseDto = await this.getReviewsCommented({
+      page: dto.page,
+      size: dto.size,
+      userIdx: dto.userIdx,
+    });
+
+    if (!dto.loginUserIdx) {
+      return reviewPagerbleResponseDto;
+    }
+
+    const reviewIdxs = reviewPagerbleResponseDto.reviews.map(
+      (review) => review.idx,
+    );
+
+    const userStatuses = await this.reviewWithUserStatusService.getUserStatus(
+      dto.loginUserIdx,
+      reviewIdxs,
+      null,
+    );
+
+    const statusMap = new Map(
+      userStatuses.map((status) => [status.reviewIdx, status]),
+    );
+
+    reviewPagerbleResponseDto.reviews.map((review) => {
+      const userStatus = statusMap.get(review.idx);
+      if (userStatus) {
+        review.isMyLike = userStatus.isMyLike;
+        review.isMyDislike = userStatus.isMyDislike;
+        review.isMyBookmark = userStatus.isMyBookmark;
+        review.isMyBlock = userStatus.isMyBlock;
+      }
+      return review;
+    });
+    // await this.reviewLikeCheckService.isReviewLiked(
+    //   loginUser.idx,
+    //   reviewPagerbleResponseDto.reviews,
+    // );
+
+    // await this.reviewLikeCheckService.isReviewDisliked(
+    //   loginUser.idx,
+    //   reviewPagerbleResponseDto.reviews,
+    // );
+
+    // await this.reviewBlockCheckService.isReviewBlocked(
+    //   loginUser.idx,
+    //   reviewPagerbleResponseDto.reviews,
+    // );
+
+    // await this.userBlockCheckService.isBlockedUser(
+    //   loginUser.idx,
+    //   reviewPagerbleResponseDto.reviews.map((elem) => elem.user),
+    // );
+
+    return reviewPagerbleResponseDto;
   }
 
   getMostRecentNoon(): Date {

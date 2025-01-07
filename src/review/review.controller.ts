@@ -498,7 +498,7 @@ export class ReviewController {
   @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
   @Exception(400, '유효하지않은 요청')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
-  async getReviewCommented(
+  async getReviewsCommented(
     @GetUser() loginUser: LoginUser,
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
     @Query() dto: ReviewPagerbleDto,

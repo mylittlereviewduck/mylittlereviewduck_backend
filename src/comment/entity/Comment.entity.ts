@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Prisma } from '@prisma/client';
 import { ReviewUserEntity } from 'src/review/entity/ReviewUser.entity';
-import { UserEntity } from 'src/user/entity/User.entity';
 
 const comment = Prisma.validator<Prisma.CommentTbDefaultArgs>()({
   include: {
@@ -64,7 +63,7 @@ export class CommentEntity {
   likeCount: number;
 
   @ApiProperty({
-    examples: [
+    example: [
       {
         isMyFollowing: false,
         isMyBlock: false,

@@ -1,3 +1,4 @@
+import { LoginDto } from './../auth/dto/login.dto';
 import { ReviewWithUserStatusService } from './review-with-user-status.service';
 import { UserBlockCheckService } from './../user/user-block-check.service';
 import { AwsService } from '../aws/aws.service';
@@ -461,7 +462,7 @@ export class ReviewController {
   @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
   @Exception(400, '유효하지않은 요청')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
-  async getReviewAllByUserIdx(
+  async getReviewsAllByUserIdx(
     @GetUser() loginUser: LoginUser,
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
     @Query() dto: ReviewPagerbleDto,
@@ -479,7 +480,7 @@ export class ReviewController {
   @ApiParam({ name: 'userIdx', type: 'number', description: '유저식별자' })
   @Exception(400, '유효하지않은 요청')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
-  async getBookmarkedReviewsByuserIdx(
+  async getBookmarkedReviews(
     @GetUser() loginUser: LoginUser,
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
     @Query() dto: ReviewPagerbleDto,
@@ -498,12 +499,12 @@ export class ReviewController {
   @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
   @Exception(400, '유효하지않은 요청')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
-  async getReviewsCommented(
+  async getCommentedReviews(
     @GetUser() loginUser: LoginUser,
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
     @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    return await this.reviewService.getReviewsCommentedWithUserStatus({
+    return await this.reviewService.getCommentedReviewsWithUserStatus({
       ...dto,
       userIdx: userIdx,
       loginUserIdx: loginUser && loginUser.idx,
@@ -516,43 +517,49 @@ export class ReviewController {
   @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
   @Exception(400, '유효하지않은 요청')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
-  async getReviewLiked(
+  async getLikedReviews(
     @GetUser() loginUser: LoginUser,
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
     @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    const { totalCount, reviewIdxs } =
-      await this.reviewLikeCheckService.getLikedReviewsIdx({ ...dto, userIdx });
+    return await this.reviewService.getLikedReviewsWithUserStatus({
+      ...dto,
+      userIdx: userIdx,
+      loginUserIdx: loginUser && loginUser.idx,
+    });
 
-    const reviewPagerbleResponseDto = {
-      totalPage: Math.ceil(totalCount / dto.size),
-      reviews: await this.reviewService.getReviewsByIdx(reviewIdxs),
-    };
+    // const { totalCount, reviewIdxs } =
+    //   await this.reviewLikeCheckService.getLikedReviewsIdx({ ...dto, userIdx });
 
-    if (!loginUser) {
-      return reviewPagerbleResponseDto;
-    }
+    // const reviewPagerbleResponseDto = {
+    //   totalPage: Math.ceil(totalCount / dto.size),
+    //   reviews: await this.reviewService.getReviewsByIdx(reviewIdxs),
+    // };
 
-    await this.reviewLikeCheckService.isReviewLiked(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
+    // if (!loginUser) {
+    //   return reviewPagerbleResponseDto;
+    // }
 
-    await this.reviewLikeCheckService.isReviewDisliked(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
+    // await this.reviewLikeCheckService.isReviewLiked(
+    //   loginUser.idx,
+    //   reviewPagerbleResponseDto.reviews,
+    // );
 
-    await this.reviewBlockCheckService.isReviewBlocked(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
+    // await this.reviewLikeCheckService.isReviewDisliked(
+    //   loginUser.idx,
+    //   reviewPagerbleResponseDto.reviews,
+    // );
 
-    await this.userBlockCheckService.isBlockedUser(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews.map((elem) => elem.user),
-    );
+    // await this.reviewBlockCheckService.isReviewBlocked(
+    //   loginUser.idx,
+    //   reviewPagerbleResponseDto.reviews,
+    // );
 
-    return reviewPagerbleResponseDto;
+    // await this.userBlockCheckService.isBlockedUser(
+    //   loginUser.idx,
+    //   reviewPagerbleResponseDto.reviews.map((elem) => elem.user),
+    // );
+
+    // return reviewPagerbleResponseDto;
   }
 }

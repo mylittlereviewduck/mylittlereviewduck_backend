@@ -997,7 +997,7 @@ export class ReviewService {
     return reviewPagerbleResponseDto;
   }
 
-  async getReviewsCommented(
+  async getCommentedReviews(
     dto: GetReviewsDto,
   ): Promise<ReviewPagerbleResponseDto> {
     const user = await this.userService.getUser({ idx: dto.userIdx });
@@ -1079,11 +1079,10 @@ export class ReviewService {
     };
   }
 
-  async getReviewsCommentedWithUserStatus(
+  async getCommentedReviewsWithUserStatus(
     dto: GetReviewsWithLoginUserDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    console.log('dto', dto);
-    const reviewPagerbleResponseDto = await this.getReviewsCommented({
+    const reviewPagerbleResponseDto = await this.getCommentedReviews({
       page: dto.page,
       size: dto.size,
       userIdx: dto.userIdx,
@@ -1138,6 +1137,108 @@ export class ReviewService {
     // );
 
     return reviewPagerbleResponseDto;
+  }
+
+  async getLikedReviews(
+    dto: GetReviewsDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    //총숫자
+    const totalCount = await this.prismaService.reviewTb.count({
+      where: {
+        reviewLikeTb: {
+          every: {
+            accountIdx: dto.userIdx,
+          },
+        },
+      },
+    });
+
+    //리뷰페이지네이션 반환
+    const reviewData = await this.prismaService.reviewTb.findMany({
+      include: {
+        accountTb: {
+          include: {
+            profileImgTb: {
+              where: {
+                deletedAt: null,
+              },
+            },
+          },
+        },
+        tagTb: true,
+        reviewImgTb: {
+          where: {
+            deletedAt: null,
+          },
+        },
+        reviewThumbnailTb: {
+          where: {
+            deletedAt: null,
+          },
+        },
+        _count: {
+          select: {
+            commentTb: true,
+            reviewLikeTb: true,
+            reviewDislikeTb: true,
+            reviewBookmarkTb: true,
+            reviewShareTb: true,
+          },
+        },
+      },
+      where: {
+        accountIdx: {
+          in: dto.userIdxs,
+        },
+      },
+      skip: dto.page * dto.size,
+      take: dto.size,
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return {
+      totalPage: Math.ceil(totalCount / dto.size),
+      reviews: reviewData.map((elem) => new ReviewEntity(elem)),
+    };
+  }
+
+  async getLikedReviewsWithUserStatus(
+    dto: GetReviewsWithLoginUserDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    const reviewPagerbleResponseDto = await this.getLikedReviews({
+      page: dto.page,
+      size: dto.size,
+      userIdx: dto.userIdx,
+    });
+
+    if (!dto.loginUserIdx) {
+      return reviewPagerbleResponseDto;
+    }
+
+    const reviewIdxs = reviewPagerbleResponseDto.reviews.map(
+      (review) => review.idx,
+    );
+
+    const userStatuses = await this.reviewWithUserStatusService.getUserStatus(
+      dto.loginUserIdx,
+      reviewIdxs,
+      null,
+    );
+
+    const statusMap = new Map(
+      userStatuses.map((status) => [status.reviewIdx, status]),
+    );
+
+    reviewPagerbleResponseDto.reviews.map((review) => {
+      const userStatus = statusMap.get(review.idx);
+      if (userStatus) {
+        review.isMyLike = userStatus.isMyLike;
+        review.isMyDislike = userStatus.isMyDislike;
+        review.isMyBookmark = userStatus.isMyBookmark;
+        review.isMyBlock = userStatus.isMyBlock;
+      }
+      return review;
+    });
   }
 
   getMostRecentNoon(): Date {

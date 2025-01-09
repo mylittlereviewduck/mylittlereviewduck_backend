@@ -45,7 +45,6 @@ import { FileValidationPipe } from 'src/common/fileValidation.pipe';
 import { ReviewLikeEntity } from './entity/ReviewLike.entity';
 import { ReviewDislikeEntity } from './entity/ReviewDislike.entity';
 import { ReviewBlockEntity } from './entity/ReviewBlock.entity';
-import { ReviewShareEntity } from './entity/ReviewShare.entity';
 import { ReviewBookmarkEntity } from './entity/Reviewbookmark.entity';
 import { BookmarkService } from './bookmark.service';
 import { ReviewPagerbleDto } from './dto/review-pagerble.dto';

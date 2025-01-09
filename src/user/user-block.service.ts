@@ -87,11 +87,7 @@ export class UserBlockService {
       include: {
         blocked: {
           include: {
-            profileImgTb: {
-              where: {
-                deletedAt: null,
-              },
-            },
+            profileImgTb: true,
             _count: {
               select: {
                 follower: true,

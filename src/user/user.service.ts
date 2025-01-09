@@ -41,11 +41,7 @@ export class UserService {
 
     const userData = await prisma.accountTb.findFirst({
       include: {
-        profileImgTb: {
-          where: {
-            deletedAt: null,
-          },
-        },
+        profileImgTb: true,
         _count: {
           select: {
             followee: true,
@@ -92,11 +88,7 @@ export class UserService {
 
     const userData = await this.prismaService.accountTb.findMany({
       include: {
-        profileImgTb: {
-          where: {
-            deletedAt: null,
-          },
-        },
+        profileImgTb: true,
         _count: {
           select: {
             followee: true,
@@ -139,11 +131,7 @@ export class UserService {
   async getUsersByIdx(userIdxs: string[]): Promise<UserEntity[]> {
     const users = await this.prismaService.accountTb.findMany({
       include: {
-        profileImgTb: {
-          where: {
-            deletedAt: null,
-          },
-        },
+        profileImgTb: true,
         _count: {
           select: {
             followee: true,
@@ -241,11 +229,7 @@ export class UserService {
         providerKey: dto.providerKey,
       },
       include: {
-        profileImgTb: {
-          where: {
-            deletedAt: null,
-          },
-        },
+        profileImgTb: true,
         _count: {
           select: {
             followee: true,
@@ -280,11 +264,7 @@ export class UserService {
 
     const updatedUser = await this.prismaService.accountTb.update({
       include: {
-        profileImgTb: {
-          where: {
-            deletedAt: null,
-          },
-        },
+        profileImgTb: true,
         _count: {
           select: {
             followee: true,
@@ -310,10 +290,7 @@ export class UserService {
 
   async updateMyProfileImg(userIdx: string, imgPath: string): Promise<void> {
     await this.prismaService.$transaction([
-      this.prismaService.profileImgTb.updateMany({
-        data: {
-          deletedAt: new Date(),
-        },
+      this.prismaService.profileImgTb.deleteMany({
         where: {
           accountIdx: userIdx,
         },
@@ -328,11 +305,8 @@ export class UserService {
     ]);
   }
 
-  async deleteMyProfileImg(userIdx: string): Promise<void> {
-    await this.prismaService.profileImgTb.updateMany({
-      data: {
-        deletedAt: new Date(),
-      },
+  async deleteMyProfileImg(userIdx: string): Promise<any> {
+    await this.prismaService.profileImgTb.deleteMany({
       where: {
         accountIdx: userIdx,
       },

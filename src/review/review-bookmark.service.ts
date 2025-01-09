@@ -62,24 +62,12 @@ export class ReviewBookmarkService {
           include: {
             accountTb: {
               include: {
-                profileImgTb: {
-                  where: {
-                    deletedAt: null,
-                  },
-                },
+                profileImgTb: true,
               },
             },
             tagTb: true,
-            reviewImgTb: {
-              where: {
-                deletedAt: null,
-              },
-            },
-            reviewThumbnailTb: {
-              where: {
-                deletedAt: null,
-              },
-            },
+            reviewImgTb: true,
+            reviewThumbnailTb: true,
             _count: {
               select: {
                 commentTb: true,

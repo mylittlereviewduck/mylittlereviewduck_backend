@@ -86,7 +86,6 @@ export class ReviewBookmarkService {
                 reviewLikeTb: true,
                 reviewDislikeTb: true,
                 reviewBookmarkTb: true,
-                reviewShareTb: true,
               },
             },
           },

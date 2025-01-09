@@ -73,31 +73,18 @@ export class ReviewService {
       include: {
         accountTb: {
           include: {
-            profileImgTb: {
-              where: {
-                deletedAt: null,
-              },
-            },
+            profileImgTb: true,
           },
         },
         tagTb: true,
-        reviewThumbnailTb: {
-          where: {
-            deletedAt: null,
-          },
-        },
-        reviewImgTb: {
-          where: {
-            deletedAt: null,
-          },
-        },
+        reviewThumbnailTb: true,
+        reviewImgTb: true,
         _count: {
           select: {
+            commentTb: true,
             reviewLikeTb: true,
             reviewDislikeTb: true,
             reviewBookmarkTb: true,
-            reviewShareTb: true,
-            commentTb: true,
           },
         },
       },
@@ -159,23 +146,14 @@ export class ReviewService {
           },
 
           tagTb: true,
-          reviewImgTb: {
-            where: {
-              deletedAt: null,
-            },
-          },
-          reviewThumbnailTb: {
-            where: {
-              deletedAt: null,
-            },
-          },
+          reviewImgTb: true,
+          reviewThumbnailTb: true,
           _count: {
             select: {
+              commentTb: true,
               reviewLikeTb: true,
               reviewDislikeTb: true,
               reviewBookmarkTb: true,
-              reviewShareTb: true,
-              commentTb: true,
             },
           },
         },
@@ -199,13 +177,8 @@ export class ReviewService {
             },
           },
           reviewThumbnailTb: {
-            updateMany: {
-              data: {
-                deletedAt: new Date(),
-              },
-              where: {
-                idx: dto.reviewIdx,
-              },
+            deleteMany: {
+              idx: dto.reviewIdx,
             },
             create: {
               imgPath: dto.thumbnail,
@@ -213,13 +186,8 @@ export class ReviewService {
             },
           },
           reviewImgTb: {
-            updateMany: {
-              data: {
-                deletedAt: new Date(),
-              },
-              where: {
-                reviewIdx: dto.reviewIdx,
-              },
+            deleteMany: {
+              reviewIdx: dto.reviewIdx,
             },
             createMany: {
               data: dto.images.map((image) => ({
@@ -238,40 +206,35 @@ export class ReviewService {
     return new ReviewEntity(data);
   }
 
-  async updateReviewThumbnail(
-    reviewIdx: number,
-    imgPath: string,
-    content: string,
-  ): Promise<void> {
-    await this.prismaService.reviewThumbnailTb.updateMany({
-      data: {
-        deletedAt: new Date(),
-      },
-      where: {
-        reviewIdx: reviewIdx,
-      },
-    });
+  // async updateReviewThumbnail(
+  //   reviewIdx: number,
+  //   imgPath: string,
+  //   content: string,
+  // ): Promise<void> {
+  //   await this.prismaService.reviewThumbnailTb.updateMany({
+  //     data: {
+  //       deletedAt: new Date(),
+  //     },
+  //     where: {
+  //       reviewIdx: reviewIdx,
+  //     },
+  //   });
 
-    await this.prismaService.reviewThumbnailTb.create({
-      data: {
-        reviewIdx: reviewIdx,
-        imgPath: imgPath,
-        content: content,
-      },
-    });
-  }
+  //   await this.prismaService.reviewThumbnailTb.create({
+  //     data: {
+  //       reviewIdx: reviewIdx,
+  //       imgPath: imgPath,
+  //       content: content,
+  //     },
+  //   });
+  // }
 
   async deleteThumbnailImg(reviewIdx: number): Promise<void> {
-    await this.prismaService.$transaction([
-      this.prismaService.profileImgTb.updateMany({
-        data: {
-          deletedAt: new Date(),
-        },
-        where: {
-          idx: reviewIdx,
-        },
-      }),
-    ]);
+    await this.prismaService.profileImgTb.deleteMany({
+      where: {
+        idx: reviewIdx,
+      },
+    });
   }
 
   async deleteReview(userIdx: string, reviewIdx: number): Promise<void> {
@@ -300,31 +263,18 @@ export class ReviewService {
       include: {
         accountTb: {
           include: {
-            profileImgTb: {
-              where: {
-                deletedAt: null,
-              },
-            },
+            profileImgTb: true,
           },
         },
         tagTb: true,
-        reviewImgTb: {
-          where: {
-            deletedAt: null,
-          },
-        },
-        reviewThumbnailTb: {
-          where: {
-            deletedAt: null,
-          },
-        },
+        reviewImgTb: true,
+        reviewThumbnailTb: true,
         _count: {
           select: {
             commentTb: true,
             reviewLikeTb: true,
             reviewDislikeTb: true,
             reviewBookmarkTb: true,
-            reviewShareTb: true,
           },
         },
       },
@@ -346,31 +296,18 @@ export class ReviewService {
       include: {
         accountTb: {
           include: {
-            profileImgTb: {
-              where: {
-                deletedAt: null,
-              },
-            },
+            profileImgTb: true,
           },
         },
         tagTb: true,
-        reviewImgTb: {
-          where: {
-            deletedAt: null,
-          },
-        },
-        reviewThumbnailTb: {
-          where: {
-            deletedAt: null,
-          },
-        },
+        reviewImgTb: true,
+        reviewThumbnailTb: true,
         _count: {
           select: {
             commentTb: true,
             reviewLikeTb: true,
             reviewDislikeTb: true,
             reviewBookmarkTb: true,
-            reviewShareTb: true,
           },
         },
       },
@@ -460,31 +397,18 @@ export class ReviewService {
       include: {
         accountTb: {
           include: {
-            profileImgTb: {
-              where: {
-                deletedAt: null,
-              },
-            },
+            profileImgTb: true,
           },
         },
         tagTb: true,
-        reviewImgTb: {
-          where: {
-            deletedAt: null,
-          },
-        },
-        reviewThumbnailTb: {
-          where: {
-            deletedAt: null,
-          },
-        },
+        reviewImgTb: true,
+        reviewThumbnailTb: true,
         _count: {
           select: {
             commentTb: true,
             reviewLikeTb: true,
             reviewDislikeTb: true,
             reviewBookmarkTb: true,
-            reviewShareTb: true,
           },
         },
       },
@@ -559,31 +483,18 @@ export class ReviewService {
       include: {
         accountTb: {
           include: {
-            profileImgTb: {
-              where: {
-                deletedAt: null,
-              },
-            },
+            profileImgTb: true,
           },
         },
         tagTb: true,
-        reviewImgTb: {
-          where: {
-            deletedAt: null,
-          },
-        },
-        reviewThumbnailTb: {
-          where: {
-            deletedAt: null,
-          },
-        },
+        reviewImgTb: true,
+        reviewThumbnailTb: true,
         _count: {
           select: {
             commentTb: true,
             reviewLikeTb: true,
             reviewDislikeTb: true,
             reviewBookmarkTb: true,
-            reviewShareTb: true,
           },
         },
       },
@@ -648,31 +559,18 @@ export class ReviewService {
       include: {
         accountTb: {
           include: {
-            profileImgTb: {
-              where: {
-                deletedAt: null,
-              },
-            },
+            profileImgTb: true,
           },
         },
         tagTb: true,
-        reviewImgTb: {
-          where: {
-            deletedAt: null,
-          },
-        },
-        reviewThumbnailTb: {
-          where: {
-            deletedAt: null,
-          },
-        },
+        reviewImgTb: true,
+        reviewThumbnailTb: true,
         _count: {
           select: {
             commentTb: true,
             reviewLikeTb: true,
             reviewDislikeTb: true,
             reviewBookmarkTb: true,
-            reviewShareTb: true,
           },
         },
       },
@@ -735,31 +633,18 @@ export class ReviewService {
       include: {
         accountTb: {
           include: {
-            profileImgTb: {
-              where: {
-                deletedAt: null,
-              },
-            },
+            profileImgTb: true,
           },
         },
         tagTb: true,
-        reviewImgTb: {
-          where: {
-            deletedAt: null,
-          },
-        },
-        reviewThumbnailTb: {
-          where: {
-            deletedAt: null,
-          },
-        },
+        reviewImgTb: true,
+        reviewThumbnailTb: true,
         _count: {
           select: {
             commentTb: true,
             reviewLikeTb: true,
             reviewDislikeTb: true,
             reviewBookmarkTb: true,
-            reviewShareTb: true,
           },
         },
       },
@@ -797,31 +682,18 @@ export class ReviewService {
       include: {
         accountTb: {
           include: {
-            profileImgTb: {
-              where: {
-                deletedAt: null,
-              },
-            },
+            profileImgTb: true,
           },
         },
         tagTb: true,
-        reviewImgTb: {
-          where: {
-            deletedAt: null,
-          },
-        },
-        reviewThumbnailTb: {
-          where: {
-            deletedAt: null,
-          },
-        },
+        reviewImgTb: true,
+        reviewThumbnailTb: true,
         _count: {
           select: {
             commentTb: true,
             reviewLikeTb: true,
             reviewDislikeTb: true,
             reviewBookmarkTb: true,
-            reviewShareTb: true,
           },
         },
       },
@@ -1030,31 +902,18 @@ export class ReviewService {
       include: {
         accountTb: {
           include: {
-            profileImgTb: {
-              where: {
-                deletedAt: null,
-              },
-            },
+            profileImgTb: true,
           },
         },
         tagTb: true,
-        reviewImgTb: {
-          where: {
-            deletedAt: null,
-          },
-        },
-        reviewThumbnailTb: {
-          where: {
-            deletedAt: null,
-          },
-        },
+        reviewImgTb: true,
+        reviewThumbnailTb: true,
         _count: {
           select: {
             commentTb: true,
             reviewLikeTb: true,
             reviewDislikeTb: true,
             reviewBookmarkTb: true,
-            reviewShareTb: true,
           },
         },
       },
@@ -1158,31 +1017,18 @@ export class ReviewService {
       include: {
         accountTb: {
           include: {
-            profileImgTb: {
-              where: {
-                deletedAt: null,
-              },
-            },
+            profileImgTb: true,
           },
         },
         tagTb: true,
-        reviewImgTb: {
-          where: {
-            deletedAt: null,
-          },
-        },
-        reviewThumbnailTb: {
-          where: {
-            deletedAt: null,
-          },
-        },
+        reviewImgTb: true,
+        reviewThumbnailTb: true,
         _count: {
           select: {
             commentTb: true,
             reviewLikeTb: true,
             reviewDislikeTb: true,
             reviewBookmarkTb: true,
-            reviewShareTb: true,
           },
         },
       },

@@ -1,11 +1,7 @@
-import { LoginDto } from './../auth/dto/login.dto';
-import { ReviewWithUserStatusService } from './review-with-user-status.service';
 import { UserBlockCheckService } from './../user/user-block-check.service';
 import { AwsService } from '../aws/aws.service';
-import { ReviewShareService } from './share.service';
 import { ReviewBlockService } from './review-block.service';
 import { ReviewBlockCheckService } from './review-block-check.service';
-import { ReviewBookmarkService } from './review-bookmark.service';
 import { ReviewLikeService } from './like.service';
 import {
   BadRequestException,
@@ -64,14 +60,11 @@ export class ReviewController {
     private readonly reviewLikeService: ReviewLikeService,
     private readonly reviewLikeCheckService: ReviewLikeCheckService,
     private readonly bookmarkService: BookmarkService,
-    private readonly reviewBookmarkService: ReviewBookmarkService,
-    private readonly reviewShareService: ReviewShareService,
     private readonly reviewBlockService: ReviewBlockService,
     private readonly reviewBlockCheckService: ReviewBlockCheckService,
     private readonly awsService: AwsService,
     private readonly userBlockCheckService: UserBlockCheckService,
     private readonly recommendationService: RecommendationService,
-    private readonly reviewWithUserStatusService: ReviewWithUserStatusService,
   ) {}
 
   @Get('/review/all')
@@ -388,22 +381,22 @@ export class ReviewController {
     await this.bookmarkService.unbookmarkReview(loginUser.idx, reviewIdx);
   }
 
-  @Post('/review/:reviewIdx/share')
-  @UseGuards(AuthGuard)
-  @ApiOperation({ summary: '리뷰 공유하기' })
-  @ApiParam({ name: 'reviewIdx', type: 'number', example: 1 })
-  @ApiBearerAuth()
-  @Exception(400, '유효하지않은 요청')
-  @Exception(401, '권한 없음')
-  @Exception(404, '해당 리소스 찾을수 없음')
-  @Exception(409, '현재상태와 요청 충돌')
-  @ApiResponse({ status: 201, type: ReviewShareEntity })
-  async shareReview(
-    @GetUser() loginUser: LoginUser,
-    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
-  ): Promise<ReviewShareEntity> {
-    return await this.reviewShareService.shareReview(loginUser.idx, reviewIdx);
-  }
+  // @Post('/review/:reviewIdx/share')
+  // @UseGuards(AuthGuard)
+  // @ApiOperation({ summary: '리뷰 공유하기' })
+  // @ApiParam({ name: 'reviewIdx', type: 'number', example: 1 })
+  // @ApiBearerAuth()
+  // @Exception(400, '유효하지않은 요청')
+  // @Exception(401, '권한 없음')
+  // @Exception(404, '해당 리소스 찾을수 없음')
+  // @Exception(409, '현재상태와 요청 충돌')
+  // @ApiResponse({ status: 201, type: ReviewShareEntity })
+  // async shareReview(
+  //   @GetUser() loginUser: LoginUser,
+  //   @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
+  // ): Promise<ReviewShareEntity> {
+  //   return await this.reviewShareService.shareReview(loginUser.idx, reviewIdx);
+  // }
 
   @Post('/review/:reviewIdx/block')
   @UseGuards(AuthGuard)

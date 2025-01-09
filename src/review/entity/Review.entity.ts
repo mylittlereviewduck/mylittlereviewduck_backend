@@ -19,7 +19,7 @@ const review = Prisma.validator<Prisma.ReviewTbDefaultArgs>()({
         reviewLikeTb: true,
         reviewDislikeTb: true,
         reviewBookmarkTb: true,
-        reviewShareTb: true,
+        // reviewShareTb: true,
       },
     },
   },
@@ -175,7 +175,7 @@ export class ReviewEntity {
     this.likeCount = data._count.reviewLikeTb;
     this.dislikeCount = data._count.reviewDislikeTb;
     this.bookmarkCount = data._count.reviewBookmarkTb;
-    this.shareCount = data._count.reviewShareTb;
+    // this.shareCount = data._count.reviewShareTb;
     this.commentCount = data._count.commentTb;
   }
 }

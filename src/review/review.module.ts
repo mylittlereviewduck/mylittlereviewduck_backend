@@ -7,7 +7,6 @@ import { PrismaModule } from 'src/prisma/prisma.module';
 import { ReviewLikeCheckService } from './review-like-check.service';
 import { ReviewBlockService } from './review-block.service';
 import { ReviewBlockCheckService } from './review-block-check.service';
-import { ReviewShareService } from './share.service';
 import { UserModule } from 'src/user/user.module';
 import { AwsModule } from 'src/aws/aws.module';
 import { NotificationModule } from 'src/notification/notification.module';
@@ -32,7 +31,6 @@ import { ReviewWithUserStatusService } from './review-with-user-status.service';
     ReviewLikeCheckService,
     BookmarkService,
     ReviewBookmarkService,
-    ReviewShareService,
     ReviewBlockService,
     ReviewBlockCheckService,
     RecommendationService,

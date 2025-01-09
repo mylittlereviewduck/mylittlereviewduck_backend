@@ -91,7 +91,6 @@ model ProfileImgTb {
   idx        Int       @id @default(autoincrement())
   imgPath    String    @map("img_path") @db.VarChar
   createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz(6)
   accountIdx String    @map("account_idx") @db.VarChar
   accountTb  AccountTb @relation(fields: [accountIdx], references: [idx], onDelete: Cascade, map: "fk_account_tb_to_profile_img_tb")
 
@@ -122,13 +121,12 @@ model ReviewBookmarkTb {
 }
 
 model ReviewImgTb {
-  idx       Int       @id @default(autoincrement())
-  reviewIdx Int       @map("review_idx")
-  imgPath   String    @map("img_path") @db.VarChar
-  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
-  content   String    @db.VarChar
-  reviewTb  ReviewTb  @relation(fields: [reviewIdx], references: [idx], onDelete: Cascade, map: "fk_review_tb_to_review_img_tb")
+  idx       Int      @id @default(autoincrement())
+  reviewIdx Int      @map("review_idx")
+  imgPath   String   @map("img_path") @db.VarChar
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  content   String   @db.VarChar
+  reviewTb  ReviewTb @relation(fields: [reviewIdx], references: [idx], onDelete: Cascade, map: "fk_review_tb_to_review_img_tb")
 
   @@map("review_img_tb")
 }
@@ -251,13 +249,12 @@ model NotificationTypeTb {
 }
 
 model ReviewThumbnailTb {
-  reviewIdx Int       @map("review_idx")
-  imgPath   String    @map("img_path") @db.VarChar
-  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
-  content   String    @db.VarChar(200)
-  idx       Int       @id(map: "review_thumbnail_tb_pk") @default(autoincrement())
-  reviewTb  ReviewTb  @relation(fields: [reviewIdx], references: [idx], onDelete: Cascade, map: "review_thumbnail_review_fk")
+  reviewIdx Int      @map("review_idx")
+  imgPath   String   @map("img_path") @db.VarChar
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  content   String   @db.VarChar(200)
+  idx       Int      @id(map: "review_thumbnail_tb_pk") @default(autoincrement())
+  reviewTb  ReviewTb @relation(fields: [reviewIdx], references: [idx], onDelete: Cascade, map: "review_thumbnail_review_fk")
 
   @@map("review_thumbnail_tb")
 }

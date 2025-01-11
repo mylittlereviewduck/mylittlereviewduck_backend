@@ -667,6 +667,7 @@ export class ReviewService {
           _count: 'desc',
         },
       },
+      take: 1000,
     });
 
     const hotReviews = reviewData.map((review) => new ReviewEntity(review));

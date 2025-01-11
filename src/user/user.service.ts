@@ -4,6 +4,7 @@ import {
   ConflictException,
   Inject,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
   forwardRef,
@@ -166,6 +167,37 @@ export class UserService {
 
   async createUser(dto: CreateUserDto): Promise<UserEntity> {
     let newUser;
+
+    // const users = await this.prismaService.accountTb.findMany({
+    //   select: {
+    //     idx: true,
+    //     pw: true,
+    //   },
+    // });
+
+    // for (let user of users) {
+    //   console.log('users: ', user);
+
+    //   const saltRounds = Number(
+    //     this.configService.get<string>('BCRYPT_SALT_ROUNDS'),
+    //   );
+    //   console.log('saltRounds: ', saltRounds);
+    //   console.log('saltRounds TYPE: ', typeof saltRounds);
+
+    //   const salt = await this.bcryptService.genSalt(saltRounds);
+    //   const hashedPw = await this.bcryptService.hash(dto.pw, salt);
+    //   console.log('hashedPw: ', hashedPw);
+
+    //   await this.prismaService.accountTb.update({
+    //     where: {
+    //       idx: user.idx,
+    //     },
+    //     data: {
+    //       pw: hashedPw,
+    //     },
+    //   });
+    // }
+
     await this.prismaService.$transaction(async (tx) => {
       const emailDuplicatedUser = await this.getUser({ email: dto.email }, tx);
 
@@ -191,7 +223,9 @@ export class UserService {
         throw new UnauthorizedException('Authentication TimeOut');
       }
 
-      const saltRounds = this.configService.get<number>('BCRYPT_SALT_ROUNDS');
+      const saltRounds = Number(
+        this.configService.get<string>('BCRYPT_SALT_ROUNDS'),
+      );
       const salt = await this.bcryptService.genSalt(saltRounds);
       const hashedPw = await this.bcryptService.hash(dto.pw, salt);
 

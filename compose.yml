@@ -20,7 +20,7 @@ services:
     ports:
       - 5432:5432
     healthcheck:
-      test: ['CMD', 'pg_isready', '-U', 'kiju', '-d', 'today_review']
+      test: ['CMD', 'pg_isready', '-U', 'postgres']
       interval: 5s
       retries: 10
 

@@ -1,22 +1,20 @@
 services:
-  backend-server:
+  today-review-backend-server:
     build: .
     env_file:
       - .env
     ports:
       - 3000:3000
     depends_on:
-      postgres-db:
+      today-review-postgres-db:
         condition: service_healthy
       redis:
         condition: service_healthy
 
-  postgres-db:
-    image: postgres
+  today-review-postgres-db:
+    image: k1ju/postgres-db:1.0.1
     environment:
-      POSTGRES_USER: kiju
-      POSTGRES_PASSWORD: 1234
-      POSTGRES_DB: today_review
+      POSTGRES_PASSWORD: 123
     volumes:
       - /Users/kiju/dev/study_data/docker-volume/postgres_data:/var/lib/postgresql/data
     ports:

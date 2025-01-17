@@ -86,11 +86,7 @@ export class ReviewController {
   async getHotReview(
     @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    return await this.reviewService.getHotReviewAll({
-      size: dto.size,
-      page: dto.page,
-      timeframe: 'all',
-    });
+    return await this.reviewService.getHotReviewAll(dto);
   }
 
   @Get('/review/cold')

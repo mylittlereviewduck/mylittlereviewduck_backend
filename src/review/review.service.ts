@@ -622,106 +622,134 @@ export class ReviewService {
     };
   }
 
+  getMidnightDaysAgo(daysAgo: number): Date {
+    const date = new Date();
+
+    date.setDate(date.getDate() - daysAgo);
+    date.setHours(0, 0, 0, 0);
+
+    return date;
+  }
+
+  async fetchHotReviews(start: Date, end: Date): Promise<ReviewEntity[]> {
+    const reviewData = await this.prismaService.reviewTb.findMany({
+      include: {
+        accountTb: {
+          include: {
+            profileImgTb: true,
+          },
+        },
+        tagTb: true,
+        reviewImgTb: true,
+        reviewThumbnailTb: true,
+        _count: {
+          select: {
+            commentTb: true,
+            reviewLikeTb: true,
+            reviewDislikeTb: true,
+            reviewBookmarkTb: true,
+          },
+        },
+      },
+      where: {
+        reviewLikeTb: {
+          some: {
+            createdAt: {
+              gte: start,
+              lte: end,
+            },
+          },
+        },
+      },
+      orderBy: {
+        reviewLikeTb: {
+          _count: 'desc',
+        },
+      },
+      take: 100,
+    });
+
+    return reviewData.map((review) => new ReviewEntity(review));
+  }
+
+  async fetchColdReviews(start: Date, end: Date): Promise<ReviewEntity[]> {
+    const reviewData = await this.prismaService.reviewTb.findMany({
+      include: {
+        accountTb: {
+          include: {
+            profileImgTb: true,
+          },
+        },
+        tagTb: true,
+        reviewImgTb: true,
+        reviewThumbnailTb: true,
+        _count: {
+          select: {
+            commentTb: true,
+            reviewLikeTb: true,
+            reviewDislikeTb: true,
+            reviewBookmarkTb: true,
+          },
+        },
+      },
+      where: {
+        reviewDislikeTb: {
+          some: {
+            createdAt: {
+              gte: start,
+              lte: end,
+            },
+          },
+        },
+      },
+      orderBy: {
+        reviewLikeTb: {
+          _count: 'desc',
+        },
+      },
+      take: 100,
+    });
+
+    return reviewData.map((review) => new ReviewEntity(review));
+  }
+
   // 700ms, 460ms 소요(캐싱, 인덱스 안했을경우)
   // (인덱싱 했을경우)
   // 메모리에 저장하는 함수, 12시간마다 실행되는 함수
-  @Cron(' 0 0 0,12 * * *')
-  async setHotReviewAll(): Promise<void> {
-    const mostRecentNoon = this.getMostRecentNoon();
+  @Cron('0 0 0 * * *')
+  async setHotReviews(): Promise<void> {
+    const endDay = new Date();
 
-    const reviewData = await this.prismaService.reviewTb.findMany({
-      include: {
-        accountTb: {
-          include: {
-            profileImgTb: true,
-          },
-        },
-        tagTb: true,
-        reviewImgTb: true,
-        reviewThumbnailTb: true,
-        _count: {
-          select: {
-            commentTb: true,
-            reviewLikeTb: true,
-            reviewDislikeTb: true,
-            reviewBookmarkTb: true,
-          },
-        },
-      },
-      where: {
-        reviewLikeTb: {
-          some: {
-            createdAt: {
-              // 12시간마다 업데이트 버전
-              // gte: new Date(mostRecentNoon.getTime() - 12 * 60 * 60 * 1000),
-              // lte: mostRecentNoon,
-              // 실시간 업데이트 버전
-              gte: mostRecentNoon,
-              lte: new Date(),
-            },
-          },
-        },
-      },
-      orderBy: {
-        reviewLikeTb: {
-          _count: 'desc',
-        },
-      },
-      take: 1000,
-    });
+    const start1Day = this.getMidnightDaysAgo(1);
+    const start7Day = this.getMidnightDaysAgo(7);
+    const start30Day = this.getMidnightDaysAgo(30);
+    endDay.setHours(0, 0, 0, 0);
 
-    const hotReviews = reviewData.map((review) => new ReviewEntity(review));
+    const hotReviews1Day = await this.fetchHotReviews(start1Day, endDay);
+    const hotReviews7Day = await this.fetchHotReviews(start7Day, endDay);
+    const hotReviews30Day = await this.fetchHotReviews(start30Day, endDay);
 
-    await this.redis.set('hotReviews', JSON.stringify(hotReviews));
+    await this.redis.set('hotReviews1Day', JSON.stringify(hotReviews1Day));
+    await this.redis.set('hotReviews7Day', JSON.stringify(hotReviews7Day));
+    await this.redis.set('hotReviews30Day', JSON.stringify(hotReviews30Day));
   }
 
-  @Cron(' 0 0 0,12 * * *')
-  async setColdReviewAll(): Promise<void> {
-    const mostRecentNoon = this.getMostRecentNoon();
+  @Cron('0 0 0 * * *')
+  async setColdReviews(): Promise<void> {
+    const endDay = new Date();
 
-    const reviewData = await this.prismaService.reviewTb.findMany({
-      include: {
-        accountTb: {
-          include: {
-            profileImgTb: true,
-          },
-        },
-        tagTb: true,
-        reviewImgTb: true,
-        reviewThumbnailTb: true,
-        _count: {
-          select: {
-            commentTb: true,
-            reviewLikeTb: true,
-            reviewDislikeTb: true,
-            reviewBookmarkTb: true,
-          },
-        },
-      },
-      where: {
-        reviewDislikeTb: {
-          some: {
-            createdAt: {
-              // 12시간마다 업데이트 버전
-              // gte: new Date(mostRecentNoon.getTime() - 12 * 60 * 60 * 1000),
-              // lte: mostRecentNoon,
-              // 실시간 업데이트 버전
-              gte: mostRecentNoon,
-              lte: new Date(),
-            },
-          },
-        },
-      },
-      orderBy: {
-        reviewDislikeTb: {
-          _count: 'desc',
-        },
-      },
-    });
+    const start1Day = this.getMidnightDaysAgo(1);
+    const start7Day = this.getMidnightDaysAgo(7);
+    const start30Day = this.getMidnightDaysAgo(30);
+    endDay.setHours(0, 0, 0, 0);
 
-    const coldReviews = reviewData.map((review) => new ReviewEntity(review));
+    const coldReviews1Day = await this.fetchColdReviews(start1Day, endDay);
+    const coldReviews7Day = await this.fetchColdReviews(start7Day, endDay);
+    const coldReviews30Day = await this.fetchColdReviews(start30Day, endDay);
 
-    await this.redis.set('coldReviews', JSON.stringify(coldReviews));
+    await this.redis.set('coldReviews1Day', JSON.stringify(coldReviews1Day));
+    await this.redis.set('coldReviews7Day', JSON.stringify(coldReviews7Day));
+    await this.redis.set('coldReviews30Day', JSON.stringify(coldReviews30Day));
   }
 
   async getHotReviewAll(
@@ -1109,7 +1137,7 @@ export class ReviewService {
     this.logger.log('setHotReviewAll Method Start');
     this.logger.log('setColdReviewAll() Method Start');
 
-    await this.setHotReviewAll();
-    await this.setColdReviewAll();
+    await this.setHotReviews();
+    await this.setColdReviews();
   }
 }

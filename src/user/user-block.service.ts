@@ -108,8 +108,8 @@ export class UserBlockService {
     let blockedUserList = blockedList.map((elem) => {
       return {
         ...elem.blocked,
-        followingCount: elem.blocked._count.followers,
-        followerCount: elem.blocked._count.followings,
+        followingCount: elem.blocked._count.followings,
+        followerCount: elem.blocked._count.followers,
         isBlocked: true,
       };
     });

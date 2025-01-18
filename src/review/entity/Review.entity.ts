@@ -19,7 +19,6 @@ const review = Prisma.validator<Prisma.ReviewTbDefaultArgs>()({
         reviewLikeTb: true,
         reviewDislikeTb: true,
         reviewBookmarkTb: true,
-        // reviewShareTb: true,
       },
     },
   },

@@ -42,8 +42,8 @@ export class UserSuspensionService {
         profileImgTb: true,
         _count: {
           select: {
-            follower: true,
-            followee: true,
+            followers: true,
+            followings: true,
             reviewTb: true,
           },
         },

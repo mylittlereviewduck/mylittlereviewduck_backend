@@ -6,8 +6,8 @@ const user = Prisma.validator<Prisma.AccountTbDefaultArgs>()({
     profileImgTb: true,
     _count: {
       select: {
-        follower: true,
-        followee: true,
+        followers: true,
+        followings: true,
         reviewTb: true,
       },
     },
@@ -104,7 +104,7 @@ export class UserEntity {
     this.suspendExpireAt = data.suspendExpireAt;
     this.reviewCount = data._count.reviewTb;
     this.createdAt = data.createdAt;
-    this.followingCount = data._count.follower;
-    this.followerCount = data._count.followee;
+    this.followerCount = data._count.followers;
+    this.followingCount = data._count.followings;
   }
 }

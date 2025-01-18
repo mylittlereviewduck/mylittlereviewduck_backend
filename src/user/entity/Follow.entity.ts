@@ -11,7 +11,7 @@ export class FollowEntity {
     example: '96189f51-1b01-4781-b9df-e659d551d665',
     description: '팔로우되는 유저 idx',
   })
-  followeeIdx: string;
+  followingIdx: string;
 
   @ApiProperty({
     example: '2024-07-31T02:05:22.376Z',
@@ -21,7 +21,7 @@ export class FollowEntity {
 
   constructor(data) {
     this.followerIdx = data.followerIdx;
-    this.followeeIdx = data.followeeIdx;
+    this.followingIdx = data.followingIdx;
     this.createdAt = data.createdAt;
   }
 }

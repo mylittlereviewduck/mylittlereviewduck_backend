@@ -40,8 +40,8 @@ model AccountTb {
   commentLikeTb                                       CommentLikeTb[]
   commentTagTb                                        CommentTagTb[]
   commentTb                                           CommentTb[]
-  follower                                            FollowTb[]         @relation("follow_tb_follower_idxToaccount_tb")
-  followee                                            FollowTb[]         @relation("follow_tb_followee_idxToaccount_tb")
+  followings                                          FollowTb[]         @relation("follow_tb_follower_idxToaccount_tb")
+  followers                                           FollowTb[]         @relation("follow_tb_following_idxToaccount_tb")
   notificationTbNotificationTbSenderIdxToaccountTb    NotificationTb[]   @relation("notification_tb_sender_idxToaccount_tb")
   notificationTbNotificationTbRecipientIdxToaccountTb NotificationTb[]   @relation("notification_tb_recipient_idxToaccount_tb")
   profileImgTb                                        ProfileImgTb[]
@@ -77,13 +77,13 @@ model CommentTb {
 }
 
 model FollowTb {
-  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  followerIdx String    @map("follower_idx") @db.VarChar
-  followeeIdx String    @map("followee_idx") @db.VarChar
-  follower    AccountTb @relation("follow_tb_follower_idxToaccount_tb", fields: [followerIdx], references: [idx], onDelete: Cascade, map: "fk_account_tb_to_follow_tb")
-  followee    AccountTb @relation("follow_tb_followee_idxToaccount_tb", fields: [followeeIdx], references: [idx], onDelete: Cascade, map: "fk_account_tb_to_follow_tb1")
+  createdAt                                DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  followerIdx                              String    @map("follower_idx") @db.VarChar
+  followingIdx                             String    @map("following_idx") @db.VarChar
+  follower                                 AccountTb @relation("follow_tb_follower_idxToaccount_tb", fields: [followerIdx], references: [idx], onDelete: Cascade, map: "fk_account_tb_to_follow_tb")
+  following                                AccountTb @relation("follow_tb_following_idxToaccount_tb", fields: [followingIdx], references: [idx], onDelete: Cascade, map: "fk_account_tb_to_follow_tb1")
 
-  @@id([followerIdx, followeeIdx], map: "follow_tb_pk")
+  @@id([followerIdx, followingIdx], map: "follow_tb_pk")
   @@map("follow_tb")
 }
 

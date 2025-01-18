@@ -44,8 +44,8 @@ export class UserService {
         profileImgTb: true,
         _count: {
           select: {
-            followee: true,
-            follower: true,
+            followings: true,
+            followers: true,
             reviewTb: true,
           },
         },
@@ -91,8 +91,8 @@ export class UserService {
         profileImgTb: true,
         _count: {
           select: {
-            followee: true,
-            follower: true,
+            followings: true,
+            followers: true,
             reviewTb: true,
           },
         },
@@ -134,8 +134,8 @@ export class UserService {
         profileImgTb: true,
         _count: {
           select: {
-            followee: true,
-            follower: true,
+            followings: true,
+            followers: true,
             reviewTb: true,
           },
         },
@@ -265,8 +265,8 @@ export class UserService {
         profileImgTb: true,
         _count: {
           select: {
-            followee: true,
-            follower: true,
+            followings: true,
+            followers: true,
             reviewTb: true,
           },
         },
@@ -300,8 +300,8 @@ export class UserService {
         profileImgTb: true,
         _count: {
           select: {
-            followee: true,
-            follower: true,
+            followings: true,
+            followers: true,
             reviewTb: true,
           },
         },

@@ -90,8 +90,8 @@ export class UserBlockService {
             profileImgTb: true,
             _count: {
               select: {
-                follower: true,
-                followee: true,
+                followers: true,
+                followings: true,
                 reviewTb: true,
               },
             },
@@ -108,8 +108,8 @@ export class UserBlockService {
     let blockedUserList = blockedList.map((elem) => {
       return {
         ...elem.blocked,
-        followingCount: elem.blocked._count.follower,
-        followerCount: elem.blocked._count.followee,
+        followingCount: elem.blocked._count.followers,
+        followerCount: elem.blocked._count.followings,
         isBlocked: true,
       };
     });

@@ -434,19 +434,94 @@ export class ReviewService {
     };
   }
 
-  async getLatestReviewsByFollowing(
-    dto: ReviewPagerbleDto,
+  async getFollowingReviews(
+    dto: GetReviewsWithLoginUserDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    const followList = await this.userFollowService.getFollowingUsersIdx({
-      userIdx: dto.userIdx,
+    const totalCount = await this.prismaService.reviewTb.count({
+      where: {
+        accountTb: {
+          followers: {
+            some: {
+              followerIdx: dto.loginUserIdx,
+            },
+          },
+        },
+      },
     });
 
-    return await this.getReviewsAll({
-      page: dto.page,
-      size: dto.size,
-      timeframe: dto.timeframe,
-      userIdxs: followList.followingIdxs,
+    const reviewData = await this.prismaService.reviewTb.findMany({
+      include: {
+        accountTb: {
+          include: {
+            profileImgTb: true,
+          },
+        },
+        tagTb: true,
+        reviewImgTb: true,
+        reviewThumbnailTb: true,
+        _count: {
+          select: {
+            commentTb: true,
+            reviewLikeTb: true,
+            reviewDislikeTb: true,
+            reviewBookmarkTb: true,
+          },
+        },
+      },
+      where: {
+        accountTb: {
+          followers: {
+            some: {
+              followerIdx: dto.loginUserIdx,
+            },
+          },
+        },
+      },
+      skip: dto.page * dto.size,
+      take: dto.size,
+      orderBy: { createdAt: 'desc' },
     });
+
+    return {
+      totalPage: Math.ceil(totalCount / dto.size),
+      reviews: reviewData.map((elem) => new ReviewEntity(elem)),
+    };
+  }
+
+  async getFollowingReviewsWithUserStatus(
+    dto: GetReviewsWithLoginUserDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    const reviewPagerbleResponseDto = await this.getFollowingReviews(dto);
+
+    if (!dto.loginUserIdx) {
+      return reviewPagerbleResponseDto;
+    }
+
+    const reviewIdxs = reviewPagerbleResponseDto.reviews.map(
+      (review) => review.idx,
+    );
+
+    const userStatus = await this.reviewWithUserStatusService.getUserStatus(
+      dto.loginUserIdx,
+      reviewIdxs,
+      null,
+    );
+
+    const statusMap = new Map(
+      userStatus.map((status) => [status.reviewIdx, status]),
+    );
+
+    reviewPagerbleResponseDto.reviews.map((review) => {
+      const userStatus = statusMap.get(review.idx);
+      if (userStatus) {
+        review.isMyLike = userStatus.isMyLike;
+        review.isMyDislike = userStatus.isMyDislike;
+        review.isMyBookmark = userStatus.isMyBookmark;
+        review.isMyBlock = userStatus.isMyBlock;
+      }
+    });
+
+    return reviewPagerbleResponseDto;
   }
 
   async increaseViewCount(reviewIdx: number): Promise<void> {
@@ -811,26 +886,6 @@ export class ReviewService {
     if (!dto.loginUserIdx) {
       return reviewPagerbleResponseDto;
     }
-
-    // await this.reviewLikeCheckService.isReviewLiked(
-    //   dto.loginUserIdx,
-    //   reviewPagerbleResponseDto.reviews,
-    // );
-
-    // await this.reviewLikeCheckService.isReviewDisliked(
-    //   dto.loginUserIdx,
-    //   reviewPagerbleResponseDto.reviews,
-    // );
-
-    // await this.reviewBlockCheckService.isReviewBlocked(
-    //   dto.loginUserIdx,
-    //   reviewPagerbleResponseDto.reviews,
-    // );
-
-    // await this.userBlockCheckService.isBlockedUser(
-    //   dto.loginUserIdx,
-    //   reviewPagerbleResponseDto.reviews.map((elem) => elem.user),
-    // );
 
     const userStatuses = await this.reviewWithUserStatusService.getUserStatus(
       dto.loginUserIdx,

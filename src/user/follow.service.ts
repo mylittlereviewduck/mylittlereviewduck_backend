@@ -39,7 +39,7 @@ export class FollowService {
     const followEntity = await this.prismaService.followTb.create({
       data: {
         followerIdx: userIdx,
-        followeeIdx: toUserIdx,
+        followingIdx: toUserIdx,
       },
     });
 
@@ -68,7 +68,7 @@ export class FollowService {
     await this.prismaService.followTb.deleteMany({
       where: {
         followerIdx: userIdx,
-        followeeIdx: toUserIdx,
+        followingIdx: toUserIdx,
       },
     });
   }

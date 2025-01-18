@@ -14,17 +14,17 @@ export class UserFollowService {
   ): Promise<UserEntity[] | NotificationUserEntity[]> {
     const sqlResult = await this.prismaService.followTb.findMany({
       select: {
-        followee: true,
+        following: true,
       },
       where: {
         followerIdx: accountIdx,
-        followeeIdx: {
+        followingIdx: {
           in: toUsers.map((elem) => elem.idx),
         },
       },
     });
 
-    const followingUserList = sqlResult.map((elem) => elem.followee.idx);
+    const followingUserList = sqlResult.map((elem) => elem.following.idx);
 
     for (let i = 0; i < toUsers.length; i++) {
       if (followingUserList.includes(toUsers[i].idx)) {
@@ -46,13 +46,13 @@ export class UserFollowService {
 
     const followList = await this.prismaService.followTb.findMany({
       where: { followerIdx: dto.userIdx },
-      select: { followeeIdx: true },
+      select: { followingIdx: true },
       ...(dto.page && { skip: (dto.page - 1) * dto.size }),
       ...(dto.size && { take: dto.size }),
     });
 
     return {
-      followingIdxs: followList.map((follow) => follow.followeeIdx),
+      followingIdxs: followList.map((follow) => follow.followingIdx),
       totalCount,
     };
   }
@@ -61,11 +61,11 @@ export class UserFollowService {
     dto: GetFollowUserDto,
   ): Promise<{ followerIdxs: string[]; totalCount: number }> {
     const totalCount = await this.prismaService.followTb.count({
-      where: { followeeIdx: dto.userIdx },
+      where: { followingIdx: dto.userIdx },
     });
 
     const followeeList = await this.prismaService.followTb.findMany({
-      where: { followeeIdx: dto.userIdx },
+      where: { followingIdx: dto.userIdx },
       select: { followerIdx: true },
       ...(dto.page && { skip: (dto.page - 1) * dto.size }),
       ...(dto.size && { take: dto.size }),

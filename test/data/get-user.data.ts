@@ -22,9 +22,8 @@ export const getUserData: User = {
       imgPath:
         'https://s3.ap-northeast-2.amazonaws.com/todayreview/1724893124840.png',
       createdAt: new Date('2024-08-29T00:58:46.381Z'),
-      deletedAt: null,
       accountIdx: '344e753e-9071-47b2-b651-bc32a0a92b1f',
     },
   ],
-  _count: { followee: 6, follower: 6 },
+  _count: { followers: 6, followings: 6, reviewTb: 10 },
 };

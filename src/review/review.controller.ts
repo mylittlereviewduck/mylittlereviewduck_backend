@@ -436,11 +436,10 @@ export class ReviewController {
     @GetUser() loginUser: LoginUser,
     @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    return await this.reviewService.getLatestReviewsByFollowing({
+    return await this.reviewService.getFollowingReviewsWithUserStatus({
       size: dto.size,
       page: dto.page,
-      timeframe: dto.timeframe,
-      userIdx: loginUser.idx,
+      loginUserIdx: loginUser.idx,
     });
   }
 

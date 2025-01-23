@@ -61,7 +61,6 @@ export class NotificationService {
       content = `${sender.nickname}님이 내 리뷰를 좋아합니다.`;
     } else if (dto.type == 3) {
       content = `${sender.nickname}님이 댓글을 남겼습니다.: ${comment.content}`;
-      56;
     }
 
     const notificationData = await this.prismaService.notificationTb.create({

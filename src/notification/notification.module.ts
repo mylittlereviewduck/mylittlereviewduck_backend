@@ -6,6 +6,7 @@ import { NotificationController } from './notification.controller';
 import { SseService } from './sse.service';
 import { CommentModule } from 'src/comment/comment.module';
 import { ReviewModule } from 'src/review/review.module';
+import { FirebaseService } from './firebase.service';
 
 @Module({
   imports: [
@@ -15,7 +16,7 @@ import { ReviewModule } from 'src/review/review.module';
     forwardRef(() => CommentModule),
   ],
   controllers: [NotificationController],
-  providers: [NotificationService, SseService],
+  providers: [NotificationService, SseService, FirebaseService],
   exports: [NotificationService, SseService],
 })
 export class NotificationModule {}

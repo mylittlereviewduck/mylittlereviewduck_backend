@@ -11,7 +11,7 @@ import { NotificationModule } from 'src/notification/notification.module';
 import { EmailModule } from '../email/email.module';
 import { UserSuspensionService } from './user-suspension.service';
 import { UserFollowService } from './user-follow.service';
-import { FirebaseModule } from 'src/firebase/firebase.module';
+import { FcmTokenService } from './fcm-token.service';
 
 @Module({
   imports: [
@@ -20,7 +20,6 @@ import { FirebaseModule } from 'src/firebase/firebase.module';
     AwsModule,
     NotificationModule,
     EmailModule,
-    FirebaseModule,
   ],
   controllers: [UserController],
   providers: [
@@ -30,6 +29,7 @@ import { FirebaseModule } from 'src/firebase/firebase.module';
     UserFollowService,
     UserBlockCheckService,
     UserSuspensionService,
+    FcmTokenService,
   ],
   exports: [
     UserService,

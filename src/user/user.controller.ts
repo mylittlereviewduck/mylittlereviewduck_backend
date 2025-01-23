@@ -260,7 +260,7 @@ export class UserController {
     return userSearchResponseDto;
   }
 
-  @Post('/fcm')
+  @Post('/fcm/token')
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'fcm토큰 저장하기' })
   @ApiBearerAuth()

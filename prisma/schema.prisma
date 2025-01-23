@@ -289,6 +289,7 @@ model FcmTokenTb {
   idx        Int       @id @default(autoincrement())
   accountIdx String    @map("account_idx") @db.VarChar
   token      String    @db.VarChar
+  deviceIdx  String    @unique(map: "device_idx_unique") @map("device_idx") @db.VarChar
   accountTb  AccountTb @relation(fields: [accountIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "account_idx_fk")
 
   @@map("fcm_token_tb")

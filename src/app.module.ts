@@ -12,6 +12,7 @@ import { NotificationModule } from './notification/notification.module';
 import { ReportModule } from './report/report.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { RedisModule } from '@liaoliaots/nestjs-redis';
+import { FirebaseModule } from './firebase/firebase.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { RedisModule } from '@liaoliaots/nestjs-redis';
     NotificationModule,
     ReportModule,
     EventEmitterModule.forRoot(),
+    FirebaseModule,
     RedisModule.forRootAsync({
       useFactory: async (configService: ConfigService) => ({
         config: {

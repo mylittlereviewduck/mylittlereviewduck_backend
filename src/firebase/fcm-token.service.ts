@@ -16,11 +16,23 @@ export class FcmTokenService {
 
   async getFcmToken(userIdx: string): Promise<string | string[]> {
     const result = await this.prismaService.fcmTokenTb.findMany({
+      select: {
+        token: true,
+      },
       where: {
         accountIdx: userIdx,
       },
     });
 
-    return result.map((data) => data.token);
+    return result.map((elem) => elem.token);
+  }
+
+  async getFcmTokenAll(): Promise<string[]> {
+    const result = await this.prismaService.fcmTokenTb.findMany({
+      select: {
+        token: true,
+      },
+    });
+    return result.map((elem) => elem.token);
   }
 }

@@ -13,4 +13,14 @@ export class FcmTokenService {
       },
     });
   }
+
+  async getFcmToken(userIdx: string): Promise<string | string[]> {
+    const result = await this.prismaService.fcmTokenTb.findMany({
+      where: {
+        accountIdx: userIdx,
+      },
+    });
+
+    return result.map((data) => data.token);
+  }
 }

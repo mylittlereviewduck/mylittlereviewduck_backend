@@ -87,7 +87,6 @@ export class UserBlockService {
       include: {
         blocked: {
           include: {
-            profileImgTb: true,
             _count: {
               select: {
                 followers: true,

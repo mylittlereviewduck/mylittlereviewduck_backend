@@ -73,11 +73,7 @@ export class NotificationService {
         ...(review && { reviewIdx: review.idx }),
       },
       include: {
-        senderAccountTb: {
-          include: {
-            profileImgTb: true,
-          },
-        },
+        senderAccountTb: true,
         notificationTypeTb: {
           select: {
             typeName: true,
@@ -103,11 +99,7 @@ export class NotificationService {
 
       notificationData = await tx.notificationTb.findMany({
         include: {
-          senderAccountTb: {
-            include: {
-              profileImgTb: true,
-            },
-          },
+          senderAccountTb: true,
           notificationTypeTb: {
             select: {
               typeName: true,

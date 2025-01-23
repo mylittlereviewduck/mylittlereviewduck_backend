@@ -71,11 +71,7 @@ export class ReviewService {
 
     reviewData = await this.prismaService.reviewTb.create({
       include: {
-        accountTb: {
-          include: {
-            profileImgTb: true,
-          },
-        },
+        accountTb: true,
         tagTb: true,
         reviewThumbnailTb: true,
         reviewImgTb: true,
@@ -139,15 +135,9 @@ export class ReviewService {
 
       data = await tx.reviewTb.update({
         include: {
-          accountTb: {
-            include: {
-              profileImgTb: true,
-            },
-          },
-
+          accountTb: true,
           tagTb: true,
           reviewImgTb: true,
-          reviewThumbnailTb: true,
           _count: {
             select: {
               commentTb: true,
@@ -261,14 +251,9 @@ export class ReviewService {
   async getReviewByIdx(reviewIdx: number): Promise<ReviewEntity> {
     let review = await this.prismaService.reviewTb.findUnique({
       include: {
-        accountTb: {
-          include: {
-            profileImgTb: true,
-          },
-        },
+        accountTb: true,
         tagTb: true,
         reviewImgTb: true,
-        reviewThumbnailTb: true,
         _count: {
           select: {
             commentTb: true,
@@ -294,14 +279,9 @@ export class ReviewService {
   async getReviewsByIdx(reviewIdxs: number[]): Promise<ReviewEntity[]> {
     let reviews = await this.prismaService.reviewTb.findMany({
       include: {
-        accountTb: {
-          include: {
-            profileImgTb: true,
-          },
-        },
+        accountTb: true,
         tagTb: true,
         reviewImgTb: true,
-        reviewThumbnailTb: true,
         _count: {
           select: {
             commentTb: true,
@@ -395,14 +375,9 @@ export class ReviewService {
 
     const reviewSQLResult = await this.prismaService.reviewTb.findMany({
       include: {
-        accountTb: {
-          include: {
-            profileImgTb: true,
-          },
-        },
+        accountTb: true,
         tagTb: true,
         reviewImgTb: true,
-        reviewThumbnailTb: true,
         _count: {
           select: {
             commentTb: true,
@@ -451,14 +426,9 @@ export class ReviewService {
 
     const reviewData = await this.prismaService.reviewTb.findMany({
       include: {
-        accountTb: {
-          include: {
-            profileImgTb: true,
-          },
-        },
+        accountTb: true,
         tagTb: true,
         reviewImgTb: true,
-        reviewThumbnailTb: true,
         _count: {
           select: {
             commentTb: true,
@@ -556,14 +526,9 @@ export class ReviewService {
 
     const reviewData = await this.prismaService.reviewTb.findMany({
       include: {
-        accountTb: {
-          include: {
-            profileImgTb: true,
-          },
-        },
+        accountTb: true,
         tagTb: true,
         reviewImgTb: true,
-        reviewThumbnailTb: true,
         _count: {
           select: {
             commentTb: true,
@@ -632,14 +597,9 @@ export class ReviewService {
 
     const reviewData = await this.prismaService.reviewTb.findMany({
       include: {
-        accountTb: {
-          include: {
-            profileImgTb: true,
-          },
-        },
+        accountTb: true,
         tagTb: true,
         reviewImgTb: true,
-        reviewThumbnailTb: true,
         _count: {
           select: {
             commentTb: true,
@@ -709,14 +669,9 @@ export class ReviewService {
   async fetchHotReviews(start: Date, end: Date): Promise<ReviewEntity[]> {
     const reviewData = await this.prismaService.reviewTb.findMany({
       include: {
-        accountTb: {
-          include: {
-            profileImgTb: true,
-          },
-        },
+        accountTb: true,
         tagTb: true,
         reviewImgTb: true,
-        reviewThumbnailTb: true,
         _count: {
           select: {
             commentTb: true,
@@ -750,14 +705,9 @@ export class ReviewService {
   async fetchColdReviews(start: Date, end: Date): Promise<ReviewEntity[]> {
     const reviewData = await this.prismaService.reviewTb.findMany({
       include: {
-        accountTb: {
-          include: {
-            profileImgTb: true,
-          },
-        },
+        accountTb: true,
         tagTb: true,
         reviewImgTb: true,
-        reviewThumbnailTb: true,
         _count: {
           select: {
             commentTb: true,
@@ -984,14 +934,9 @@ export class ReviewService {
 
     const reviewData = await this.prismaService.reviewTb.findMany({
       include: {
-        accountTb: {
-          include: {
-            profileImgTb: true,
-          },
-        },
+        accountTb: true,
         tagTb: true,
         reviewImgTb: true,
-        reviewThumbnailTb: true,
         _count: {
           select: {
             commentTb: true,
@@ -1099,14 +1044,9 @@ export class ReviewService {
     //리뷰페이지네이션 반환
     const reviewData = await this.prismaService.reviewTb.findMany({
       include: {
-        accountTb: {
-          include: {
-            profileImgTb: true,
-          },
-        },
+        accountTb: true,
         tagTb: true,
         reviewImgTb: true,
-        reviewThumbnailTb: true,
         _count: {
           select: {
             commentTb: true,

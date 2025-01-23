@@ -5,14 +5,9 @@ import { IsString } from 'class-validator';
 
 const review = Prisma.validator<Prisma.ReviewTbDefaultArgs>()({
   include: {
-    accountTb: {
-      include: {
-        profileImgTb: true,
-      },
-    },
+    accountTb: true,
     tagTb: true,
     reviewImgTb: true,
-    reviewThumbnailTb: true,
     _count: {
       select: {
         commentTb: true,

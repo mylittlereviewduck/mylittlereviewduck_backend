@@ -60,14 +60,9 @@ export class ReviewBookmarkService {
       include: {
         reviewTb: {
           include: {
-            accountTb: {
-              include: {
-                profileImgTb: true,
-              },
-            },
+            accountTb: true,
             tagTb: true,
             reviewImgTb: true,
-            reviewThumbnailTb: true,
             _count: {
               select: {
                 commentTb: true,

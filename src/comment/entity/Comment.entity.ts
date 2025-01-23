@@ -4,20 +4,8 @@ import { ReviewUserEntity } from 'src/review/entity/ReviewUser.entity';
 
 const comment = Prisma.validator<Prisma.CommentTbDefaultArgs>()({
   include: {
-    accountTb: {
-      include: {
-        profileImgTb: true,
-      },
-    },
-    commentTagTb: {
-      include: {
-        accountTb: {
-          include: {
-            profileImgTb: true,
-          },
-        },
-      },
-    },
+    accountTb: true,
+    commentTagTb: true,
     _count: {
       select: {
         commentLikeTb: true,

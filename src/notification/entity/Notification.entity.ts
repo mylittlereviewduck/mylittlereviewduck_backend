@@ -4,11 +4,7 @@ import { NotificationUserEntity } from './NotificationUser.entity';
 
 const notification = Prisma.validator<Prisma.NotificationTbDefaultArgs>()({
   include: {
-    senderAccountTb: {
-      include: {
-        profileImgTb: true,
-      },
-    },
+    senderAccountTb: true,
     notificationTypeTb: {
       select: {
         typeName: true,

@@ -15,7 +15,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateMyInfoDto } from './dto/update-my-info.dto';
 import { GetUserDto } from './dto/get-user.dto';
 import { GetUsersAllDto } from './dto/get-users-all.dto';
-import { Prisma } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { UserListResponseDto } from './dto/response/user-list-response.dto';
 import { BcryptService } from 'src/auth/bcrypt.service';
 
@@ -41,7 +41,6 @@ export class UserService {
 
     const userData = await prisma.accountTb.findFirst({
       include: {
-        profileImgTb: true,
         _count: {
           select: {
             followings: true,
@@ -88,7 +87,6 @@ export class UserService {
 
     const userData = await this.prismaService.accountTb.findMany({
       include: {
-        profileImgTb: true,
         _count: {
           select: {
             followings: true,
@@ -131,7 +129,6 @@ export class UserService {
   async getUsersByIdx(userIdxs: string[]): Promise<UserEntity[]> {
     const users = await this.prismaService.accountTb.findMany({
       include: {
-        profileImgTb: true,
         _count: {
           select: {
             followings: true,
@@ -262,7 +259,6 @@ export class UserService {
         providerKey: dto.providerKey,
       },
       include: {
-        profileImgTb: true,
         _count: {
           select: {
             followings: true,
@@ -297,7 +293,6 @@ export class UserService {
 
     const updatedUser = await this.prismaService.accountTb.update({
       include: {
-        profileImgTb: true,
         _count: {
           select: {
             followings: true,
@@ -321,27 +316,19 @@ export class UserService {
     return new UserEntity(updatedUser);
   }
 
-  async updateMyProfileImg(userIdx: string, imgPath: string): Promise<void> {
-    await this.prismaService.$transaction([
-      this.prismaService.profileImgTb.deleteMany({
-        where: {
-          accountIdx: userIdx,
-        },
-      }),
+  async updateMyProfileImg(
+    userIdx: string,
+    imgPath: string | null,
+    tx: PrismaClient | null,
+  ): Promise<void> {
+    const prismaService = tx || this.prismaService;
 
-      this.prismaService.profileImgTb.create({
-        data: {
-          accountIdx: userIdx,
-          imgPath: imgPath,
-        },
-      }),
-    ]);
-  }
-
-  async deleteMyProfileImg(userIdx: string): Promise<any> {
-    await this.prismaService.profileImgTb.deleteMany({
+    await prismaService.accountTb.update({
       where: {
-        accountIdx: userIdx,
+        idx: userIdx,
+      },
+      data: {
+        profileImg: imgPath,
       },
     });
   }

@@ -32,20 +32,8 @@ export class CommentService {
 
     const comment = await this.prismaService.commentTb.findUnique({
       include: {
-        accountTb: {
-          include: {
-            profileImgTb: true,
-          },
-        },
-        commentTagTb: {
-          include: {
-            accountTb: {
-              include: {
-                profileImgTb: true,
-              },
-            },
-          },
-        },
+        accountTb: true,
+        commentTagTb: true,
         _count: {
           select: {
             commentLikeTb: true,
@@ -82,20 +70,8 @@ export class CommentService {
 
     const commentData = await this.prismaService.commentTb.findMany({
       include: {
-        accountTb: {
-          include: {
-            profileImgTb: true,
-          },
-        },
-        commentTagTb: {
-          include: {
-            accountTb: {
-              include: {
-                profileImgTb: true,
-              },
-            },
-          },
-        },
+        accountTb: true,
+        commentTagTb: true,
         _count: {
           select: {
             commentLikeTb: true,
@@ -137,20 +113,8 @@ export class CommentService {
     //태그테이블 데이터 생성
     const commentData = await this.prismaService.commentTb.create({
       include: {
-        accountTb: {
-          include: {
-            profileImgTb: true,
-          },
-        },
-        commentTagTb: {
-          include: {
-            accountTb: {
-              include: {
-                profileImgTb: true,
-              },
-            },
-          },
-        },
+        accountTb: true,
+        commentTagTb: true,
         _count: {
           select: {
             commentLikeTb: true,
@@ -204,20 +168,8 @@ export class CommentService {
 
     const commentData = await this.prismaService.commentTb.update({
       include: {
-        accountTb: {
-          include: {
-            profileImgTb: true,
-          },
-        },
-        commentTagTb: {
-          include: {
-            accountTb: {
-              include: {
-                profileImgTb: true,
-              },
-            },
-          },
-        },
+        accountTb: true,
+        commentTagTb: true,
         _count: {
           select: {
             commentLikeTb: true,

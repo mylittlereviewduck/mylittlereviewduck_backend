@@ -35,6 +35,7 @@ model AccountTb {
   suspensionCount                                     Int                @default(0) @map("suspension_count")
   isAdmin                                             Boolean            @default(false) @map("is_admin")
   suspendExpireAt                                     DateTime?          @map("suspend_expire_at") @db.Timestamptz(6)
+  profileImg                                          String?            @map("profile_img") @db.VarChar
   blocker                                             AccountBlockTb[]   @relation("account_block_tb_blocker_idxToaccount_tb")
   blocked                                             AccountBlockTb[]   @relation("account_block_tb_blocked_idxToaccount_tb")
   commentLikeTb                                       CommentLikeTb[]
@@ -44,7 +45,6 @@ model AccountTb {
   followers                                           FollowTb[]         @relation("follow_tb_following_idxToaccount_tb")
   notificationTbNotificationTbSenderIdxToaccountTb    NotificationTb[]   @relation("notification_tb_sender_idxToaccount_tb")
   notificationTbNotificationTbRecipientIdxToaccountTb NotificationTb[]   @relation("notification_tb_recipient_idxToaccount_tb")
-  profileImgTb                                        ProfileImgTb[]
   reportTb                                            ReportTb[]
   reviewBlockTb                                       ReviewBlockTb[]
   reviewBookmarkTb                                    ReviewBookmarkTb[]
@@ -77,24 +77,14 @@ model CommentTb {
 }
 
 model FollowTb {
-  createdAt                                DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  followerIdx                              String    @map("follower_idx") @db.VarChar
-  followingIdx                             String    @map("following_idx") @db.VarChar
-  follower                                 AccountTb @relation("follow_tb_follower_idxToaccount_tb", fields: [followerIdx], references: [idx], onDelete: Cascade, map: "fk_account_tb_to_follow_tb")
-  following                                AccountTb @relation("follow_tb_following_idxToaccount_tb", fields: [followingIdx], references: [idx], onDelete: Cascade, map: "fk_account_tb_to_follow_tb1")
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  followerIdx  String    @map("follower_idx") @db.VarChar
+  followingIdx String    @map("following_idx") @db.VarChar
+  follower     AccountTb @relation("follow_tb_follower_idxToaccount_tb", fields: [followerIdx], references: [idx], onDelete: Cascade, map: "fk_account_tb_to_follow_tb")
+  following    AccountTb @relation("follow_tb_following_idxToaccount_tb", fields: [followingIdx], references: [idx], onDelete: Cascade, map: "fk_account_tb_to_follow_tb1")
 
   @@id([followerIdx, followingIdx], map: "follow_tb_pk")
   @@map("follow_tb")
-}
-
-model ProfileImgTb {
-  idx        Int       @id @default(autoincrement())
-  imgPath    String    @map("img_path") @db.VarChar
-  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  accountIdx String    @map("account_idx") @db.VarChar
-  accountTb  AccountTb @relation(fields: [accountIdx], references: [idx], onDelete: Cascade, map: "fk_account_tb_to_profile_img_tb")
-
-  @@map("profile_img_tb")
 }
 
 model ReviewBlockTb {
@@ -143,26 +133,27 @@ model ReviewShareTb {
 }
 
 model ReviewTb {
-  idx               Int                 @id @default(autoincrement())
-  title             String              @db.VarChar
-  content           String              @db.VarChar(200)
-  viewCount         Int                 @default(0) @map("view_count")
-  createdAt         DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
-  deletedAt         DateTime?           @map("deleted_at") @db.Timestamptz(6)
-  updatedAt         DateTime?           @map("updated_at") @db.Timestamptz(6)
-  score             Int
-  accountIdx        String              @default(dbgenerated("uuid_generate_v4()")) @map("account_idx") @db.VarChar
-  commentTb         CommentTb[]
-  reportTb          ReportTb[]
-  reviewBlockTb     ReviewBlockTb[]
-  reviewBookmarkTb  ReviewBookmarkTb[]
-  reviewDislikeTb   ReviewDislikeTb[]
-  reviewImgTb       ReviewImgTb[]
-  reviewLikeTb      ReviewLikeTb[]
-  reviewShareTb     ReviewShareTb[]
-  accountTb         AccountTb           @relation(fields: [accountIdx], references: [idx], onDelete: Cascade, map: "fk_account_tb_to_review_tb")
-  reviewThumbnailTb ReviewThumbnailTb[]
-  tagTb             TagTb[]
+  idx              Int                @id @default(autoincrement())
+  title            String             @db.VarChar
+  content          String             @db.VarChar(200)
+  viewCount        Int                @default(0) @map("view_count")
+  createdAt        DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt        DateTime?          @map("deleted_at") @db.Timestamptz(6)
+  updatedAt        DateTime?          @map("updated_at") @db.Timestamptz(6)
+  score            Int
+  accountIdx       String             @default(dbgenerated("uuid_generate_v4()")) @map("account_idx") @db.VarChar
+  thumbnail        String?            @db.VarChar
+  thumbnailContent String?            @map("thumbnail_content") @db.VarChar
+  commentTb        CommentTb[]
+  reportTb         ReportTb[]
+  reviewBlockTb    ReviewBlockTb[]
+  reviewBookmarkTb ReviewBookmarkTb[]
+  reviewDislikeTb  ReviewDislikeTb[]
+  reviewImgTb      ReviewImgTb[]
+  reviewLikeTb     ReviewLikeTb[]
+  reviewShareTb    ReviewShareTb[]
+  accountTb        AccountTb          @relation(fields: [accountIdx], references: [idx], onDelete: Cascade, map: "fk_account_tb_to_review_tb")
+  tagTb            TagTb[]
 
   @@map("review_tb")
 }
@@ -248,17 +239,6 @@ model NotificationTypeTb {
   @@map("notification_type_tb")
 }
 
-model ReviewThumbnailTb {
-  reviewIdx Int      @map("review_idx")
-  imgPath   String   @map("img_path") @db.VarChar
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  content   String   @db.VarChar(200)
-  idx       Int      @id(map: "review_thumbnail_tb_pk") @default(autoincrement())
-  reviewTb  ReviewTb @relation(fields: [reviewIdx], references: [idx], onDelete: Cascade, map: "review_thumbnail_review_fk")
-
-  @@map("review_thumbnail_tb")
-}
-
 model ReportTb {
   idx          Int          @id @default(autoincrement())
   reporterIdx  String       @map("reporter_idx") @db.VarChar
@@ -302,38 +282,4 @@ model CommentTagTb {
   commentTb  CommentTb @relation(fields: [commentIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "comment_tag_tb_comment_tb_fk")
 
   @@map("comment_tag_tb")
-}
-
-view AccountInfoView {
-  email        String    @db.VarChar
-  nickname     String    @db.VarChar
-  profile      String?
-  provider     String    @db.VarChar
-  createdAt    DateTime  @map("created_at") @db.Timestamptz(6)
-  deletedAt    DateTime? @map("deleted_at") @db.Timestamptz(6)
-  idx          String    @unique @db.VarChar
-  serialNumber Int       @map("serial_number")
-  imgPath      String?   @map("img_path") @db.VarChar
-  interest1    String?   @map("interest_1") @db.VarChar(12)
-  interest2    String?   @map("interest_2") @db.VarChar(12)
-
-  @@map("account_info_view")
-}
-
-view AccountDetailView {
-  idx           String    @unique @db.VarChar
-  email         String    @db.VarChar
-  nickname      String    @db.VarChar
-  profile       String?
-  provider      String    @db.VarChar
-  createdAt     DateTime  @map("created_at") @db.Timestamptz(6)
-  deletedAt     DateTime? @map("deleted_at") @db.Timestamptz(6)
-  serialNumber  Int       @map("serial_number")
-  profileImg    String    @map("profile_img") @db.VarChar
-  followerCount Int?      @map("follower_count")
-  followeeCount Int?      @map("followee_count")
-  interest1     String?   @map("interest_1") @db.VarChar(12)
-  interest2     String?   @map("interest_2") @db.VarChar(12)
-
-  @@map("account_detail_view")
 }

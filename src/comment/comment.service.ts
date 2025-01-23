@@ -33,7 +33,11 @@ export class CommentService {
     const comment = await this.prismaService.commentTb.findUnique({
       include: {
         accountTb: true,
-        commentTagTb: true,
+        commentTagTb: {
+          include: {
+            accountTb: true,
+          },
+        },
         _count: {
           select: {
             commentLikeTb: true,
@@ -71,7 +75,11 @@ export class CommentService {
     const commentData = await this.prismaService.commentTb.findMany({
       include: {
         accountTb: true,
-        commentTagTb: true,
+        commentTagTb: {
+          include: {
+            accountTb: true,
+          },
+        },
         _count: {
           select: {
             commentLikeTb: true,
@@ -114,7 +122,11 @@ export class CommentService {
     const commentData = await this.prismaService.commentTb.create({
       include: {
         accountTb: true,
-        commentTagTb: true,
+        commentTagTb: {
+          include: {
+            accountTb: true,
+          },
+        },
         _count: {
           select: {
             commentLikeTb: true,
@@ -169,7 +181,11 @@ export class CommentService {
     const commentData = await this.prismaService.commentTb.update({
       include: {
         accountTb: true,
-        commentTagTb: true,
+        commentTagTb: {
+          include: {
+            accountTb: true,
+          },
+        },
         _count: {
           select: {
             commentLikeTb: true,

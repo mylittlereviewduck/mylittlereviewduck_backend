@@ -12,21 +12,7 @@ export class FirebaseService {
     admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
   }
 
-  async sendFcm(
-    title: string,
-    body: string,
-    userIdxs: string[] | null,
-  ): Promise<void> {
-    let result;
-    let tokens;
-
-    //유저 token조회
-    if (userIdxs) {
-      tokens = await this.fcmTokenService.getFcmTokens(userIdxs);
-    } else {
-      tokens = await this.fcmTokenService.getFcmTokenAll();
-    }
-
+  async sendFcm(tokens: string[], title: string, body: string): Promise<void> {
     try {
       const message = {
         tokens: tokens,
@@ -36,7 +22,8 @@ export class FirebaseService {
         },
       } as MulticastMessage;
 
-      result = await admin.messaging().sendEachForMulticast(message);
+      const result = await admin.messaging().sendEachForMulticast(message);
+      console.log('result: ', result);
     } catch (err) {
       console.error('알림 전송 실패 : ', err);
     }

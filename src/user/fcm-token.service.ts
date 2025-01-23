@@ -21,7 +21,7 @@ export class FcmTokenService {
     });
   }
 
-  async getFcmTokens(userIdxs: string[]): Promise<string | string[]> {
+  async getFcmTokens(userIdxs: string[]): Promise<string[]> {
     const result = await this.prismaService.fcmTokenTb.findMany({
       select: {
         token: true,

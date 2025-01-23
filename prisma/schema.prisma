@@ -221,7 +221,7 @@ model NotificationTb {
   readAt             DateTime?          @map("read_at") @db.Timestamptz(6)
   createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
   deletedAt          DateTime?          @map("deleted_at") @db.Timestamptz(6)
-  content            String             @db.VarChar
+  content            String?            @db.VarChar
   idx                Int                @id(map: "notification_pkey") @default(autoincrement())
   commentIdx         Int?               @map("comment_idx")
   senderAccountTb    AccountTb          @relation("notification_tb_sender_idxToaccount_tb", fields: [senderIdx], references: [idx], onDelete: Cascade, map: "account_tb_to_notification_2")

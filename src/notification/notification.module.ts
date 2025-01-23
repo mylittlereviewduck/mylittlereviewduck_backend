@@ -17,6 +17,6 @@ import { FirebaseService } from './firebase.service';
   ],
   controllers: [NotificationController],
   providers: [NotificationService, SseService, FirebaseService],
-  exports: [NotificationService, SseService],
+  exports: [NotificationService, SseService, FirebaseService],
 })
 export class NotificationModule {}

@@ -53,7 +53,7 @@ import { SuspendUserDto } from './dto/suspend-user.dto';
 import { UserPagerbleDto } from './dto/user-pagerble.dto';
 import { UserFollowService } from './user-follow.service';
 import { CreateFcmTokenDto } from './dto/save-fcm-token.dto';
-import { FcmTokenService } from 'src/firebase/fcm-token.service';
+import { FcmTokenService } from './fcm-token.service';
 
 @Controller('user')
 @ApiTags('user')

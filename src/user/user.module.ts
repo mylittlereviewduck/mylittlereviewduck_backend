@@ -36,6 +36,7 @@ import { FcmTokenService } from './fcm-token.service';
     UserBlockService,
     UserFollowService,
     UserBlockCheckService,
+    FcmTokenService,
   ],
 })
 export class UserModule {}

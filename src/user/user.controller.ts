@@ -167,7 +167,7 @@ export class UserController {
   ): Promise<{ imgPath: string }> {
     const imgPath = await this.awsService.uploadImageToS3(image);
 
-    await this.userService.updateMyProfileImg(loginUser.idx, imgPath);
+    await this.userService.updateMyProfileImg(loginUser.idx, imgPath, null);
 
     return { imgPath: imgPath };
   }
@@ -179,7 +179,7 @@ export class UserController {
   @Exception(401, '권한 없음')
   @ApiResponse({ status: 200 })
   async deleteMyProfileImg(@GetUser() loginUser: LoginUser): Promise<void> {
-    await this.userService.deleteMyProfileImg(loginUser.idx);
+    await this.userService.updateMyProfileImg(loginUser.idx, null, null);
   }
 
   @Get('/:userIdx/info')

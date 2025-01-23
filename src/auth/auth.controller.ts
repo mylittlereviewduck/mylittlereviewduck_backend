@@ -27,6 +27,9 @@ import { KakaoCallbackDto } from './dto/kakao-callback.dto';
 import { GetUser } from './get-user.decorator';
 import { LoginUser } from './model/login-user.model';
 import { RefreshGuard } from './guard/refresh.guard';
+import { KakaoLoginDto } from './dto/kakao-login.dto';
+import { NaverLoginDto } from './dto/naver-login.dto';
+import { GoogleLoginDto } from './dto/google-login.dto';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -124,13 +127,6 @@ export class AuthController {
     return this.authService.getToken(req, res, provider);
   }
 
-  @Get('/google/callback')
-  async googleLogin(
-    @Query() query: GoogleCallbackDto,
-  ): Promise<{ accessToken: string }> {
-    return await this.authService.socialLogin('google', query);
-  }
-
   @Get('/kakao/callback')
   async kakaoLogin(
     @Query() query: KakaoCallbackDto,
@@ -143,5 +139,33 @@ export class AuthController {
     @Query() query: NaverCallbackDto,
   ): Promise<{ accessToken: string }> {
     return await this.authService.socialLogin('naver', query);
+  }
+
+  @Get('/google/callback')
+  async googleLogin(
+    @Query() query: GoogleCallbackDto,
+  ): Promise<{ accessToken: string }> {
+    return await this.authService.socialLogin('google', query);
+  }
+
+  @Post('/kakao')
+  async kakaoAuth(
+    @Body() dto: KakaoLoginDto,
+  ): Promise<{ accessToken: string }> {
+    return await this.authService.socialLogin('kakao', dto);
+  }
+
+  @Post('/naver')
+  async naverAuth(
+    @Query() query: NaverLoginDto,
+  ): Promise<{ accessToken: string }> {
+    return await this.authService.socialLogin('kakao', query);
+  }
+
+  @Post('/google')
+  async googleAuth(
+    @Query() query: GoogleLoginDto,
+  ): Promise<{ accessToken: string }> {
+    return await this.authService.socialLogin('kakao', query);
   }
 }

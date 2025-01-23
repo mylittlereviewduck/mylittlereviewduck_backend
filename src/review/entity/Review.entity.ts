@@ -157,10 +157,8 @@ export class ReviewEntity {
     this.content = data.content;
     this.score = data.score;
     this.tags = data.tagTb.map((tag) => tag.tagName);
-    //prettier-ignore
-    this.thumbnail = data.reviewThumbnailTb[0] ? data.reviewThumbnailTb[0].imgPath : null;
-    //prettier-ignore
-    this.thumbnailContent = data.reviewThumbnailTb[0] ? data.reviewThumbnailTb[0].content : null;
+    this.thumbnail = data.thumbnail;
+    this.thumbnailContent = data.thumbnailContent;
     this.images = data.reviewImgTb.map((img) => img.imgPath);
     this.imgContent = data.reviewImgTb.map((img) => img.content);
     this.createdAt = data.createdAt;

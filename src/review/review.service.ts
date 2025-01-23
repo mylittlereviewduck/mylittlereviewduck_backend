@@ -73,7 +73,6 @@ export class ReviewService {
       include: {
         accountTb: true,
         tagTb: true,
-        reviewThumbnailTb: true,
         reviewImgTb: true,
         _count: {
           select: {
@@ -90,6 +89,8 @@ export class ReviewService {
         title: dto.title,
         content: dto.content,
         score: dto.score,
+        ...(dto.thumbnail && { thumbnail: dto.thumbnail }),
+        ...(dto.thumbnailContent && { thumbnailContent: dto.thumbnailContent }),
         tagTb: {
           createMany: {
             data: dto.tags.map((tag) => {
@@ -99,12 +100,7 @@ export class ReviewService {
             }),
           },
         },
-        reviewThumbnailTb: {
-          create: {
-            imgPath: dto.thumbnail,
-            content: dto.content,
-          },
-        },
+
         reviewImgTb: {
           createMany: {
             data: dto.images.map((image) => ({
@@ -153,7 +149,10 @@ export class ReviewService {
           score: dto.score,
           content: dto.content,
           updatedAt: new Date(),
-
+          ...(dto.thumbnail && { thumbnail: dto.thumbnail }),
+          ...(dto.thumbnailContent && {
+            thumbnailContent: dto.thumbnailContent,
+          }),
           tagTb: {
             deleteMany: {
               reviewIdx: dto.reviewIdx,
@@ -164,15 +163,6 @@ export class ReviewService {
                   tagName: tag,
                 };
               }),
-            },
-          },
-          reviewThumbnailTb: {
-            deleteMany: {
-              idx: dto.reviewIdx,
-            },
-            create: {
-              imgPath: dto.thumbnail,
-              content: dto.content,
             },
           },
           reviewImgTb: {
@@ -194,37 +184,6 @@ export class ReviewService {
     });
 
     return new ReviewEntity(data);
-  }
-
-  // async updateReviewThumbnail(
-  //   reviewIdx: number,
-  //   imgPath: string,
-  //   content: string,
-  // ): Promise<void> {
-  //   await this.prismaService.reviewThumbnailTb.updateMany({
-  //     data: {
-  //       deletedAt: new Date(),
-  //     },
-  //     where: {
-  //       reviewIdx: reviewIdx,
-  //     },
-  //   });
-
-  //   await this.prismaService.reviewThumbnailTb.create({
-  //     data: {
-  //       reviewIdx: reviewIdx,
-  //       imgPath: imgPath,
-  //       content: content,
-  //     },
-  //   });
-  // }
-
-  async deleteThumbnailImg(reviewIdx: number): Promise<void> {
-    await this.prismaService.profileImgTb.deleteMany({
-      where: {
-        idx: reviewIdx,
-      },
-    });
   }
 
   async deleteReview(userIdx: string, reviewIdx: number): Promise<void> {

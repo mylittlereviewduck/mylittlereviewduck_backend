@@ -68,7 +68,7 @@ export class CreateReviewDto {
   @Length(0, 32)
   @IsString()
   @IsOptional()
-  thumbnailContent: string | null;
+  thumbnailContent?: string | null;
 
   @ApiProperty({
     example: [

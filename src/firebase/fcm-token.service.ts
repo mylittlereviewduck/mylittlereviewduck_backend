@@ -6,8 +6,11 @@ export class FcmTokenService {
   constructor(private readonly prismaService: PrismaService) {}
 
   async saveFcmToken(userIdx: string, token: string) {
-
-    await this.prismaService.
-
+    await this.prismaService.fcmTokenTb.create({
+      data: {
+        accountIdx: userIdx,
+        token: token,
+      },
+    });
   }
 }

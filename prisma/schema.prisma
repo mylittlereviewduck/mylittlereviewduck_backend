@@ -41,6 +41,7 @@ model AccountTb {
   commentLikeTb                                       CommentLikeTb[]
   commentTagTb                                        CommentTagTb[]
   commentTb                                           CommentTb[]
+  fcmTokenTb                                          FcmTokenTb[]
   followings                                          FollowTb[]         @relation("follow_tb_follower_idxToaccount_tb")
   followers                                           FollowTb[]         @relation("follow_tb_following_idxToaccount_tb")
   notificationTbNotificationTbSenderIdxToaccountTb    NotificationTb[]   @relation("notification_tb_sender_idxToaccount_tb")
@@ -282,4 +283,13 @@ model CommentTagTb {
   commentTb  CommentTb @relation(fields: [commentIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "comment_tag_tb_comment_tb_fk")
 
   @@map("comment_tag_tb")
+}
+
+model FcmTokenTb {
+  idx        Int       @id @default(autoincrement())
+  accountIdx String    @map("account_idx") @db.VarChar
+  token      String    @db.VarChar
+  accountTb  AccountTb @relation(fields: [accountIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "account_idx_fk")
+
+  @@map("fcm_token_tb")
 }

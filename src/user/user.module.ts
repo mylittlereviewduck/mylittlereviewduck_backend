@@ -11,6 +11,7 @@ import { NotificationModule } from 'src/notification/notification.module';
 import { EmailModule } from '../email/email.module';
 import { UserSuspensionService } from './user-suspension.service';
 import { UserFollowService } from './user-follow.service';
+import { FirebaseModule } from 'src/firebase/firebase.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { UserFollowService } from './user-follow.service';
     AwsModule,
     NotificationModule,
     EmailModule,
+    FirebaseModule,
   ],
   controllers: [UserController],
   providers: [

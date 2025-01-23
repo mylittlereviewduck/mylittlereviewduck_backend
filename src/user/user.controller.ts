@@ -52,6 +52,8 @@ import { AdminGuard } from 'src/auth/guard/admin.guard';
 import { SuspendUserDto } from './dto/suspend-user.dto';
 import { UserPagerbleDto } from './dto/user-pagerble.dto';
 import { UserFollowService } from './user-follow.service';
+import { CreateFcmTokenDto } from './dto/save-fcm-token.dto';
+import { FcmTokenService } from 'src/firebase/fcm-token.service';
 
 @Controller('user')
 @ApiTags('user')
@@ -64,6 +66,7 @@ export class UserController {
     private readonly userBlockCheckService: UserBlockCheckService,
     private readonly awsService: AwsService,
     private readonly userSuspensionService: UserSuspensionService,
+    private readonly fcmTokenService: FcmTokenService,
   ) {}
 
   @Post('/check-nickname')
@@ -255,6 +258,20 @@ export class UserController {
     );
 
     return userSearchResponseDto;
+  }
+
+  @Post('/fcm')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'fcm토큰 저장하기' })
+  @ApiBearerAuth()
+  @Exception(400, 'bad request')
+  @ApiResponse({ status: 201 })
+  async saveUserFcmToken(dto: CreateFcmTokenDto): Promise<void> {
+    await this.fcmTokenService.saveFcmToken(
+      dto.userIdx,
+      dto.token,
+      dto.deviceIdx,
+    );
   }
 
   @Delete('')

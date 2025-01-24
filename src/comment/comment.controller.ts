@@ -128,7 +128,6 @@ export class CommentController {
   ): Promise<CommentEntity> {
     return await this.commentService.updateComment(
       loginUser.idx,
-      reviewIdx,
       commentIdx,
       updateCommentDto,
     );
@@ -149,11 +148,7 @@ export class CommentController {
     @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
     @Param('commentIdx', ParseIntPipe) commentIdx: number,
   ): Promise<void> {
-    await this.commentService.deleteComment(
-      loginUser.idx,
-      reviewIdx,
-      commentIdx,
-    );
+    await this.commentService.deleteComment(loginUser.idx, commentIdx);
   }
 
   @Post('/review/:reviewIdx/comment/:commentIdx/like')
@@ -202,7 +197,6 @@ export class CommentController {
   ): Promise<void> {
     return await this.commentLikeService.unlikeComment(
       loginUser.idx,
-      reviewIdx,
       commentIdx,
     );
   }

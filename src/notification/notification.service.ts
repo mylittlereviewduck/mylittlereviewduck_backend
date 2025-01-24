@@ -37,6 +37,7 @@ export class NotificationService {
      - 2 = like_review
      - 3 = create_comment
    */
+  @OnEvent('notification.create', { async: true })
   async createNotification(
     dto: CreateNotificationDto,
   ): Promise<NotificationEntity> {
@@ -51,10 +52,7 @@ export class NotificationService {
     if (dto.reviewIdx)
       review = await this.reviewService.getReviewByIdx(dto.reviewIdx);
     if (dto.commentIdx)
-      comment = await this.commentService.getCommentByIdx(
-        dto.reviewIdx,
-        dto.commentIdx,
-      );
+      comment = await this.commentService.getCommentByIdx(dto.commentIdx);
 
     if (dto.type == 1) {
       content = `${sender.nickname}님이 회원님을 팔로우합니다.`;
@@ -134,8 +132,9 @@ export class NotificationService {
     };
   }
 
-  @OnEvent('notification.follow')
+  @OnEvent('notification.follow', { async: true })
   async handleFollowEvent(senderIdx: string, toUserIdx: string) {
+    console.log('팔로우 이벤트 정상실행');
     try {
       const token = await this.fcmTokenService.getFcmTokens([toUserIdx]);
 

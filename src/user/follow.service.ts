@@ -51,12 +51,6 @@ export class FollowService {
       type: 1,
     });
 
-    this.eventEmitter.emit('notification.follow', {
-      senderIdx: userIdx,
-      recipientIdx: toUserIdx,
-      type: 1,
-    });
-
     return followEntity;
   }
 

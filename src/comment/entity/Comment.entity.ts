@@ -86,6 +86,20 @@ export class CommentEntity {
   })
   createdAt: Date;
 
+  @ApiProperty({
+    example: '2024-08-01Tq07:58:57.844Z',
+    description: '수정일 타임스탬프',
+    nullable: true,
+  })
+  updatedAt: Date | null;
+
+  @ApiProperty({
+    example: '2024-08-01Tq07:58:57.844Z',
+    description: '삭제일 타임스탬프',
+    nullable: true,
+  })
+  deletedAt: Date | null;
+
   @ApiProperty({ example: true, description: '차단여부' })
   isMyBlock: boolean = false;
 
@@ -102,5 +116,7 @@ export class CommentEntity {
     this.tagUsers = data.commentTagTb[0] && data.commentTagTb.map(tag => new ReviewUserEntity(tag.accountTb));
     this.likeCount = data._count.commentLikeTb;
     this.createdAt = data.createdAt;
+    this.updatedAt = data.updatedAt;
+    this.deletedAt = data.deletedAt;
   }
 }

@@ -11,7 +11,6 @@ export class SseService {
 
   constructor(private readonly notificationService: NotificationService) {}
 
-  @OnEvent('notification.create')
   async handleNotificationEvent(dto: CreateNotificationDto) {
     const notification: NotificationEntity =
       await this.notificationService.createNotification({

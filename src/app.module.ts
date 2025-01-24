@@ -24,7 +24,11 @@ import { RedisModule } from '@liaoliaots/nestjs-redis';
     EmailModule,
     NotificationModule,
     ReportModule,
-    EventEmitterModule.forRoot(),
+    EventEmitterModule.forRoot({
+      maxListeners: 10,
+      wildcard: true,
+      verboseMemoryLeak: true,
+    }),
     RedisModule.forRootAsync({
       useFactory: async (configService: ConfigService) => ({
         config: {

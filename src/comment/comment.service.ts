@@ -20,16 +20,7 @@ export class CommentService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async getCommentByIdx(
-    reviewIdx: number,
-    commentIdx: number,
-  ): Promise<CommentEntity> {
-    const review = await this.reviewService.getReviewByIdx(reviewIdx);
-
-    if (!review) {
-      throw new NotFoundException('Not Found Review');
-    }
-
+  async getCommentByIdx(commentIdx: number): Promise<CommentEntity | null> {
     const comment = await this.prismaService.commentTb.findUnique({
       include: {
         accountTb: true,
@@ -46,12 +37,11 @@ export class CommentService {
       },
       where: {
         idx: commentIdx,
-        reviewIdx: reviewIdx,
       },
     });
 
     if (!comment) {
-      return;
+      return null;
     }
 
     return new CommentEntity(comment);
@@ -111,7 +101,7 @@ export class CommentService {
     }
 
     if (dto.commentIdx) {
-      comment = await this.getCommentByIdx(dto.reviewIdx, dto.commentIdx);
+      comment = await this.getCommentByIdx(dto.commentIdx);
     }
 
     if (dto.commentIdx && !comment) {
@@ -164,11 +154,10 @@ export class CommentService {
   //댓글 수정시 없는 댓글요청시 서버에러나는거 수정해야함
   async updateComment(
     userIdx: string,
-    reviewIdx: number,
     commentIdx: number,
     dto: UpdateCommentDto,
   ): Promise<CommentEntity> {
-    const comment = await this.getCommentByIdx(reviewIdx, commentIdx);
+    const comment = await this.getCommentByIdx(commentIdx);
 
     if (!comment) {
       throw new NotFoundException('Not Found Comment');
@@ -204,12 +193,8 @@ export class CommentService {
     return new CommentEntity(commentData);
   }
 
-  async deleteComment(
-    userIdx: string,
-    reviewIdx: number,
-    commentIdx: number,
-  ): Promise<void> {
-    const comment = await this.getCommentByIdx(reviewIdx, commentIdx);
+  async deleteComment(userIdx: string, commentIdx: number): Promise<void> {
+    const comment = await this.getCommentByIdx(commentIdx);
 
     if (!comment) {
       throw new NotFoundException('Not Found Comment');

@@ -102,6 +102,13 @@ export class ReviewEntity {
   })
   updatedAt: Date | null;
 
+  @ApiProperty({
+    example: '2024-08-01Tq07:58:57.844Z',
+    description: '삭제일 타임스탬프',
+    nullable: true,
+  })
+  deletedAt: Date | null;
+
   @ApiProperty({ example: 10, description: '조회수' })
   viewCount: number = 0;
 
@@ -163,6 +170,7 @@ export class ReviewEntity {
     this.imgContent = data.reviewImgTb.map((img) => img.content);
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
+    this.deletedAt = data.deletedAt;
     this.viewCount = data.viewCount;
     this.likeCount = data._count.reviewLikeTb;
     this.dislikeCount = data._count.reviewDislikeTb;

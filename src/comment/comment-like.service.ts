@@ -30,7 +30,7 @@ export class CommentLikeService {
     }
     const comment = await this.commentService.getCommentByIdx(commentIdx);
 
-    if (!comment) {
+    if (!comment || comment.deletedAt !== null) {
       throw new NotFoundException('Not Found Comment');
     }
 
@@ -53,7 +53,17 @@ export class CommentLikeService {
     return new CommentLikeEntity(commentLikeData);
   }
 
-  async unlikeComment(userIdx: string, commentIdx: number): Promise<void> {
+  async unlikeComment(
+    userIdx: string,
+    reviewIdx: number,
+    commentIdx: number,
+  ): Promise<void> {
+    const review = await this.reviewService.getReviewByIdx(reviewIdx);
+
+    if (!review) {
+      throw new NotFoundException('Not Found Review');
+    }
+
     const comment = await this.commentService.getCommentByIdx(commentIdx);
 
     if (!comment) {

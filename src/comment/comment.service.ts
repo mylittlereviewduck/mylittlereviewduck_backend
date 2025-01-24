@@ -96,7 +96,7 @@ export class CommentService {
     let comment;
     const review = await this.reviewService.getReviewByIdx(dto.reviewIdx);
 
-    if (!review) {
+    if (!review || review.deletedAt !== null) {
       throw new NotFoundException('Not Found Review');
     }
 
@@ -154,9 +154,16 @@ export class CommentService {
   //댓글 수정시 없는 댓글요청시 서버에러나는거 수정해야함
   async updateComment(
     userIdx: string,
+    reviewIdx: number,
     commentIdx: number,
     dto: UpdateCommentDto,
   ): Promise<CommentEntity> {
+    const review = await this.reviewService.getReviewByIdx(reviewIdx);
+
+    if (!review || review.deletedAt !== null) {
+      throw new NotFoundException('Not Found Review');
+    }
+
     const comment = await this.getCommentByIdx(commentIdx);
 
     if (!comment) {
@@ -193,7 +200,16 @@ export class CommentService {
     return new CommentEntity(commentData);
   }
 
-  async deleteComment(userIdx: string, commentIdx: number): Promise<void> {
+  async deleteComment(
+    userIdx: string,
+    reviewIdx: number,
+    commentIdx: number,
+  ): Promise<void> {
+    const review = await this.reviewService.getReviewByIdx(reviewIdx);
+
+    if (!review || review.deletedAt !== null) {
+      throw new NotFoundException('Not Found Review');
+    }
     const comment = await this.getCommentByIdx(commentIdx);
 
     if (!comment) {

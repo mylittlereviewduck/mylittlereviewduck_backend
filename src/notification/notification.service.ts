@@ -54,6 +54,7 @@ export class NotificationService {
     if (dto.commentIdx)
       comment = await this.commentService.getCommentByIdx(dto.commentIdx);
 
+    //enum타입고려
     if (dto.type == 1) {
       content = `${sender.nickname}님이 회원님을 팔로우합니다.`;
     } else if (dto.type == 2) {

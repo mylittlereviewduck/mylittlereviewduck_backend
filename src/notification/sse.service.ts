@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { Subject } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { NotificationEntity } from './entity/Notification.entity';
-import { NotificationService } from './notification.service';
 
 @Injectable()
 export class SseService {
@@ -13,7 +12,7 @@ export class SseService {
     this.notification$.next(notification);
   }
 
-  getNotificationObservable() {
+  getNotificationObservable(): Observable<NotificationEntity> {
     console.log('notifiacation:', this.notification$);
     return this.notification$.asObservable();
   }

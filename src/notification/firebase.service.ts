@@ -2,11 +2,10 @@ import { Injectable } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import * as firebaseConfig from './firebase.config.json';
 import { MulticastMessage } from 'firebase-admin/lib/messaging/messaging-api';
-import { FcmTokenService } from 'src/user/fcm-token.service';
 
 @Injectable()
 export class FirebaseService {
-  constructor(private readonly fcmTokenService: FcmTokenService) {
+  constructor() {
     const serviceAccount = firebaseConfig as admin.ServiceAccount;
 
     admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });

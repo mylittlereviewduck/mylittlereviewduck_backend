@@ -13,6 +13,7 @@ import { ReviewEntity } from 'src/review/entity/Review.entity';
 import { ReviewService } from 'src/review/review.service';
 import { FcmTokenService } from 'src/user/fcm-token.service';
 import { FirebaseService } from './firebase.service';
+import { SseService } from './sse.service';
 
 @Injectable()
 export class NotificationService {
@@ -26,6 +27,7 @@ export class NotificationService {
     @Inject(forwardRef(() => CommentService))
     private readonly commentService: CommentService,
     private readonly fcmTokenService: FcmTokenService,
+    private readonly sseService: SseService,
     private readonly firebaseService: FirebaseService,
   ) {}
 
@@ -38,9 +40,7 @@ export class NotificationService {
      - 3 = create_comment
    */
   @OnEvent('notification.create', { async: true })
-  async createNotification(
-    dto: CreateNotificationDto,
-  ): Promise<NotificationEntity> {
+  async createNotification(dto: CreateNotificationDto): Promise<void> {
     let content: string;
     let comment: CommentEntity;
     let review: ReviewEntity;
@@ -69,6 +69,7 @@ export class NotificationService {
         type: dto.type,
         content: content,
         ...(review && { reviewIdx: review.idx }),
+        ...(comment && { commentIdx: comment.idx }),
       },
       include: {
         senderAccountTb: true,
@@ -80,7 +81,19 @@ export class NotificationService {
       },
     });
 
-    return new NotificationEntity(notificationData);
+    const notification = new NotificationEntity(notificationData);
+
+    //웹/앱 알림전송
+    let tokens;
+
+    if (dto.type == 4) {
+      tokens = await this.fcmTokenService.getFcmTokenAll();
+    } else {
+      tokens = await this.fcmTokenService.getFcmTokens([dto.recipientIdx]);
+    }
+
+    this.firebaseService.sendFcm(tokens, content, content);
+    this.sseService.sendSse(notification);
   }
 
   async getMyNotificationAll(

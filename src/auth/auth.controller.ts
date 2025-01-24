@@ -149,23 +149,17 @@ export class AuthController {
   }
 
   @Post('/kakao')
-  async kakaoAuth(
-    @Body() dto: KakaoLoginDto,
-  ): Promise<{ accessToken: string }> {
+  async kakaoAuth(@Body() dto: KakaoLoginDto): Promise<LoginResponseDto> {
     return await this.authService.socialLogin('kakao', dto);
   }
 
   @Post('/naver')
-  async naverAuth(
-    @Query() query: NaverLoginDto,
-  ): Promise<{ accessToken: string }> {
-    return await this.authService.socialLogin('kakao', query);
+  async naverAuth(@Body() dto: KakaoLoginDto): Promise<LoginResponseDto> {
+    return await this.authService.socialLogin('kakao', dto);
   }
 
   @Post('/google')
-  async googleAuth(
-    @Query() query: GoogleLoginDto,
-  ): Promise<{ accessToken: string }> {
-    return await this.authService.socialLogin('kakao', query);
+  async googleAuth(@Body() dto: KakaoLoginDto): Promise<LoginResponseDto> {
+    return await this.authService.socialLogin('kakao', dto);
   }
 }

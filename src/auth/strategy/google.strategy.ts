@@ -1,4 +1,3 @@
-import { JwtService } from '@nestjs/jwt';
 import { Request, Response } from 'express';
 import { ISocialAuthStrategy } from '../interface/social-auth-strategy.interface';
 import { Inject, Injectable, forwardRef } from '@nestjs/common';
@@ -13,7 +12,6 @@ import { LoginResponseDto } from '../dto/response/login-response.dto';
 export class GoogleStrategy implements ISocialAuthStrategy {
   constructor(
     private readonly userService: UserService,
-    private readonly jwtService: JwtService,
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
     @Inject(forwardRef(() => AuthService))

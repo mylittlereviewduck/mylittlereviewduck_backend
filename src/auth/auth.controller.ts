@@ -116,6 +116,21 @@ export class AuthController {
     return { accessToken };
   }
 
+  @Post('/kakao')
+  async kakaoAuth(@Body() dto: KakaoLoginDto): Promise<LoginResponseDto> {
+    return await this.authService.socialLogin('kakao', dto);
+  }
+
+  @Post('/naver')
+  async naverAuth(@Body() dto: KakaoLoginDto): Promise<LoginResponseDto> {
+    return await this.authService.socialLogin('kakao', dto);
+  }
+
+  @Post('/google')
+  async googleAuth(@Body() dto: KakaoLoginDto): Promise<LoginResponseDto> {
+    return await this.authService.socialLogin('kakao', dto);
+  }
+
   @Get('/:provider')
   @ApiOperation({ summary: '소셜로그인' })
   @Exception(404, '지원하지않는 서비스')
@@ -146,20 +161,5 @@ export class AuthController {
     @Query() query: GoogleCallbackDto,
   ): Promise<{ accessToken: string }> {
     return await this.authService.socialLogin('google', query);
-  }
-
-  @Post('/kakao')
-  async kakaoAuth(@Body() dto: KakaoLoginDto): Promise<LoginResponseDto> {
-    return await this.authService.socialLogin('kakao', dto);
-  }
-
-  @Post('/naver')
-  async naverAuth(@Body() dto: KakaoLoginDto): Promise<LoginResponseDto> {
-    return await this.authService.socialLogin('kakao', dto);
-  }
-
-  @Post('/google')
-  async googleAuth(@Body() dto: KakaoLoginDto): Promise<LoginResponseDto> {
-    return await this.authService.socialLogin('kakao', dto);
   }
 }

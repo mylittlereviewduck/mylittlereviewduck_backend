@@ -2,10 +2,8 @@ import { UserService } from './../../user/user.service';
 import { Request, Response } from 'express';
 import { ISocialAuthStrategy } from '../interface/social-auth-strategy.interface';
 import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
 import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
-import { AccountTb } from '@prisma/client';
 import { AuthService } from '../auth.service';
 import { LoginResponseDto } from '../dto/response/login-response.dto';
 
@@ -13,7 +11,6 @@ import { LoginResponseDto } from '../dto/response/login-response.dto';
 export class NaverStrategy implements ISocialAuthStrategy {
   constructor(
     private readonly configService: ConfigService,
-    private readonly jwtService: JwtService,
     private readonly httpService: HttpService,
     private readonly userService: UserService,
     @Inject(forwardRef(() => AuthService))

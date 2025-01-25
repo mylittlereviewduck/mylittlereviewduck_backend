@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsInt, Length } from 'class-validator';
+import { IsEmail, Length } from 'class-validator';
 
 export class SendEmailVerificationDto {
   @ApiProperty({

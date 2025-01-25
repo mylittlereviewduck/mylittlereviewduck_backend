@@ -7,6 +7,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { AuthService } from '../auth.service';
 import { LoginResponseDto } from '../dto/response/login-response.dto';
+import { SocialLoginDto } from '../dto/social-login.dto';
 
 @Injectable()
 export class KakaoStrategy implements ISocialAuthStrategy {
@@ -28,16 +29,14 @@ export class KakaoStrategy implements ISocialAuthStrategy {
     res.redirect(url);
   }
 
-  async socialLogin(query: any): Promise<LoginResponseDto> {
-    const { code } = query;
-
+  async socialLogin(dto: SocialLoginDto): Promise<LoginResponseDto> {
     const { data: tokenData } = await this.httpService.axiosRef.post(
       `https://kauth.kakao.com/oauth/token`,
       {
         grant_type: 'authorization_code',
         client_id: this.configService.get<string>('KAKAO_CLIENT_ID'),
         redirect_uri: this.configService.get<string>('KAKAO_REDIRECT_URI'),
-        code,
+        code: dto.code,
       },
       {
         headers: {
@@ -90,63 +89,63 @@ export class KakaoStrategy implements ISocialAuthStrategy {
     return { accessToken, refreshToken };
   }
 
-  async socialAuth(code: string): Promise<LoginResponseDto> {
-    const { data: tokenData } = await this.httpService.axiosRef.post(
-      `https://kauth.kakao.com/oauth/token`,
-      {
-        grant_type: 'authorization_code',
-        client_id: this.configService.get<string>('KAKAO_CLIENT_ID'),
-        redirect_uri: this.configService.get<string>('KAKAO_REDIRECT_URI'),
-        code,
-      },
-      {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-      },
-    );
+  // async socialAuth(code: string): Promise<LoginResponseDto> {
+  //   const { data: tokenData } = await this.httpService.axiosRef.post(
+  //     `https://kauth.kakao.com/oauth/token`,
+  //     {
+  //       grant_type: 'authorization_code',
+  //       client_id: this.configService.get<string>('KAKAO_CLIENT_ID'),
+  //       redirect_uri: this.configService.get<string>('KAKAO_REDIRECT_URI'),
+  //       code,
+  //     },
+  //     {
+  //       headers: {
+  //         'Content-Type': 'application/x-www-form-urlencoded',
+  //       },
+  //     },
+  //   );
 
-    const { data: userData } = await this.httpService.axiosRef.get(
-      `https://kapi.kakao.com/v2/user/me`,
-      {
-        headers: {
-          Authorization: `${tokenData.token_type} ${tokenData.access_token}`,
-          'Content-Type': `application/x-www-form-urlencoded;charset=utf-8`,
-        },
-      },
-    );
+  //   const { data: userData } = await this.httpService.axiosRef.get(
+  //     `https://kapi.kakao.com/v2/user/me`,
+  //     {
+  //       headers: {
+  //         Authorization: `${tokenData.token_type} ${tokenData.access_token}`,
+  //         'Content-Type': `application/x-www-form-urlencoded;charset=utf-8`,
+  //       },
+  //     },
+  //   );
 
-    let user = await this.userService.getUser({
-      email: userData.kakao_account.email,
-    });
+  //   let user = await this.userService.getUser({
+  //     email: userData.kakao_account.email,
+  //   });
 
-    if (!user) {
-      // 기존회원 아닌경우 카카오 회원가입
-      const newUser = await this.userService.createUserWithOAuth({
-        email: userData.kakao_account.email,
-        provider: 'kakao',
-        providerKey: String(userData.id),
-      });
+  //   if (!user) {
+  //     // 기존회원 아닌경우 카카오 회원가입
+  //     const newUser = await this.userService.createUserWithOAuth({
+  //       email: userData.kakao_account.email,
+  //       provider: 'kakao',
+  //       providerKey: String(userData.id),
+  //     });
 
-      user = await this.userService.updateMyinfo(newUser.idx, {
-        nickname: `${newUser.serialNumber}번째 오리`,
-      });
-    }
+  //     user = await this.userService.updateMyinfo(newUser.idx, {
+  //       nickname: `${newUser.serialNumber}번째 오리`,
+  //     });
+  //   }
 
-    const accessToken = await this.authService.generateToken(
-      'access',
-      user.idx,
-      user.isAdmin,
-      30 * 60,
-    );
+  //   const accessToken = await this.authService.generateToken(
+  //     'access',
+  //     user.idx,
+  //     user.isAdmin,
+  //     30 * 60,
+  //   );
 
-    const refreshToken = await this.authService.generateToken(
-      'refresh',
-      user.idx,
-      user.isAdmin,
-      14 * 24 * 3600,
-    );
+  //   const refreshToken = await this.authService.generateToken(
+  //     'refresh',
+  //     user.idx,
+  //     user.isAdmin,
+  //     14 * 24 * 3600,
+  //   );
 
-    return { accessToken, refreshToken };
-  }
+  //   return { accessToken, refreshToken };
+  // }
 }

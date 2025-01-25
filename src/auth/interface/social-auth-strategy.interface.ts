@@ -6,5 +6,5 @@ export interface ISocialAuthStrategy {
 
   socialLogin(query: any): Promise<LoginResponseDto>;
 
-  socialAuth(code: string): Promise<LoginResponseDto>;
+  // socialAuth(code: string): Promise<LoginResponseDto>;
 }

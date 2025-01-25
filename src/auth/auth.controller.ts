@@ -27,9 +27,7 @@ import { KakaoCallbackDto } from './dto/kakao-callback.dto';
 import { GetUser } from './get-user.decorator';
 import { LoginUser } from './model/login-user.model';
 import { RefreshGuard } from './guard/refresh.guard';
-import { KakaoLoginDto } from './dto/kakao-login.dto';
-import { NaverLoginDto } from './dto/naver-login.dto';
-import { GoogleLoginDto } from './dto/google-login.dto';
+import { SocialLoginDto } from './dto/social-login.dto';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -117,22 +115,22 @@ export class AuthController {
   }
 
   @Post('/kakao')
-  async kakaoAuth(@Body() dto: KakaoLoginDto): Promise<LoginResponseDto> {
+  async kakaoLogin(@Body() dto: SocialLoginDto): Promise<LoginResponseDto> {
     return await this.authService.socialLogin('kakao', dto);
   }
 
   @Post('/naver')
-  async naverAuth(@Body() dto: KakaoLoginDto): Promise<LoginResponseDto> {
-    return await this.authService.socialLogin('kakao', dto);
+  async naverLogin(@Body() dto: SocialLoginDto): Promise<LoginResponseDto> {
+    return await this.authService.socialLogin('naver', dto);
   }
 
   @Post('/google')
-  async googleAuth(@Body() dto: KakaoLoginDto): Promise<LoginResponseDto> {
-    return await this.authService.socialLogin('kakao', dto);
+  async googleLogin(@Body() dto: SocialLoginDto): Promise<LoginResponseDto> {
+    return await this.authService.socialLogin('google', dto);
   }
 
   @Get('/:provider')
-  @ApiOperation({ summary: '소셜로그인' })
+  @ApiOperation({ summary: '소셜로그인', deprecated: true })
   @Exception(404, '지원하지않는 서비스')
   async socialAuth(
     @Req() req: Request,
@@ -143,21 +141,21 @@ export class AuthController {
   }
 
   @Get('/kakao/callback')
-  async kakaoLogin(
+  async kakaoAuth(
     @Query() query: KakaoCallbackDto,
   ): Promise<{ accessToken: string }> {
     return await this.authService.socialLogin('kakao', query);
   }
 
   @Get('/naver/callback')
-  async naverLogin(
+  async naverAuth(
     @Query() query: NaverCallbackDto,
   ): Promise<{ accessToken: string }> {
     return await this.authService.socialLogin('naver', query);
   }
 
   @Get('/google/callback')
-  async googleLogin(
+  async googleAuth(
     @Query() query: GoogleCallbackDto,
   ): Promise<{ accessToken: string }> {
     return await this.authService.socialLogin('google', query);

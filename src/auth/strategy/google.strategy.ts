@@ -7,6 +7,7 @@ import { ConfigService } from '@nestjs/config';
 import { GoogleCallbackDto } from '../dto/google-callback.dto';
 import { AuthService } from '../auth.service';
 import { LoginResponseDto } from '../dto/response/login-response.dto';
+import { SocialLoginDto } from '../dto/social-login.dto';
 
 @Injectable()
 export class GoogleStrategy implements ISocialAuthStrategy {
@@ -28,13 +29,11 @@ export class GoogleStrategy implements ISocialAuthStrategy {
     res.redirect(url);
   }
 
-  async socialLogin(query: GoogleCallbackDto): Promise<LoginResponseDto> {
-    const { code, scope, authuser, prompt } = query;
-
+  async socialLogin(dto: SocialLoginDto): Promise<LoginResponseDto> {
     const tokenRequestBody = {
       client_id: this.configService.get<string>('GOOGLE_CLIENT_ID'),
       client_secret: this.configService.get<string>('GOOGLE_CLIENT_SECRET'),
-      code: code,
+      code: dto.code,
       redirect_uri: this.configService.get<string>('GOOGLE_REDIRECT_URI'),
       grant_type: 'authorization_code',
     };
@@ -89,62 +88,62 @@ export class GoogleStrategy implements ISocialAuthStrategy {
     return { accessToken, refreshToken };
   }
 
-  async socialAuth(code: string): Promise<LoginResponseDto> {
-    const tokenRequestBody = {
-      client_id: this.configService.get<string>('GOOGLE_CLIENT_ID'),
-      client_secret: this.configService.get<string>('GOOGLE_CLIENT_SECRET'),
-      code: code,
-      redirect_uri: this.configService.get<string>('GOOGLE_REDIRECT_URI'),
-      grant_type: 'authorization_code',
-    };
+  // async socialAuth(code: string): Promise<LoginResponseDto> {
+  //   const tokenRequestBody = {
+  //     client_id: this.configService.get<string>('GOOGLE_CLIENT_ID'),
+  //     client_secret: this.configService.get<string>('GOOGLE_CLIENT_SECRET'),
+  //     code: code,
+  //     redirect_uri: this.configService.get<string>('GOOGLE_REDIRECT_URI'),
+  //     grant_type: 'authorization_code',
+  //   };
 
-    let tokenUrl = `https://oauth2.googleapis.com/token`;
+  //   let tokenUrl = `https://oauth2.googleapis.com/token`;
 
-    const { data: tokenData } = await this.httpService.axiosRef.post(
-      tokenUrl,
-      tokenRequestBody,
-    );
+  //   const { data: tokenData } = await this.httpService.axiosRef.post(
+  //     tokenUrl,
+  //     tokenRequestBody,
+  //   );
 
-    const userInfoUrl = `https://www.googleapis.com/oauth2/v2/userinfo`;
+  //   const userInfoUrl = `https://www.googleapis.com/oauth2/v2/userinfo`;
 
-    const { data: userData } = await this.httpService.axiosRef.get(
-      userInfoUrl,
-      {
-        headers: {
-          Authorization: `${tokenData.token_type} ${tokenData.access_token}`,
-        },
-      },
-    );
+  //   const { data: userData } = await this.httpService.axiosRef.get(
+  //     userInfoUrl,
+  //     {
+  //       headers: {
+  //         Authorization: `${tokenData.token_type} ${tokenData.access_token}`,
+  //       },
+  //     },
+  //   );
 
-    let user = await this.userService.getUser({ email: userData.email });
+  //   let user = await this.userService.getUser({ email: userData.email });
 
-    if (!user) {
-      // 기존회원 아닌경우 구글 회원가입
-      const newUser = await this.userService.createUserWithOAuth({
-        email: userData.email,
-        provider: 'google',
-        providerKey: String(userData.id),
-      });
+  //   if (!user) {
+  //     // 기존회원 아닌경우 구글 회원가입
+  //     const newUser = await this.userService.createUserWithOAuth({
+  //       email: userData.email,
+  //       provider: 'google',
+  //       providerKey: String(userData.id),
+  //     });
 
-      user = await this.userService.updateMyinfo(newUser.idx, {
-        nickname: `${newUser.serialNumber}번째 오리`,
-      });
-    }
+  //     user = await this.userService.updateMyinfo(newUser.idx, {
+  //       nickname: `${newUser.serialNumber}번째 오리`,
+  //     });
+  //   }
 
-    const accessToken = await this.authService.generateToken(
-      'access',
-      user.idx,
-      user.isAdmin,
-      30 * 60,
-    );
+  //   const accessToken = await this.authService.generateToken(
+  //     'access',
+  //     user.idx,
+  //     user.isAdmin,
+  //     30 * 60,
+  //   );
 
-    const refreshToken = await this.authService.generateToken(
-      'refresh',
-      user.idx,
-      user.isAdmin,
-      14 * 24 * 3600,
-    );
+  //   const refreshToken = await this.authService.generateToken(
+  //     'refresh',
+  //     user.idx,
+  //     user.isAdmin,
+  //     14 * 24 * 3600,
+  //   );
 
-    return { accessToken, refreshToken };
-  }
+  //   return { accessToken, refreshToken };
+  // }
 }

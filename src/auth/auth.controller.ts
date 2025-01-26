@@ -45,7 +45,10 @@ export class AuthController {
 
   @Post('/email/inspect-duplicate')
   @HttpCode(200)
-  @ApiOperation({ summary: '이메일 중복검사 / 이메일 인증번호 전송' })
+  @ApiOperation({
+    summary: '이메일 중복검사 / 이메일 인증번호 전송',
+    description: '중복되지 않은 정상 메일이라면 상태코드 200반환',
+  })
   @Exception(400, '유효하지않은 요청')
   @Exception(409, '이메일 중복')
   @ApiResponse({ status: 200 })
@@ -59,7 +62,8 @@ export class AuthController {
   @HttpCode(200)
   @ApiOperation({
     summary: '가입 이메일 검사 / 이메일 인증번호 전송',
-    description: '비밀번호 초기화 전 이메일 인증으로 사용됩니다. ',
+    description: `비밀번호 초기화 전 이메일 인증으로 사용됩니다. \n
+       가입된 정상 이메일이면 상태코드 200반환 후 인증번호 메일 전송`,
   })
   @Exception(400, '유효하지않은 요청')
   @Exception(404, '존재하지 않는 이메일')
@@ -68,17 +72,15 @@ export class AuthController {
     await this.emailAuthService.inspectEmail(dto.email);
   }
 
-  //비밀번호 변경 API
   @Post('email/verify')
   @ApiOperation({
     summary: '이메일 인증번호 확인',
-    description:
-      '인증된 메일이 아니거나 유효시간 5분을 초과한 메일일 경우 상태코드 401 반환',
+    description: `이메일이 정상 인증되면 200 반환 \n
+      인증된 메일이 아니거나 유효시간 5분을 초과한 메일일 경우 상태코드 401 반환`,
   })
   @HttpCode(200)
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '인증되지 않은 이메일 / 유효시간 5분 초과한 이메일')
-  @Exception(409, '이미 인증된 이메일')
   @ApiResponse({ status: 200 })
   async checkEmailVerificationCode(@Body() dto: VerifyEmailDto): Promise<void> {
     await this.emailAuthService.checkEmailVerificationCode(dto.email, dto.code);

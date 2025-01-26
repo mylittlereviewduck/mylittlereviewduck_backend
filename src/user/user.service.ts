@@ -1,4 +1,3 @@
-import { ConfigService } from '@nestjs/config';
 import { EmailAuthService } from './../auth/email-auth.service';
 import {
   ConflictException,
@@ -26,7 +25,6 @@ export class UserService {
     private readonly bcryptService: BcryptService,
     @Inject(forwardRef(() => EmailAuthService))
     private readonly emailAuthService: EmailAuthService,
-    private readonly configService: ConfigService,
   ) {}
 
   async getUser(
@@ -241,45 +239,58 @@ export class UserService {
     userIdx: string,
     dto: UpdateMyInfoDto,
   ): Promise<UserEntity> {
-    const user = await this.getUser({
-      idx: userIdx,
-    });
-
-    if (!user) {
-      throw new NotFoundException('Not Found User');
-    }
-
-    const duplicatedUser = await this.getUser({
-      nickname: dto.nickname,
-    });
-
-    if (duplicatedUser && duplicatedUser.nickname == dto.nickname) {
-      throw new ConflictException('Duplicated Nickname');
-    }
-
-    const updatedUser = await this.prismaService.accountTb.update({
-      include: {
-        _count: {
-          select: {
-            followings: true,
-            followers: true,
-            reviewTb: true,
+    try {
+      const updatedUser = await this.prismaService.$transaction(async (tx) => {
+        const user = await this.getUser(
+          {
+            idx: userIdx,
           },
-        },
-      },
-      //prettier-ignore
-      data: {
-        nickname: dto.nickname ?? user.nickname,
-        profile: dto.profile ?? user.profile,
-        interest1: (dto.interest?.[0] ?? user.interest1),
-        interest2: (dto.interest?.[1] ?? user.interest2),
-      },
-      where: {
-        idx: userIdx,
-      },
-    });
+          tx,
+        );
 
-    return new UserEntity(updatedUser);
+        if (!user) {
+          throw new NotFoundException('Not Found User');
+        }
+
+        const duplicatedUser = await this.getUser(
+          {
+            nickname: dto.nickname,
+          },
+          tx,
+        );
+
+        if (duplicatedUser && duplicatedUser.nickname == dto.nickname) {
+          throw new ConflictException('Duplicated Nickname');
+        }
+
+        const updatedUser = await tx.accountTb.update({
+          include: {
+            _count: {
+              select: {
+                followings: true,
+                followers: true,
+                reviewTb: true,
+              },
+            },
+          },
+          //prettier-ignore
+          data: {
+            nickname: dto.nickname ?? user.nickname,
+            profile: dto.profile ?? user.profile,
+            interest1: (dto.interest?.[0] ?? user.interest1),
+            interest2: (dto.interest?.[1] ?? user.interest2),
+          },
+          where: {
+            idx: userIdx,
+          },
+        });
+
+        return updatedUser;
+      });
+      return new UserEntity(updatedUser);
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   async updateMyProfileImg(

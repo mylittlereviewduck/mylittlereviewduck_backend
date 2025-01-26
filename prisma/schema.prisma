@@ -168,16 +168,6 @@ model TagTb {
   @@map("tag_tb")
 }
 
-model VerifiedEmailTb {
-  idx        Int      @id @default(autoincrement())
-  email      String   @unique(map: "verified_email_email_unique") @db.VarChar
-  code       Int
-  isVerified Boolean  @default(false) @map("is_verified")
-  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-
-  @@map("verified_email_tb")
-}
-
 model ReviewDislikeTb {
   accountIdx String    @map("account_idx") @db.VarChar
   reviewIdx  Int       @map("review_idx")
@@ -293,4 +283,13 @@ model FcmTokenTb {
   accountTb  AccountTb @relation(fields: [accountIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "account_idx_fk")
 
   @@map("fcm_token_tb")
+}
+
+model EmailVerificaitonTb {
+  email      String    @id(map: "email_pk") @db.VarChar
+  code       Int
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  verifiedAt DateTime? @map("verified_at") @db.Timestamptz(6)
+
+  @@map("email_verificaiton_tb")
 }

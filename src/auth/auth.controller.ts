@@ -43,7 +43,6 @@ export class AuthController {
     private readonly emailAuthService: EmailAuthService,
   ) {}
 
-  //이메일 인증번호전송
   @Post('/email/send-verification')
   @HttpCode(200)
   @ApiOperation({ summary: '이메일 중복검사 / 이메일 인증번호 전송' })
@@ -57,6 +56,10 @@ export class AuthController {
       sendEmailVerificationDto,
     );
   }
+
+  // 가입이메일확인 / 이메일인증번호 전송 API
+
+  //비밀번호 변경 API
 
   @Post('email/verify')
   @ApiOperation({

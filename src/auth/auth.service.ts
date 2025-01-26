@@ -92,7 +92,7 @@ export class AuthService {
     req: Request,
     res: Response,
     provider: SocialLoginProvider,
-  ): Promise<{ accessToken: string }> {
+  ): Promise<LoginResponseDto> {
     let strategy = this.strategy[provider];
 
     if (!strategy) {

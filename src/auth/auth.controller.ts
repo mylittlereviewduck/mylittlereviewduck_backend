@@ -28,6 +28,7 @@ import { GetUser } from './get-user.decorator';
 import { LoginUser } from './model/login-user.model';
 import { RefreshGuard } from './guard/refresh.guard';
 import { SocialLoginDto } from './dto/social-login.dto';
+import { GetAccessTokenResponseDto } from './dto/response/get-access-token-response.dto';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -103,12 +104,12 @@ export class AuthController {
   @ApiResponse({ status: 200 })
   async getAccessToken(
     @GetUser() loginUser: LoginUser,
-  ): Promise<{ accessToken: string }> {
+  ): Promise<GetAccessTokenResponseDto> {
     const accessToken = await this.authService.generateToken(
       'access',
       loginUser.idx,
       loginUser.isAdmin,
-      5 * 60,
+      30 * 60,
     );
 
     return { accessToken };
@@ -144,27 +145,24 @@ export class AuthController {
   @Get('/:provider')
   @ApiOperation({ summary: '소셜로그인', deprecated: true })
   @Exception(404, '지원하지않는 서비스')
+  @ApiResponse({ status: 200, type: LoginResponseDto })
   async socialAuth(
     @Req() req: Request,
     @Res() res: Response,
     @Param('provider') provider: SocialLoginProvider,
-  ) {
+  ): Promise<LoginResponseDto> {
     return this.authService.getToken(req, res, provider);
   }
 
   @Get('/kakao/callback')
   @ApiOperation({ summary: '카카오 로그인 콜백uri', deprecated: true })
-  async kakaoAuth(
-    @Query() query: KakaoCallbackDto,
-  ): Promise<{ accessToken: string }> {
+  async kakaoAuth(@Query() query: KakaoCallbackDto): Promise<LoginResponseDto> {
     return await this.authService.socialLogin('kakao', query);
   }
 
   @Get('/naver/callback')
   @ApiOperation({ summary: '네이버 로그인 콜백uri', deprecated: true })
-  async naverAuth(
-    @Query() query: NaverCallbackDto,
-  ): Promise<{ accessToken: string }> {
+  async naverAuth(@Query() query: NaverCallbackDto): Promise<LoginResponseDto> {
     return await this.authService.socialLogin('naver', query);
   }
 
@@ -172,7 +170,7 @@ export class AuthController {
   @ApiOperation({ summary: '네이버 로그인 콜백uri', deprecated: true })
   async googleAuth(
     @Query() query: GoogleCallbackDto,
-  ): Promise<{ accessToken: string }> {
+  ): Promise<LoginResponseDto> {
     return await this.authService.socialLogin('google', query);
   }
 }

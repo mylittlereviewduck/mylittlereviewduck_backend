@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { EmailService } from '../email/email.service';
 import { UserService } from 'src/user/user.service';
-import { Prisma, VerifiedEmailTb } from '@prisma/client';
+import { EmailVerificaitonTb, Prisma } from '@prisma/client';
 
 @Injectable()
 export class EmailAuthService {
@@ -32,13 +32,13 @@ export class EmailAuthService {
 
     const code = Math.floor(Math.random() * 900000 + 100000);
 
-    await this.prismaService.verifiedEmailTb.deleteMany({
+    await this.prismaService.emailVerificaitonTb.deleteMany({
       where: {
         email: sendEmailVerificationDto.email,
       },
     });
 
-    await this.prismaService.verifiedEmailTb.create({
+    await this.prismaService.emailVerificaitonTb.create({
       data: {
         code: code,
         email: sendEmailVerificationDto.email,
@@ -52,14 +52,14 @@ export class EmailAuthService {
     });
   }
 
-  async getEmailWithVerificationCode(
+  async getEmailVerification(
     email: string,
     verificationCode?: number,
     tx?: Prisma.TransactionClient,
-  ): Promise<VerifiedEmailTb | null> {
+  ): Promise<EmailVerificaitonTb | null> {
     const prisma = tx ?? this.prismaService;
 
-    return await prisma.verifiedEmailTb.findUnique({
+    return await prisma.emailVerificaitonTb.findUnique({
       where: {
         email: email,
         code: verificationCode,
@@ -67,10 +67,10 @@ export class EmailAuthService {
     });
   }
 
-  async verifyEmail(email: string): Promise<VerifiedEmailTb> {
-    return await this.prismaService.verifiedEmailTb.update({
+  async verifyEmail(email: string): Promise<EmailVerificaitonTb> {
+    return await this.prismaService.emailVerificaitonTb.update({
       data: {
-        isVerified: true,
+        verifiedAt: new Date(),
       },
       where: {
         email: email,
@@ -78,8 +78,8 @@ export class EmailAuthService {
     });
   }
 
-  async deleteVerifiedEmail(email: string): Promise<void> {
-    await this.prismaService.verifiedEmailTb.delete({
+  async deleteEmailVerification(email: string): Promise<void> {
+    await this.prismaService.emailVerificaitonTb.delete({
       where: {
         email: email,
       },

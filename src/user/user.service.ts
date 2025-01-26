@@ -319,7 +319,7 @@ export class UserService {
   async updateMyProfileImg(
     userIdx: string,
     imgPath: string | null,
-    tx: PrismaClient | null,
+    tx?: PrismaClient,
   ): Promise<void> {
     const prismaService = tx || this.prismaService;
 

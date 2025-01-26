@@ -10,7 +10,7 @@ export class ReviewWithUserStatusService {
   async getUserStatus(
     loginUserIdx: string,
     reviewIdxs: number[],
-    tx: PrismaClient,
+    tx?: PrismaClient,
   ): Promise<UserStatus[]> {
     const prismaService = tx || this.prismaService;
 

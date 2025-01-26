@@ -19,36 +19,21 @@ export class EmailAuthService {
     private readonly userService: UserService,
   ) {}
 
-  async sendEmailVerificationCode(
-    sendEmailVerificationDto: SendEmailVerificationDto,
-  ): Promise<void> {
+  async inspectEmailDuplicate(dto: SendEmailVerificationDto): Promise<void> {
     const user = await this.userService.getUser({
-      email: sendEmailVerificationDto.email,
+      email: dto.email,
     });
 
     if (user) {
       throw new ConflictException('Duplicated Email');
     }
 
-    // const code = Math.floor(Math.random() * 900000 + 100000);
-
-    // await this.prismaService.emailVerificaitonTb.deleteMany({
-    //   where: {
-    //     email: sendEmailVerificationDto.email,
-    //   },
-    // });
-
-    // await this.prismaService.emailVerificaitonTb.create({
-    //   data: {
-    //     code: code,
-    //     email: sendEmailVerificationDto.email,
-    //   },
-    // });
+    const verificationCode = await this.createEmailVerification(dto.email);
 
     await this.emailService.sendEmail({
-      toEmail: sendEmailVerificationDto.email,
+      toEmail: dto.email,
       title: `오늘도 리뷰 이메일 인증번호`,
-      content: `이메일 인증번호 : ${code}`,
+      content: `이메일 인증번호 : ${verificationCode}`,
     });
   }
 
@@ -69,8 +54,8 @@ export class EmailAuthService {
 
   async createEmailVerification(
     email: string,
-    tx: PrismaClient | null,
-  ): Promise<void> {
+    tx?: PrismaClient,
+  ): Promise<number> {
     const code = Math.floor(Math.random() * 900000 + 100000);
 
     const prismaService = tx || this.prismaService;
@@ -87,6 +72,8 @@ export class EmailAuthService {
         email: email,
       },
     });
+
+    return code;
   }
 
   async verifyEmail(email: string): Promise<EmailVerificaitonTb> {

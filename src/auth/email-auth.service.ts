@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { EmailService } from '../email/email.service';
 import { UserService } from 'src/user/user.service';
-import { EmailVerificaitonTb, Prisma } from '@prisma/client';
+import { EmailVerificaitonTb, Prisma, PrismaClient } from '@prisma/client';
 
 @Injectable()
 export class EmailAuthService {
@@ -30,20 +30,20 @@ export class EmailAuthService {
       throw new ConflictException('Duplicated Email');
     }
 
-    const code = Math.floor(Math.random() * 900000 + 100000);
+    // const code = Math.floor(Math.random() * 900000 + 100000);
 
-    await this.prismaService.emailVerificaitonTb.deleteMany({
-      where: {
-        email: sendEmailVerificationDto.email,
-      },
-    });
+    // await this.prismaService.emailVerificaitonTb.deleteMany({
+    //   where: {
+    //     email: sendEmailVerificationDto.email,
+    //   },
+    // });
 
-    await this.prismaService.emailVerificaitonTb.create({
-      data: {
-        code: code,
-        email: sendEmailVerificationDto.email,
-      },
-    });
+    // await this.prismaService.emailVerificaitonTb.create({
+    //   data: {
+    //     code: code,
+    //     email: sendEmailVerificationDto.email,
+    //   },
+    // });
 
     await this.emailService.sendEmail({
       toEmail: sendEmailVerificationDto.email,
@@ -63,6 +63,28 @@ export class EmailAuthService {
       where: {
         email: email,
         code: verificationCode,
+      },
+    });
+  }
+
+  async createEmailVerification(
+    email: string,
+    tx: PrismaClient | null,
+  ): Promise<void> {
+    const code = Math.floor(Math.random() * 900000 + 100000);
+
+    const prismaService = tx || this.prismaService;
+
+    await prismaService.emailVerificaitonTb.deleteMany({
+      where: {
+        email: email,
+      },
+    });
+
+    await prismaService.emailVerificaitonTb.create({
+      data: {
+        code: code,
+        email: email,
       },
     });
   }

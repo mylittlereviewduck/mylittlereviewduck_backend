@@ -5,11 +5,13 @@ import {
   Inject,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
   forwardRef,
 } from '@nestjs/common';
 import { EmailService } from '../email/email.service';
 import { UserService } from 'src/user/user.service';
 import { EmailVerificaitonTb, Prisma, PrismaClient } from '@prisma/client';
+import { EmailVerificationEntity } from './entity/verified-email.model';
 
 @Injectable()
 export class EmailAuthService {
@@ -60,15 +62,21 @@ export class EmailAuthService {
     email: string,
     code?: number,
     tx?: Prisma.TransactionClient,
-  ): Promise<EmailVerificaitonTb | null> {
+  ): Promise<EmailVerificationEntity | null> {
     const prisma = tx ?? this.prismaService;
 
-    return await prisma.emailVerificaitonTb.findUnique({
+    const emailVerificationData = await prisma.emailVerificaitonTb.findUnique({
       where: {
         email: email,
         ...(code && { code: code }),
       },
     });
+
+    if (!emailVerificationData) {
+      return null;
+    }
+
+    return new EmailVerificationEntity(emailVerificationData);
   }
 
   async createEmailVerification(
@@ -112,5 +120,22 @@ export class EmailAuthService {
         email: email,
       },
     });
+  }
+
+  async checkEmailVerificationCode(email: string, code: number): Promise<void> {
+    const verifiedEmail = await this.getEmailVerification(email, code);
+
+    if (!verifiedEmail) {
+      throw new UnauthorizedException('Unauthorized email');
+    }
+
+    if (
+      new Date().getTime() - verifiedEmail.createdAt.getTime() >
+      5 * 60 * 1000
+    ) {
+      throw new UnauthorizedException('Authentication TimeOut');
+    }
+
+    await this.verifyEmail(verifiedEmail.email);
   }
 }

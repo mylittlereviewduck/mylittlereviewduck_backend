@@ -80,24 +80,8 @@ export class AuthController {
   @Exception(401, '인증되지 않은 이메일 / 유효시간 5분 초과한 이메일')
   @Exception(409, '이미 인증된 이메일')
   @ApiResponse({ status: 200 })
-  async verifyEmail(@Body() verifyEmailDto: VerifyEmailDto): Promise<void> {
-    const verifiedEmail = await this.emailAuthService.getEmailVerification(
-      verifyEmailDto.email,
-      verifyEmailDto.code,
-    );
-
-    if (!verifiedEmail) {
-      throw new UnauthorizedException('Unauthorized email');
-    }
-
-    if (
-      new Date().getTime() - verifiedEmail.createdAt.getTime() >
-      5 * 60 * 1000
-    ) {
-      throw new UnauthorizedException('Authentication TimeOut');
-    }
-
-    this.emailAuthService.verifyEmail(verifiedEmail.email);
+  async checkEmailVerificationCode(@Body() dto: VerifyEmailDto): Promise<void> {
+    await this.emailAuthService.checkEmailVerificationCode(dto.email, dto.code);
   }
 
   @Post('/login')

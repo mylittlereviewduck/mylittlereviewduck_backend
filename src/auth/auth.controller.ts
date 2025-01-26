@@ -46,7 +46,7 @@ export class AuthController {
   //이메일 인증번호전송
   @Post('/email/send-verification')
   @HttpCode(200)
-  @ApiOperation({ summary: '이메일 중복검사 / 인증번호 전송' })
+  @ApiOperation({ summary: '이메일 중복검사 / 이메일 인증번호 전송' })
   @Exception(400, '유효하지않은 요청')
   @Exception(409, '이메일 중복')
   @ApiResponse({ status: 200 })
@@ -60,7 +60,7 @@ export class AuthController {
 
   @Post('email/verify')
   @ApiOperation({
-    summary: '이메일 인증확인',
+    summary: '이메일 인증번호 확인',
     description:
       '인증된 메일이 아니거나 유효시간 5분을 초과한 메일일 경우 상태코드 401 반환',
   })

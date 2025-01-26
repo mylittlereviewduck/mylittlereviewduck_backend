@@ -210,7 +210,10 @@ export class ReviewController {
 
   @Get('/review')
   @UseGuards(OptionalAuthGuard)
-  @ApiOperation({ summary: '리뷰검색하기 닉네임, 태그, 제목, 내용' })
+  @ApiOperation({
+    summary: '리뷰검색하기 ',
+    description: '작성자 닉네임, 태그, 제목, 내용으로 검색됩니다',
+  })
   @ApiQuery({ name: 'search', description: '검색 키워드, 검색어 2글자 이상' })
   @Exception(400, '유효하지않은 요청')
   @Exception(404, 'Not Found Page')
@@ -261,7 +264,7 @@ export class ReviewController {
 
   @Get('/review/recommendation/keyword')
   @UseGuards(OptionalAuthGuard)
-  @ApiOperation({ summary: '리뷰 검색키워드 추천' })
+  @ApiOperation({ summary: '리뷰 추천 검색 키워드 조회' })
   async getRecommendedKeyword(
     @GetUser() loginUser: LoginUser,
   ): Promise<string[]> {

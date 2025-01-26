@@ -52,11 +52,11 @@ describe('email auth service', () => {
 
     userService.getUser.mockResolvedValue(null);
 
-    prismaService.verifiedEmailTb.deleteMany.mockResolvedValue({
+    prismaService.emailVerificaitonTb.deleteMany.mockResolvedValue({
       count: 1,
     });
 
-    await emailAuthService.sendEmailVerificationCode(dto);
+    await emailAuthService.inspectEmailDuplicate(dto);
 
     expect(emailService.sendEmail).toHaveBeenCalledTimes(1);
     expect(userService.getUser).toHaveBeenCalledWith({ email: dto.email });
@@ -70,8 +70,8 @@ describe('email auth service', () => {
 
     userService.getUser.mockResolvedValue(user);
 
-    await expect(
-      emailAuthService.sendEmailVerificationCode(dto),
-    ).rejects.toThrow(ConflictException);
+    await expect(emailAuthService.inspectEmailDuplicate(dto)).rejects.toThrow(
+      ConflictException,
+    );
   });
 });

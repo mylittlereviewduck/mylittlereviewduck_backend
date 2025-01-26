@@ -4,6 +4,7 @@ import {
   ConflictException,
   Inject,
   Injectable,
+  NotFoundException,
   forwardRef,
 } from '@nestjs/common';
 import { EmailService } from '../email/email.service';
@@ -19,19 +20,37 @@ export class EmailAuthService {
     private readonly userService: UserService,
   ) {}
 
-  async inspectEmailDuplicate(dto: SendEmailVerificationDto): Promise<void> {
+  async inspectEmailDuplicate(email: string): Promise<void> {
     const user = await this.userService.getUser({
-      email: dto.email,
+      email: email,
     });
 
     if (user) {
       throw new ConflictException('Duplicated Email');
     }
 
-    const verificationCode = await this.createEmailVerification(dto.email);
+    const verificationCode = await this.createEmailVerification(email);
 
     await this.emailService.sendEmail({
-      toEmail: dto.email,
+      toEmail: email,
+      title: `오늘도 리뷰 이메일 인증번호`,
+      content: `이메일 인증번호 : ${verificationCode}`,
+    });
+  }
+
+  async inspectEmail(email: string): Promise<void> {
+    const user = await this.userService.getUser({
+      email: email,
+    });
+
+    if (!user) {
+      throw new NotFoundException('Not Found Email');
+    }
+
+    const verificationCode = await this.createEmailVerification(email);
+
+    await this.emailService.sendEmail({
+      toEmail: email,
       title: `오늘도 리뷰 이메일 인증번호`,
       content: `이메일 인증번호 : ${verificationCode}`,
     });
@@ -58,7 +77,7 @@ export class EmailAuthService {
   ): Promise<number> {
     const code = Math.floor(Math.random() * 900000 + 100000);
 
-    const prismaService = tx || this.prismaService;
+    const prismaService = tx ?? this.prismaService;
 
     await prismaService.emailVerificaitonTb.deleteMany({
       where: {

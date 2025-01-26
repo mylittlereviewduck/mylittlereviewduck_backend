@@ -43,24 +43,33 @@ export class AuthController {
     private readonly emailAuthService: EmailAuthService,
   ) {}
 
-  @Post('/email/send-verification')
+  @Post('/email/inspect-duplicate')
   @HttpCode(200)
   @ApiOperation({ summary: '이메일 중복검사 / 이메일 인증번호 전송' })
   @Exception(400, '유효하지않은 요청')
   @Exception(409, '이메일 중복')
   @ApiResponse({ status: 200 })
-  async sendEmailWithVerification(
-    @Body() sendEmailVerificationDto: SendEmailVerificationDto,
+  async inspectEmailDuplicate(
+    @Body() dto: SendEmailVerificationDto,
   ): Promise<void> {
-    await this.emailAuthService.sendEmailVerificationCode(
-      sendEmailVerificationDto,
-    );
+    await this.emailAuthService.inspectEmailDuplicate(dto.email);
   }
 
-  // 가입이메일확인 / 이메일인증번호 전송 API
+  // 가입 이메일 확인 / 이메일인증번호 전송 API
+  @Post('/email/inspect')
+  @HttpCode(200)
+  @ApiOperation({
+    summary: '가입 이메일 검사 / 이메일 인증번호 전송',
+    description: '비밀번호 초기화 전 이메일 인증으로 사용됩니다. ',
+  })
+  @Exception(400, '유효하지않은 요청')
+  @Exception(404, '존재하지 않는 이메일')
+  @ApiResponse({ status: 200 })
+  async inspectEmail(@Body() dto: SendEmailVerificationDto): Promise<void> {
+    await this.emailAuthService.inspectEmail(dto.email);
+  }
 
   //비밀번호 변경 API
-
   @Post('email/verify')
   @ApiOperation({
     summary: '이메일 인증번호 확인',
@@ -73,11 +82,10 @@ export class AuthController {
   @Exception(409, '이미 인증된 이메일')
   @ApiResponse({ status: 200 })
   async verifyEmail(@Body() verifyEmailDto: VerifyEmailDto): Promise<void> {
-    const verifiedEmail =
-      await this.emailAuthService.getEmailWithVerificationCode(
-        verifyEmailDto.email,
-        verifyEmailDto.verificationCode,
-      );
+    const verifiedEmail = await this.emailAuthService.getEmailVerification(
+      verifyEmailDto.email,
+      verifyEmailDto.verificationCode,
+    );
 
     if (!verifiedEmail) {
       throw new UnauthorizedException('Unauthorized email');

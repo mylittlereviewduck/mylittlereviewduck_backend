@@ -27,7 +27,7 @@ export class EmailService {
       html: `<b>오늘도리뷰 인증번호 : ${randomCode}</b>`,
     });
 
-    await this.prismaService.verifiedEmailTb.create({
+    await this.prismaService.emailVerificaitonTb.create({
       data: {
         email: sendEmailWithVerificationDto.email,
         code: randomCode,

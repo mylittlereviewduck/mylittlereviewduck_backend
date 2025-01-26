@@ -202,13 +202,13 @@ export class UserService {
       }
 
       const authenticatedEmail =
-        await this.emailAuthService.getEmailWithVerificationCode(
+        await this.emailAuthService.getEmailVerification(
           dto.email,
           undefined,
           tx,
         );
 
-      if (!authenticatedEmail || authenticatedEmail.isVerified !== true) {
+      if (!authenticatedEmail || authenticatedEmail.verifiedAt !== null) {
         throw new UnauthorizedException('Unauthorized Email');
       }
 
@@ -243,7 +243,7 @@ export class UserService {
       });
     });
 
-    await this.emailAuthService.deleteVerifiedEmail(dto.email);
+    await this.emailAuthService.deleteEmailVerification(dto.email);
 
     return await this.getUser({ idx: newUser.idx });
   }
@@ -321,7 +321,7 @@ export class UserService {
     imgPath: string | null,
     tx?: PrismaClient,
   ): Promise<void> {
-    const prismaService = tx || this.prismaService;
+    const prismaService = tx ?? this.prismaService;
 
     await prismaService.accountTb.update({
       where: {

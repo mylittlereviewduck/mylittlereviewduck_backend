@@ -12,7 +12,7 @@ export class ReviewWithUserStatusService {
     reviewIdxs: number[],
     tx?: PrismaClient,
   ): Promise<UserStatus[]> {
-    const prismaService = tx || this.prismaService;
+    const prismaService = tx ?? this.prismaService;
 
     const statuses = await prismaService.$queryRaw<UserStatus[]>`
     SELECT

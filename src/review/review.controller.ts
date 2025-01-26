@@ -429,6 +429,7 @@ export class ReviewController {
 
   @Get('/review/all/following')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: '팔로우한 사람들의 리뷰목록 보기' })
   @Exception(401, '권한없음')
   @ApiResponse({ status: 200 })

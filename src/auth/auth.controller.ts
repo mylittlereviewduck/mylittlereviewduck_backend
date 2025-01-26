@@ -12,7 +12,12 @@ import {
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Exception } from '../../src/decorator/exception.decorator';
 import { LoginDto } from './dto/login.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
@@ -97,11 +102,15 @@ export class AuthController {
 
   @Post('/access-token')
   @UseGuards(RefreshGuard)
-  @ApiOperation({ summary: '액세스 토큰발급' })
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: '액세스 토큰발급',
+    description: 'request 헤더에 리프레쉬 토큰 필요합니다.',
+  })
   @HttpCode(200)
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
-  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 200, type: GetAccessTokenResponseDto })
   async getAccessToken(
     @GetUser() loginUser: LoginUser,
   ): Promise<GetAccessTokenResponseDto> {

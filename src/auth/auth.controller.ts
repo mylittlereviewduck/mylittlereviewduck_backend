@@ -115,16 +115,28 @@ export class AuthController {
   }
 
   @Post('/kakao')
+  @ApiOperation({ summary: '카카오 로그인' })
+  @HttpCode(200)
+  @Exception(400, '유효하지않은 요청')
+  @ApiResponse({ status: 200, type: LoginResponseDto })
   async kakaoLogin(@Body() dto: SocialLoginDto): Promise<LoginResponseDto> {
     return await this.authService.socialLogin('kakao', dto);
   }
 
   @Post('/naver')
+  @ApiOperation({ summary: '네이버 로그인' })
+  @HttpCode(200)
+  @Exception(400, '유효하지않은 요청')
+  @ApiResponse({ status: 200, type: LoginResponseDto })
   async naverLogin(@Body() dto: SocialLoginDto): Promise<LoginResponseDto> {
     return await this.authService.socialLogin('naver', dto);
   }
 
   @Post('/google')
+  @ApiOperation({ summary: '구글 로그인' })
+  @HttpCode(200)
+  @Exception(400, '유효하지않은 요청')
+  @ApiResponse({ status: 200, type: LoginResponseDto })
   async googleLogin(@Body() dto: SocialLoginDto): Promise<LoginResponseDto> {
     return await this.authService.socialLogin('google', dto);
   }
@@ -141,6 +153,7 @@ export class AuthController {
   }
 
   @Get('/kakao/callback')
+  @ApiOperation({ summary: '카카오 로그인 콜백uri', deprecated: true })
   async kakaoAuth(
     @Query() query: KakaoCallbackDto,
   ): Promise<{ accessToken: string }> {
@@ -148,6 +161,7 @@ export class AuthController {
   }
 
   @Get('/naver/callback')
+  @ApiOperation({ summary: '네이버 로그인 콜백uri', deprecated: true })
   async naverAuth(
     @Query() query: NaverCallbackDto,
   ): Promise<{ accessToken: string }> {
@@ -155,6 +169,7 @@ export class AuthController {
   }
 
   @Get('/google/callback')
+  @ApiOperation({ summary: '네이버 로그인 콜백uri', deprecated: true })
   async googleAuth(
     @Query() query: GoogleCallbackDto,
   ): Promise<{ accessToken: string }> {

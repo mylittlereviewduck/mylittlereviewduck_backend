@@ -4,7 +4,6 @@ import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { UserService } from '../../../src/user/user.service';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
-import { GoogleCallbackDto } from '../dto/google-callback.dto';
 import { AuthService } from '../auth.service';
 import { LoginResponseDto } from '../dto/response/login-response.dto';
 import { SocialLoginDto } from '../dto/social-login.dto';

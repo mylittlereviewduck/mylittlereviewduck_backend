@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsInt, Length, Matches, Max, Min } from 'class-validator';
+import { Equals, IsEmail, Length, Matches } from 'class-validator';
 
 export class CreateUserDto {
   @ApiProperty({
@@ -20,4 +20,7 @@ export class CreateUserDto {
   })
   @Length(6, 30)
   pw: string;
+
+  @Equals('pw', { message: '비밀번호와 비밀번호 확인이 일치하지 않습니다.' })
+  confirmPw: string;
 }

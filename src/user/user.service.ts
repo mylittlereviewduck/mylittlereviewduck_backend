@@ -333,6 +333,23 @@ export class UserService {
     });
   }
 
+  async updatePassword(email: string, pw: string): Promise<void> {
+
+    //인증된 이메일인지 확인
+
+    //비밀번호 암호화
+
+
+    await this.
+
+    //비밀번호 저장
+    await this.prismaService.accountTb.update({
+      data:{
+        
+      }
+    });
+  }
+
   async deleteUser(userIdx: string): Promise<void> {
     await this.prismaService.accountTb.update({
       where: {

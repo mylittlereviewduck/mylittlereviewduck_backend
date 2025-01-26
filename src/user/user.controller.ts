@@ -103,15 +103,17 @@ export class UserController {
     return await this.userService.createUser(createUserDto);
   }
 
-  //논의후에 서비스로직 추가
-  @Post('/pw/reset')
-  @ApiOperation({ summary: '비밀번호 초기화 / 이메일 전송' })
+  @Post('pw/reset')
+  @ApiOperation({
+    summary: '비밀번호 변경',
+    description: '비밀번호 변경 성공시 상태코드 200반환',
+  })
+  @HttpCode(200)
   @Exception(400, '유효하지않은 요청')
+  @Exception(401, '권한 없음')
   @ApiResponse({ status: 200 })
-  async resetPassword(
-    @Body() resetPasswordDto: ResetPasswordDto,
-  ): Promise<void> {
-    return;
+  async resetPassword(@Body() dto: ResetPasswordDto): Promise<void> {
+    await this.userService.updatePassword(dto.email, dto.pw);
   }
 
   @Get('myinfo')

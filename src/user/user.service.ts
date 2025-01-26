@@ -164,36 +164,6 @@ export class UserService {
   async createUser(dto: CreateUserDto): Promise<UserEntity> {
     let newUser;
 
-    // const users = await this.prismaService.accountTb.findMany({
-    //   select: {
-    //     idx: true,
-    //     pw: true,
-    //   },
-    // });
-
-    // for (let user of users) {
-    //   console.log('users: ', user);
-
-    //   const saltRounds = Number(
-    //     this.configService.get<string>('BCRYPT_SALT_ROUNDS'),
-    //   );
-    //   console.log('saltRounds: ', saltRounds);
-    //   console.log('saltRounds TYPE: ', typeof saltRounds);
-
-    //   const salt = await this.bcryptService.genSalt(saltRounds);
-    //   const hashedPw = await this.bcryptService.hash(dto.pw, salt);
-    //   console.log('hashedPw: ', hashedPw);
-
-    //   await this.prismaService.accountTb.update({
-    //     where: {
-    //       idx: user.idx,
-    //     },
-    //     data: {
-    //       pw: hashedPw,
-    //     },
-    //   });
-    // }
-
     await this.prismaService.$transaction(async (tx) => {
       const emailDuplicatedUser = await this.getUser({ email: dto.email }, tx);
 
@@ -219,11 +189,7 @@ export class UserService {
         throw new UnauthorizedException('Authentication TimeOut');
       }
 
-      const saltRounds = Number(
-        this.configService.get<string>('BCRYPT_SALT_ROUNDS'),
-      );
-      const salt = await this.bcryptService.genSalt(saltRounds);
-      const hashedPw = await this.bcryptService.hash(dto.pw, salt);
+      const hashedPw = await this.bcryptService.hash(dto.pw);
 
       newUser = await this.prismaService.accountTb.create({
         data: {
@@ -334,20 +300,47 @@ export class UserService {
   }
 
   async updatePassword(email: string, pw: string): Promise<void> {
+    try {
+      await this.prismaService.$transaction(async (tx) => {
+        //인증된 이메일인지 확인
+        const emailVerification =
+          await this.emailAuthService.getEmailVerification(
+            email,
+            undefined,
+            tx,
+          );
 
-    //인증된 이메일인지 확인
+        if (emailVerification.verifiedAt === null) {
+          throw new UnauthorizedException('Unauthorized Email');
+        }
 
-    //비밀번호 암호화
+        const nowTime = new Date();
 
+        if (
+          Number(nowTime) - Number(emailVerification.verifiedAt) >=
+          6 * 60 * 1000
+        ) {
+          throw new UnauthorizedException('Email Verification TimeOut');
+        }
 
-    await this.
+        //비밀번호 암호화
+        const hashedPw = await this.bcryptService.hash(pw);
 
-    //비밀번호 저장
-    await this.prismaService.accountTb.update({
-      data:{
-        
-      }
-    });
+        //비밀번호 저장
+        await tx.accountTb.updateMany({
+          data: {
+            pw: hashedPw,
+          },
+          where: {
+            email: email,
+          },
+        });
+
+        await this.emailAuthService.deleteEmailVerification(email, tx);
+      });
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   async deleteUser(userIdx: string): Promise<void> {

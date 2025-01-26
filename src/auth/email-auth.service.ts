@@ -114,8 +114,13 @@ export class EmailAuthService {
     });
   }
 
-  async deleteEmailVerification(email: string): Promise<void> {
-    await this.prismaService.emailVerificaitonTb.delete({
+  async deleteEmailVerification(
+    email: string,
+    tx?: Prisma.TransactionClient,
+  ): Promise<void> {
+    const prismaService = tx ?? this.prismaService;
+
+    await prismaService.emailVerificaitonTb.delete({
       where: {
         email: email,
       },

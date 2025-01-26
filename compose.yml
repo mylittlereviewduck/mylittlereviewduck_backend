@@ -12,7 +12,7 @@ services:
         condition: service_healthy
 
   today-review-postgres-db:
-    image: k1ju/postgres-db:1.0.1
+    image: k1ju/postgres-db:1.0.3
     environment:
       POSTGRES_PASSWORD: 123
     volumes:

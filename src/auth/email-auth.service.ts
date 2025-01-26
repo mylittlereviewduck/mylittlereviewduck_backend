@@ -29,12 +29,12 @@ export class EmailAuthService {
       throw new ConflictException('Duplicated Email');
     }
 
-    const verificationCode = await this.createEmailVerification(email);
+    const code = await this.createEmailVerification(email);
 
     await this.emailService.sendEmail({
       toEmail: email,
       title: `오늘도 리뷰 이메일 인증번호`,
-      content: `이메일 인증번호 : ${verificationCode}`,
+      content: `이메일 인증번호 : ${code}`,
     });
   }
 
@@ -47,18 +47,18 @@ export class EmailAuthService {
       throw new NotFoundException('Not Found Email');
     }
 
-    const verificationCode = await this.createEmailVerification(email);
+    const code = await this.createEmailVerification(email);
 
     await this.emailService.sendEmail({
       toEmail: email,
       title: `오늘도 리뷰 이메일 인증번호`,
-      content: `이메일 인증번호 : ${verificationCode}`,
+      content: `이메일 인증번호 : ${code}`,
     });
   }
 
   async getEmailVerification(
     email: string,
-    verificationCode?: number,
+    code?: number,
     tx?: Prisma.TransactionClient,
   ): Promise<EmailVerificaitonTb | null> {
     const prisma = tx ?? this.prismaService;
@@ -66,7 +66,7 @@ export class EmailAuthService {
     return await prisma.emailVerificaitonTb.findUnique({
       where: {
         email: email,
-        code: verificationCode,
+        ...(code && { code: code }),
       },
     });
   }

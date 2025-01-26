@@ -55,7 +55,6 @@ export class AuthController {
     await this.emailAuthService.inspectEmailDuplicate(dto.email);
   }
 
-  // 가입 이메일 확인 / 이메일인증번호 전송 API
   @Post('/email/inspect')
   @HttpCode(200)
   @ApiOperation({
@@ -84,7 +83,7 @@ export class AuthController {
   async verifyEmail(@Body() verifyEmailDto: VerifyEmailDto): Promise<void> {
     const verifiedEmail = await this.emailAuthService.getEmailVerification(
       verifyEmailDto.email,
-      verifyEmailDto.verificationCode,
+      verifyEmailDto.code,
     );
 
     if (!verifiedEmail) {

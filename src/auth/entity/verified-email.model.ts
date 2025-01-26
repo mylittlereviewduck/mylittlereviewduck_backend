@@ -1,7 +1,6 @@
-export class VerifiedMailEntity {
-  idx: number;
+export class EmailVerificationEntity {
   email: string;
-  code: string;
-  isVerified: boolean;
+  code: number;
   createdAt: Date;
+  verifiedAt: Date;
 }

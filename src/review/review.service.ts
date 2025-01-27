@@ -368,6 +368,7 @@ export class ReviewService {
     };
   }
 
+  //개선후쿼리응답: 40ms
   async getFollowingReviews(
     dto: GetReviewsWithLoginUserDto,
   ): Promise<ReviewPagerbleResponseDto> {
@@ -382,6 +383,124 @@ export class ReviewService {
         },
       },
     });
+    const skip = dto.page * dto.size;
+    const take = dto.size;
+
+    // const mainReviews: {
+    //   idx: number;
+    //   title: string;
+    //   content: string;
+    //   accountIdx: string;
+    //   viewCount: number;
+    //   score: number;
+    //   thumbnail: string;
+    //   thumbnailContent: string;
+    //   createdAt: Date;
+    //   updatedAt: Date;
+    //   deletedAt: Date;
+    //   likeCount: number;
+    //   dislikeCount: number;
+    //   bookmarkCount: number;
+    //   commentCount: number;
+    // }[] = await this.prismaService.$queryRaw/*<ReviewRow[]>*/ `
+    //   WITH new_reviews AS (
+    //     SELECT rt.*
+    //     FROM review_tb rt
+    //     WHERE rt.account_idx IN (
+    //       SELECT following_idx
+    //       FROM follow_tb
+    //       WHERE follower_idx = ${dto.loginUserIdx}
+    //     )
+    //     ORDER BY rt.created_at DESC
+    //     LIMIT ${take}
+    //     OFFSET ${skip}
+    //   )
+    //   SELECT
+    //     nr.idx,
+    //     nr.title,
+    //     nr.content,
+    //     nr.account_idx as "accountIdx",
+    //     nr.view_count as "viewCount",
+    //     nr.score,
+    //     nr.thumbnail,
+    //     nr.thumbnail_content as "thumbnailContent",
+    //     nr.created_at as "createdAt",
+    //     nr.updated_at as "updatedAt",
+    //     nr.deleted_at as "deletedAt",
+    //     CAST( COALESCE(rlt.like_count, 0) AS INTEGER) AS "likeCount",
+    //     CAST( COALESCE(rdt.dislike_count, 0) AS INTEGER) AS "dislikeCount",
+    //     CAST( COALESCE(rbt.bookmark_count, 0) AS INTEGER) AS "bookmarkCount",
+    //     CAST( COALESCE(ct.comment_count, 0) AS INTEGER) AS "commentCount"
+    //   FROM new_reviews nr
+    //   LEFT JOIN (
+    //     SELECT review_idx, COUNT(*) AS like_count
+    //     FROM review_like_tb
+    //     WHERE review_idx IN (SELECT idx FROM new_reviews)
+    //     GROUP BY review_idx
+    //   ) rlt ON nr.idx = rlt.review_idx
+    //   LEFT JOIN (
+    //     SELECT review_idx, COUNT(*) AS dislike_count
+    //     FROM review_dislike_tb
+    //     WHERE review_idx IN (SELECT idx FROM new_reviews)
+    //     GROUP BY review_idx
+    //   ) rdt ON nr.idx = rdt.review_idx
+    //   LEFT JOIN (
+    //     SELECT review_idx, COUNT(*) AS bookmark_count
+    //     FROM review_bookmark_tb
+    //     WHERE review_idx IN (SELECT idx FROM new_reviews)
+    //     GROUP BY review_idx
+    //   ) rbt ON nr.idx = rbt.review_idx
+    //   LEFT JOIN (
+    //     SELECT review_idx, COUNT(*) AS comment_count
+    //     FROM comment_tb
+    //     WHERE review_idx IN (SELECT idx FROM new_reviews)
+    //     GROUP BY review_idx
+    //   ) ct ON nr.idx = ct.review_idx
+    //   ORDER BY nr.created_at DESC
+    // `;
+
+    // const accountIdxList = Array.from(
+    //   new Set(mainReviews.map((r) => r.accountIdx)),
+    // );
+
+    // const reviewIdxList = Array.from(
+    //   new Set(mainReviews.map((elem) => elem.idx)),
+    // );
+
+    // const accounts = await this.prismaService.accountTb.findMany({
+    //   where: {
+    //     idx: { in: accountIdxList },
+    //   },
+    // });
+
+    // const tags = await this.prismaService.tagTb.findMany({
+    //   where: {
+    //     reviewIdx: { in: reviewIdxList },
+    //   },
+    // });
+
+    // const reviewImgs = await this.prismaService.reviewImgTb.findMany({
+    //   where: {
+    //     reviewIdx: { in: reviewIdxList },
+    //   },
+    // });
+
+    // const reviewData: Review[] = mainReviews.map((elem) => {
+    //   return {
+    //     ...elem,
+    //     accountTb: accounts.find((account) => account.idx === elem.accountIdx),
+
+    //     tagTb: tags.filter((tag) => tag.reviewIdx === elem.idx),
+
+    //     reviewImgTb: reviewImgs.filter((img) => img.reviewIdx === elem.idx),
+    //     _count: {
+    //       commentTb: elem.commentCount,
+    //       reviewLikeTb: elem.likeCount,
+    //       reviewDislikeTb: elem.dislikeCount,
+    //       reviewBookmarkTb: elem.bookmarkCount,
+    //     },
+    //   };
+    // });
 
     const reviewData = await this.prismaService.reviewTb.findMany({
       include: {
@@ -411,6 +530,7 @@ export class ReviewService {
       orderBy: { createdAt: 'desc' },
     });
 
+    // return;
     return {
       totalPage: Math.ceil(totalCount / dto.size),
       reviews: reviewData.map((elem) => new ReviewEntity(elem)),

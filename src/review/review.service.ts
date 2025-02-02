@@ -32,7 +32,6 @@ export class ReviewService {
     private readonly prismaService: PrismaService,
     private readonly userService: UserService,
     private readonly redisService: RedisService,
-    private readonly userFollowService: UserFollowService,
     private readonly reviewBookmarkService: ReviewBookmarkService,
     private readonly reviewWithUserStatusService: ReviewWithUserStatusService,
   ) {

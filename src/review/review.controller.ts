@@ -1,10 +1,7 @@
-import { UserBlockCheckService } from './../user/user-block-check.service';
 import { AwsService } from '../aws/aws.service';
 import { ReviewBlockService } from './review-block.service';
-import { ReviewBlockCheckService } from './review-block-check.service';
 import { ReviewLikeService } from './like.service';
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -48,8 +45,6 @@ import { ReviewBlockEntity } from './entity/ReviewBlock.entity';
 import { ReviewBookmarkEntity } from './entity/Reviewbookmark.entity';
 import { BookmarkService } from './bookmark.service';
 import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
-import { ReviewLikeCheckService } from './review-like-check.service';
-import { SearchKeywordService } from '../user/search-keyword.service';
 import { GetReviewsWithSearchDto } from './dto/get-review-with-search.dto';
 
 @Controller('')
@@ -58,13 +53,9 @@ export class ReviewController {
   constructor(
     private readonly reviewService: ReviewService,
     private readonly reviewLikeService: ReviewLikeService,
-    private readonly reviewLikeCheckService: ReviewLikeCheckService,
     private readonly bookmarkService: BookmarkService,
     private readonly reviewBlockService: ReviewBlockService,
-    private readonly reviewBlockCheckService: ReviewBlockCheckService,
     private readonly awsService: AwsService,
-    private readonly userBlockCheckService: UserBlockCheckService,
-    private readonly searchKeywordService: SearchKeywordService,
   ) {}
 
   @Get('/review/all')

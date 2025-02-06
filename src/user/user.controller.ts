@@ -243,6 +243,7 @@ export class UserController {
 
   @Get('/search/history')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({
     summary: '유저 검색기록 불러오기',
     description: '최신순으로 검색 키워드 최대 10개까지 불러옵니다.',

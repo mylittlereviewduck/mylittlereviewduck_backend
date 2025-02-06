@@ -1,11 +1,13 @@
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { SearchHistoryResponseDto } from './dto/response/search-history.dto';
+import { OnEvent } from '@nestjs/event-emitter';
 
 @Injectable()
 export class SearchKeywordService {
   constructor(private readonly prismaService: PrismaService) {}
 
+  @OnEvent('search.*', { async: true })
   async createSearchKeyword(keyword: string, userIdx: string): Promise<void> {
     const normalizedKeyword = keyword.trim().toLowerCase();
 

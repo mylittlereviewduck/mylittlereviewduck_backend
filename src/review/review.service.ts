@@ -1,3 +1,4 @@
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   ConsoleLogger,
   Injectable,
@@ -35,6 +36,7 @@ export class ReviewService {
     private readonly reviewBookmarkService: ReviewBookmarkService,
     private readonly reviewWithUserStatusService: ReviewWithUserStatusService,
     private readonly searchKeywordService: SearchKeywordService,
+    private readonly eventEmitter: EventEmitter2,
   ) {
     this.redis = this.redisService.getOrThrow(DEFAULT_REDIS);
 
@@ -546,6 +548,9 @@ export class ReviewService {
       return reviewPagerbleResponseDto;
     }
 
+    if (reviewPagerbleResponseDto.reviews.length === 0)
+      return { totalPage: 0, reviews: [] };
+
     const reviewIdxs = reviewPagerbleResponseDto.reviews.map(
       (review) => review.idx,
     );
@@ -746,6 +751,11 @@ export class ReviewService {
       page: dto.page,
     });
 
+    this.eventEmitter.emit('search.review', dto.search, userIdx);
+
+    if (reviewPagerbleResponseDto.reviews.length === 0)
+      return { totalPage: 0, reviews: [] };
+
     const reviewIdxs = reviewPagerbleResponseDto.reviews.map(
       (review) => review.idx,
     );
@@ -768,8 +778,6 @@ export class ReviewService {
         review.isMyBlock = userStatus.isMyBlock;
       }
     });
-
-    await this.searchKeywordService.createSearchKeyword(dto.search, userIdx);
 
     return reviewPagerbleResponseDto;
   }
@@ -954,6 +962,9 @@ export class ReviewService {
       return reviewPagerbleResponseDto;
     }
 
+    if (reviewPagerbleResponseDto.reviews.length === 0)
+      return { totalPage: 0, reviews: [] };
+
     const userStatuses = await this.reviewWithUserStatusService.getUserStatus(
       dto.loginUserIdx,
       reviewPagerbleResponseDto.reviews.map((review) => review.idx),
@@ -991,6 +1002,9 @@ export class ReviewService {
     if (!dto.loginUserIdx) {
       return reviewPagerbleResponseDto;
     }
+
+    if (reviewPagerbleResponseDto.reviews.length === 0)
+      return { totalPage: 0, reviews: [] };
 
     const reviewIdxs = reviewPagerbleResponseDto.reviews.map(
       (review) => review.idx,
@@ -1097,6 +1111,9 @@ export class ReviewService {
       return reviewPagerbleResponseDto;
     }
 
+    if (reviewPagerbleResponseDto.reviews.length === 0)
+      return { totalPage: 0, reviews: [] };
+
     const reviewIdxs = reviewPagerbleResponseDto.reviews.map(
       (review) => review.idx,
     );
@@ -1201,6 +1218,9 @@ export class ReviewService {
     if (!dto.loginUserIdx) {
       return reviewPagerbleResponseDto;
     }
+
+    if (reviewPagerbleResponseDto.reviews.length === 0)
+      return { totalPage: 0, reviews: [] };
 
     const reviewIdxs = reviewPagerbleResponseDto.reviews.map(
       (review) => review.idx,

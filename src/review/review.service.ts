@@ -12,16 +12,16 @@ import { ReviewPagerbleResponseDto } from './dto/response/review-pagerble-respon
 import { UserService } from 'src/user/user.service';
 import { Cron } from '@nestjs/schedule';
 import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
-import { GetReviewWithSearchDto } from './dto/get-review-with-search.dto';
 import { DEFAULT_REDIS, RedisService } from '@liaoliaots/nestjs-redis';
 import { Redis } from 'ioredis';
 import { GetLatestReveiwsByUserIdxsDto } from './dto/get-latest-reviews-by-userIdxs.dto';
-import { UserFollowService } from 'src/user/user-follow.service';
 import { ReviewWithUserStatusService } from './review-with-user-status.service';
 import { GetReviewsDto } from './dto/get-reviews.dto';
 import { GetReviewDetailDto } from './dto/get-review-detail.dto';
 import { GetReviewsWithLoginUserDto } from './dto/get-reviews-with-login-user.dto';
 import { ReviewBookmarkService } from './review-bookmark.service';
+import { GetReviewsWithSearchDto } from './dto/get-review-with-search.dto';
+import { SearchKeywordService } from 'src/user/search-keyword.service';
 
 @Injectable()
 export class ReviewService {
@@ -34,6 +34,7 @@ export class ReviewService {
     private readonly redisService: RedisService,
     private readonly reviewBookmarkService: ReviewBookmarkService,
     private readonly reviewWithUserStatusService: ReviewWithUserStatusService,
+    private readonly searchKeywordService: SearchKeywordService,
   ) {
     this.redis = this.redisService.getOrThrow(DEFAULT_REDIS);
 
@@ -632,8 +633,8 @@ export class ReviewService {
     };
   }
 
-  async getReviewWithSearch(
-    dto: GetReviewWithSearchDto,
+  async getReviewsWithSearch(
+    dto: GetReviewsWithSearchDto,
   ): Promise<ReviewPagerbleResponseDto> {
     const totalCount = await this.prismaService.reviewTb.count({
       where: {
@@ -733,6 +734,44 @@ export class ReviewService {
       totalPage: Math.ceil(totalCount / dto.size),
       reviews: reviewData.map((elem) => new ReviewEntity(elem)),
     };
+  }
+
+  async getSearchedReviewsWithUserStatus(
+    userIdx: string,
+    dto: GetReviewsWithSearchDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    let reviewPagerbleResponseDto = await this.getReviewsWithSearch({
+      search: dto.search,
+      size: dto.size,
+      page: dto.page,
+    });
+
+    const reviewIdxs = reviewPagerbleResponseDto.reviews.map(
+      (review) => review.idx,
+    );
+
+    const userStatus = await this.reviewWithUserStatusService.getUserStatus(
+      userIdx,
+      reviewIdxs,
+    );
+
+    const statusMap = new Map(
+      userStatus.map((status) => [status.reviewIdx, status]),
+    );
+
+    reviewPagerbleResponseDto.reviews.map((review) => {
+      const userStatus = statusMap.get(review.idx);
+      if (userStatus) {
+        review.isMyLike = userStatus.isMyLike;
+        review.isMyDislike = userStatus.isMyDislike;
+        review.isMyBookmark = userStatus.isMyBookmark;
+        review.isMyBlock = userStatus.isMyBlock;
+      }
+    });
+
+    await this.searchKeywordService.createSearchKeyword(dto.search, userIdx);
+
+    return reviewPagerbleResponseDto;
   }
 
   getMidnightDaysAgo(daysAgo: number): Date {

@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { ReviewTimeframe } from '../type/review-timeframe';
 import { PagerbleDto } from './pagerble.dto';
-import { IsArray, IsIn, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsArray, IsIn, IsOptional, IsUUID } from 'class-validator';
 
 export class GetReviewsDto extends PagerbleDto {
   @ApiProperty({
@@ -12,13 +12,6 @@ export class GetReviewsDto extends PagerbleDto {
   @IsIn(['1D', '7D', '1M', '1Y', 'all'])
   @IsOptional()
   timeframe?: ReviewTimeframe = 'all';
-
-  @ApiProperty({
-    description: '검색키워드',
-  })
-  @IsOptional()
-  @IsString()
-  search?: string;
 
   @ApiProperty({ description: '작성자 식별자 (UUID)' })
   @IsOptional()

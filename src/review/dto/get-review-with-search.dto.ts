@@ -1,26 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
-import { IsOptional } from 'class-validator';
+import { IsString, Length } from 'class-validator';
+import { GetReviewsDto } from './get-reviews.dto';
 
-export class GetReviewWithSearchDto {
-  @ApiProperty({
-    description: '한 페이지에 담긴 리뷰 수',
-    default: 10,
-  })
-  @IsOptional()
-  @Type(() => Number)
-  size?: number;
-
-  @ApiProperty({
-    description: '가져올 페이지',
-    default: 1,
-  })
-  @IsOptional()
-  @Type(() => Number)
-  page: number;
-
+export class GetReviewsWithSearchDto extends GetReviewsDto {
   @ApiProperty({
     description: '검색키워드',
   })
+  @IsString()
+  @Length(2, 100, { message: '검색 글자수 제한 2자-100자' })
   search: string;
 }

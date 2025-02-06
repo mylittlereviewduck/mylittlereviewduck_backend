@@ -38,6 +38,7 @@ import { SearchKeywordService } from 'src/user/search-keyword.service';
     UserBlockService,
     UserFollowService,
     UserBlockCheckService,
+    SearchKeywordService,
     FcmTokenService,
   ],
 })

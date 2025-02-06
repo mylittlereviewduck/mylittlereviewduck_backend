@@ -50,6 +50,7 @@ import { BookmarkService } from './bookmark.service';
 import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
 import { ReviewLikeCheckService } from './review-like-check.service';
 import { SearchKeywordService } from '../user/search-keyword.service';
+import { GetReviewsWithSearchDto } from './dto/get-review-with-search.dto';
 
 @Controller('')
 @ApiTags('review')
@@ -218,48 +219,18 @@ export class ReviewController {
   @Exception(400, '유효하지않은 요청')
   @Exception(404, 'Not Found Page')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
-  async getReviewWithSearch(
+  async getSearchedReviewWithUserStatus(
     @GetUser() loginUser: LoginUser,
-    @Query('search') search: string,
-    @Query() dto: ReviewPagerbleDto,
+    @Query() dto: GetReviewsWithSearchDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    if (search.length < 2) {
-      throw new BadRequestException('검색어는 2글자이상');
-    }
-    const reviewPagerbleResponseDto =
-      await this.reviewService.getReviewWithSearch({
-        search: search,
-        size: dto.size,
-        page: dto.page,
-      });
-
     if (!loginUser) {
-      return reviewPagerbleResponseDto;
+      return await this.reviewService.getReviewsWithSearch(dto);
     }
 
-    await this.reviewLikeCheckService.isReviewLiked(
+    return await this.reviewService.getSearchedReviewsWithUserStatus(
       loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
+      dto,
     );
-
-    await this.reviewLikeCheckService.isReviewDisliked(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
-
-    await this.reviewBlockCheckService.isReviewBlocked(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews,
-    );
-
-    await this.userBlockCheckService.isBlockedUser(
-      loginUser.idx,
-      reviewPagerbleResponseDto.reviews.map((elem) => elem.user),
-    );
-
-    await this.searchKeywordService.createSearchKeyword(search, loginUser.idx);
-
-    return reviewPagerbleResponseDto;
   }
 
   @Post('/review/:reviewIdx/like')

@@ -2,14 +2,18 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
-export class SearchHistoryService {
+export class SearchKeywordService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async Search(keyword: string, userIdx: string): Promise<void> {
+  async createSearchKeyword(keyword: string, userIdx: string): Promise<void> {
     const normalizedKeyword = keyword.trim().toLowerCase();
 
     await this.prismaService.searchHistoryTb.create({
       data: { keyword: normalizedKeyword, accountIdx: userIdx },
+    });
+
+    await this.prismaService.searchKeywordTb.create({
+      data: { keyword: normalizedKeyword },
     });
   }
 

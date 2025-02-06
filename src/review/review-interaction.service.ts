@@ -1,20 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Prisma, PrismaClient } from '@prisma/client';
-import { UserStatus } from './type/user-status';
+import { ReviewInteraction } from './type/review-interaction';
 
 @Injectable()
-export class ReviewWithUserStatusService {
+export class ReviewInteractionService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async getUserStatus(
+  async getReviewInteraction(
     loginUserIdx: string,
     reviewIdxs: number[],
     tx?: PrismaClient,
-  ): Promise<UserStatus[]> {
+  ): Promise<ReviewInteraction[]> {
     const prismaService = tx ?? this.prismaService;
 
-    const statuses = await prismaService.$queryRaw<UserStatus[]>`
+    const statuses = await prismaService.$queryRaw<ReviewInteraction[]>`
     SELECT
         r.idx AS "reviewIdx",
         l.review_idx IS NOT NULL AS "isMyLike",

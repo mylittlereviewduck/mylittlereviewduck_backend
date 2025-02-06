@@ -16,7 +16,7 @@ import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
 import { DEFAULT_REDIS, RedisService } from '@liaoliaots/nestjs-redis';
 import { Redis } from 'ioredis';
 import { GetLatestReveiwsByUserIdxsDto } from './dto/get-latest-reviews-by-userIdxs.dto';
-import { ReviewWithUserStatusService } from './review-with-user-status.service';
+import { ReviewInteractionService } from './review-interaction.service';
 import { GetReviewsDto } from './dto/get-reviews.dto';
 import { GetReviewDetailDto } from './dto/get-review-detail.dto';
 import { GetReviewsWithLoginUserDto } from './dto/get-reviews-with-login-user.dto';
@@ -34,9 +34,9 @@ export class ReviewService {
     private readonly userService: UserService,
     private readonly redisService: RedisService,
     private readonly reviewBookmarkService: ReviewBookmarkService,
-    private readonly reviewWithUserStatusService: ReviewWithUserStatusService,
     private readonly searchKeywordService: SearchKeywordService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly reviewInteractionService: ReviewInteractionService,
   ) {
     this.redis = this.redisService.getOrThrow(DEFAULT_REDIS);
 
@@ -279,7 +279,7 @@ export class ReviewService {
       return reviewEntity;
     }
 
-    const userStatus = await this.reviewWithUserStatusService.getUserStatus(
+    const userStatus = await this.reviewInteractionService.getReviewInteraction(
       dto.loginUserIdx,
       [dto.reviewIdx],
       null,
@@ -555,7 +555,7 @@ export class ReviewService {
       (review) => review.idx,
     );
 
-    const userStatus = await this.reviewWithUserStatusService.getUserStatus(
+    const userStatus = await this.reviewInteractionService.getReviewInteraction(
       dto.loginUserIdx,
       reviewIdxs,
       null,
@@ -760,7 +760,7 @@ export class ReviewService {
       (review) => review.idx,
     );
 
-    const userStatus = await this.reviewWithUserStatusService.getUserStatus(
+    const userStatus = await this.reviewInteractionService.getReviewInteraction(
       userIdx,
       reviewIdxs,
     );
@@ -965,11 +965,12 @@ export class ReviewService {
     if (reviewPagerbleResponseDto.reviews.length === 0)
       return { totalPage: 0, reviews: [] };
 
-    const userStatuses = await this.reviewWithUserStatusService.getUserStatus(
-      dto.loginUserIdx,
-      reviewPagerbleResponseDto.reviews.map((review) => review.idx),
-      null,
-    );
+    const userStatuses =
+      await this.reviewInteractionService.getReviewInteraction(
+        dto.loginUserIdx,
+        reviewPagerbleResponseDto.reviews.map((review) => review.idx),
+        null,
+      );
 
     const statusMap = new Map(
       userStatuses.map((status) => [status.reviewIdx, status]),
@@ -1010,11 +1011,12 @@ export class ReviewService {
       (review) => review.idx,
     );
 
-    const userStatuses = await this.reviewWithUserStatusService.getUserStatus(
-      dto.loginUserIdx,
-      reviewIdxs,
-      null,
-    );
+    const userStatuses =
+      await this.reviewInteractionService.getReviewInteraction(
+        dto.loginUserIdx,
+        reviewIdxs,
+        null,
+      );
 
     const statusMap = new Map(
       userStatuses.map((status) => [status.reviewIdx, status]),
@@ -1118,11 +1120,12 @@ export class ReviewService {
       (review) => review.idx,
     );
 
-    const userStatuses = await this.reviewWithUserStatusService.getUserStatus(
-      dto.loginUserIdx,
-      reviewIdxs,
-      null,
-    );
+    const userStatuses =
+      await this.reviewInteractionService.getReviewInteraction(
+        dto.loginUserIdx,
+        reviewIdxs,
+        null,
+      );
 
     const statusMap = new Map(
       userStatuses.map((status) => [status.reviewIdx, status]),
@@ -1226,11 +1229,12 @@ export class ReviewService {
       (review) => review.idx,
     );
 
-    const userStatuses = await this.reviewWithUserStatusService.getUserStatus(
-      dto.loginUserIdx,
-      reviewIdxs,
-      null,
-    );
+    const userStatuses =
+      await this.reviewInteractionService.getReviewInteraction(
+        dto.loginUserIdx,
+        reviewIdxs,
+        null,
+      );
 
     const statusMap = new Map(
       userStatuses.map((status) => [status.reviewIdx, status]),

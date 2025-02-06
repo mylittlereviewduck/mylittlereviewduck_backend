@@ -56,6 +56,7 @@ import { CreateFcmTokenDto } from './dto/save-fcm-token.dto';
 import { FcmTokenService } from './fcm-token.service';
 import { SearchHistoryResponseDto } from './dto/response/search-history.dto';
 import { SearchKeywordService } from './search-keyword.service';
+import { GetUserSearchDto } from './dto/get-users-search.dto';
 
 @Controller('user')
 @ApiTags('user')
@@ -230,20 +231,20 @@ export class UserController {
   @Exception(400, '유효하지않은 요청')
   @Exception(404, 'Not Found Page')
   @ApiResponse({ status: 200, type: UserListResponseDto })
-  async getUserWithSearch(
+  async getUsersWithSearch(
     @GetUser() loginUser: LoginUser,
-    @Query('search') search: string,
-    @Query() dto: UserPagerbleDto,
+    @Query() dto: GetUserSearchDto,
   ): Promise<UserListResponseDto> {
-    if (search.length < 2) {
-      throw new BadRequestException('검색어는 2글자이상');
-    }
+    return await this.userService.getSearchedUsersWithInteraction(
+      dto,
+      loginUser.idx,
+    );
 
     const userSearchResponseDto = await this.userService.getUsersAll({
-      email: search,
-      nickname: search,
-      interest1: search,
-      interest2: search,
+      email: dto.search,
+      nickname: dto.search,
+      interest1: dto.search,
+      interest2: dto.search,
       size: dto.size || 10,
       page: dto.page || 1,
     });

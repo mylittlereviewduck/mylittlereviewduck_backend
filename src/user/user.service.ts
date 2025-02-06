@@ -17,7 +17,9 @@ import { GetUsersAllDto } from './dto/get-users-all.dto';
 import { Prisma, PrismaClient } from '@prisma/client';
 import { UserListResponseDto } from './dto/response/user-list-response.dto';
 import { BcryptService } from 'src/auth/bcrypt.service';
-import { SearchHistoryResponseDto } from './dto/response/search-history.dto';
+import { UserPagerbleResponseDto } from './dto/response/user-pagerble-response.dto';
+import { GetUserSearchDto } from './dto/get-users-search.dto';
+import { UserInteractionService } from './user-interaction.service';
 
 @Injectable()
 export class UserService {
@@ -26,6 +28,7 @@ export class UserService {
     private readonly bcryptService: BcryptService,
     @Inject(forwardRef(() => EmailAuthService))
     private readonly emailAuthService: EmailAuthService,
+    private readonly userInteractionService: UserInteractionService,
   ) {}
 
   async getUser(
@@ -158,6 +161,42 @@ export class UserService {
     });
 
     return user.pw;
+  }
+
+  async getSearchedUsersWithInteraction(
+    dto: GetUserSearchDto,
+    userIdx: string,
+  ): Promise<UserPagerbleResponseDto> {
+    const userSearchResponseDto = await this.getUsersAll({
+      email: dto.search,
+      nickname: dto.search,
+      interest1: dto.search,
+      interest2: dto.search,
+      size: dto.size || 10,
+      page: dto.page || 1,
+    });
+
+    const userIdxs = userSearchResponseDto.users.map((user) => user.idx);
+
+    const userInteraction =
+      await this.userInteractionService.getUserInteraction(userIdx, userIdxs);
+
+    const interactionMap = new Map(
+      userInteraction.map((interaction) => [
+        interaction.accountIdx,
+        interaction,
+      ]),
+    );
+
+    userSearchResponseDto.users.map((user) => {
+      const interaction = interactionMap.get(user.idx);
+      if (interaction) {
+        user.isMyFollowing = interaction.isMyFollowing;
+        user.isMyBlock = interaction.isMyBlock;
+      }
+    });
+
+    return userSearchResponseDto;
   }
 
   async createUser(dto: CreateUserDto): Promise<UserEntity> {

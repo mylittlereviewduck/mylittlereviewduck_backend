@@ -1,4 +1,4 @@
-export type UserStatus = {
+export type ReviewInteraction = {
   reviewIdx: number;
   isMyLike: boolean;
   isMyDislike: boolean;

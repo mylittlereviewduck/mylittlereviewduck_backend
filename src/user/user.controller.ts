@@ -239,31 +239,6 @@ export class UserController {
       dto,
       loginUser.idx,
     );
-
-    const userSearchResponseDto = await this.userService.getUsersAll({
-      email: dto.search,
-      nickname: dto.search,
-      interest1: dto.search,
-      interest2: dto.search,
-      size: dto.size || 10,
-      page: dto.page || 1,
-    });
-
-    if (!loginUser) {
-      return userSearchResponseDto;
-    }
-
-    await this.userFollowService.isFollow(
-      loginUser.idx,
-      userSearchResponseDto.users,
-    );
-
-    await this.userBlockCheckService.isBlockedUser(
-      loginUser.idx,
-      userSearchResponseDto.users,
-    );
-
-    return userSearchResponseDto;
   }
 
   @Get('/search/history')

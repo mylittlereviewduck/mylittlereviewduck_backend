@@ -165,21 +165,27 @@ export class UserService {
 
   async getSearchedUsersWithInteraction(
     dto: GetUserSearchDto,
-    userIdx: string,
+    loginUserIdx: string | null,
   ): Promise<UserPagerbleResponseDto> {
     const userSearchResponseDto = await this.getUsersAll({
       email: dto.search,
       nickname: dto.search,
       interest1: dto.search,
       interest2: dto.search,
-      size: dto.size || 10,
-      page: dto.page || 1,
+      size: dto.size,
+      page: dto.page,
     });
+    if (!loginUserIdx) {
+      return userSearchResponseDto;
+    }
 
     const userIdxs = userSearchResponseDto.users.map((user) => user.idx);
 
     const userInteraction =
-      await this.userInteractionService.getUserInteraction(userIdx, userIdxs);
+      await this.userInteractionService.getUserInteraction(
+        loginUserIdx,
+        userIdxs,
+      );
 
     const interactionMap = new Map(
       userInteraction.map((interaction) => [

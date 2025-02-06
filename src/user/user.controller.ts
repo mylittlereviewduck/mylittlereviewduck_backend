@@ -54,6 +54,7 @@ import { UserPagerbleDto } from './dto/user-pagerble.dto';
 import { UserFollowService } from './user-follow.service';
 import { CreateFcmTokenDto } from './dto/save-fcm-token.dto';
 import { FcmTokenService } from './fcm-token.service';
+import { SearchHistoryResponseDto } from './dto/response/search-history.dto';
 
 @Controller('user')
 @ApiTags('user')
@@ -260,6 +261,18 @@ export class UserController {
     );
 
     return userSearchResponseDto;
+  }
+
+  @Get('/search/history')
+  @UseGuards(AuthGuard)
+  @Exception(400, '유효하지않은 요청')
+  @ApiResponse({ status: 200, type: UserListResponseDto })
+  async getSearchHistory(
+    @GetUser() loginUser: LoginUser,
+  ): Promise<SearchHistoryResponseDto> {
+    await this.userService.getUserSearchHistory(loginUser.idx);
+
+    return;
   }
 
   @Post('/fcm/token')

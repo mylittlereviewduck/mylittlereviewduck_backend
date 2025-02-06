@@ -49,7 +49,6 @@ import { ReviewBookmarkEntity } from './entity/Reviewbookmark.entity';
 import { BookmarkService } from './bookmark.service';
 import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
 import { ReviewLikeCheckService } from './review-like-check.service';
-import { RecommendationService } from './recommendation.service';
 
 @Controller('')
 @ApiTags('review')
@@ -518,39 +517,5 @@ export class ReviewController {
       userIdx: userIdx,
       loginUserIdx: loginUser && loginUser.idx,
     });
-
-    // const { totalCount, reviewIdxs } =
-    //   await this.reviewLikeCheckService.getLikedReviewsIdx({ ...dto, userIdx });
-
-    // const reviewPagerbleResponseDto = {
-    //   totalPage: Math.ceil(totalCount / dto.size),
-    //   reviews: await this.reviewService.getReviewsByIdx(reviewIdxs),
-    // };
-
-    // if (!loginUser) {
-    //   return reviewPagerbleResponseDto;
-    // }
-
-    // await this.reviewLikeCheckService.isReviewLiked(
-    //   loginUser.idx,
-    //   reviewPagerbleResponseDto.reviews,
-    // );
-
-    // await this.reviewLikeCheckService.isReviewDisliked(
-    //   loginUser.idx,
-    //   reviewPagerbleResponseDto.reviews,
-    // );
-
-    // await this.reviewBlockCheckService.isReviewBlocked(
-    //   loginUser.idx,
-    //   reviewPagerbleResponseDto.reviews,
-    // );
-
-    // await this.userBlockCheckService.isBlockedUser(
-    //   loginUser.idx,
-    //   reviewPagerbleResponseDto.reviews.map((elem) => elem.user),
-    // );
-
-    // return reviewPagerbleResponseDto;
   }
 }

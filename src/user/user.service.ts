@@ -17,6 +17,7 @@ import { GetUsersAllDto } from './dto/get-users-all.dto';
 import { Prisma, PrismaClient } from '@prisma/client';
 import { UserListResponseDto } from './dto/response/user-list-response.dto';
 import { BcryptService } from 'src/auth/bcrypt.service';
+import { SearchHistoryResponseDto } from './dto/response/search-history.dto';
 
 @Injectable()
 export class UserService {
@@ -352,6 +353,29 @@ export class UserService {
     } catch (err) {
       console.error(err);
     }
+  }
+
+  async getUserSearchHistory(
+    userIdx: string,
+  ): Promise<SearchHistoryResponseDto> {
+    const searchHistory = await this.prismaService.searchHistoryTb.groupBy({
+      by: ['keyword'],
+      where: {
+        accountIdx: userIdx,
+      },
+      _max: {
+        createdAt: true,
+      },
+      orderBy: {
+        _max: {
+          createdAt: 'desc',
+        },
+      },
+      take: 10,
+    });
+    console.log('searchHistory: ', searchHistory);
+
+    return;
   }
 
   async deleteUser(userIdx: string): Promise<void> {

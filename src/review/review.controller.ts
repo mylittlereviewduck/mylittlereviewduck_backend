@@ -223,13 +223,9 @@ export class ReviewController {
     @GetUser() loginUser: LoginUser,
     @Query() dto: GetReviewsWithSearchDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    if (!loginUser) {
-      return await this.reviewService.getReviewsWithSearch(dto);
-    }
-
     return await this.reviewService.getSearchedReviewsWithUserStatus(
-      loginUser.idx,
       dto,
+      loginUser,
     );
   }
 

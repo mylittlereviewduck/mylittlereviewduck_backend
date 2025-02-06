@@ -12,7 +12,7 @@ import { AwsModule } from 'src/aws/aws.module';
 import { NotificationModule } from 'src/notification/notification.module';
 import { ReviewBookmarkService } from './review-bookmark.service';
 import { BookmarkService } from './bookmark.service';
-import { ReviewWithUserStatusService } from './review-interaction.service';
+import { ReviewInteractionService } from './review-interaction.service';
 
 @Module({
   imports: [
@@ -32,7 +32,7 @@ import { ReviewWithUserStatusService } from './review-interaction.service';
     ReviewBookmarkService,
     ReviewBlockService,
     ReviewBlockCheckService,
-    ReviewWithUserStatusService,
+    ReviewInteractionService,
   ],
   exports: [ReviewService],
 })

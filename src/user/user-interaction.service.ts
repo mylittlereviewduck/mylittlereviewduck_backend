@@ -17,16 +17,16 @@ export class UserInteractionService {
     const statuses = await prismaService.$queryRaw<UserInteraction[]>`
     SELECT
         a.idx AS "accountIdx",
-        f.followee_idx IS NOT NULL AS "isMyFollowing",
-        b.blocked_idx IS NOT NULL AS "isMyBlock",
+        f.following_idx IS NOT NULL AS "isMyFollowing",
+        b.blocked_idx IS NOT NULL AS "isMyBlock"
     FROM
         account_tb a
     LEFT JOIN follow_tb f
-        ON a.idx = f.follower_idx AND f.follower_idx = ${loginUserIdx}
+        ON a.idx = f.following_idx AND f.follower_idx = ${loginUserIdx}
     LEFT JOIN account_block_tb b
-        ON a.idx = b.blocker_idx AND b.blocker_idx = ${loginUserIdx}
+        ON a.idx = b.blocked_idx AND b.blocker_idx = ${loginUserIdx}
     WHERE
-        r.idx IN (${Prisma.join(userIdxs)});
+        a.idx IN (${Prisma.join(userIdxs)});
   `;
 
     return statuses;

@@ -20,6 +20,9 @@ import { BcryptService } from 'src/auth/bcrypt.service';
 import { UserPagerbleResponseDto } from './dto/response/user-pagerble-response.dto';
 import { GetUserSearchDto } from './dto/get-users-search.dto';
 import { UserInteractionService } from './user-interaction.service';
+import { LoginUser } from 'src/auth/model/login-user.model';
+import { EventEmitter } from 'stream';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class UserService {
@@ -29,6 +32,7 @@ export class UserService {
     @Inject(forwardRef(() => EmailAuthService))
     private readonly emailAuthService: EmailAuthService,
     private readonly userInteractionService: UserInteractionService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async getUser(
@@ -84,7 +88,11 @@ export class UserService {
                 dto.interest2 && { interest2: { contains: dto.interest2, mode: Prisma.QueryMode.insensitive } } ,
               ].filter(Boolean),// null 값 제거
             }
-        }  
+        },  
+        orderBy:{
+          createdAt: 'desc'
+        },
+        
     });
 
     const userData = await this.prismaService.accountTb.findMany({
@@ -165,7 +173,7 @@ export class UserService {
 
   async getSearchedUsersWithInteraction(
     dto: GetUserSearchDto,
-    loginUserIdx: string | null,
+    loginUser: LoginUser | null,
   ): Promise<UserPagerbleResponseDto> {
     const userSearchResponseDto = await this.getUsersAll({
       email: dto.search,
@@ -175,15 +183,20 @@ export class UserService {
       size: dto.size,
       page: dto.page,
     });
-    if (!loginUserIdx) {
+    if (!loginUser) {
       return userSearchResponseDto;
     }
+
+    this.eventEmitter.emit('seacrh.user', dto.search, loginUser.idx);
+
+    if (userSearchResponseDto.users.length === 0)
+      return { totalPage: 0, users: [] };
 
     const userIdxs = userSearchResponseDto.users.map((user) => user.idx);
 
     const userInteraction =
       await this.userInteractionService.getUserInteraction(
-        loginUserIdx,
+        loginUser.idx,
         userIdxs,
       );
 

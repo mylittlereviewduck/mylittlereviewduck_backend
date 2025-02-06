@@ -13,6 +13,7 @@ import { UserSuspensionService } from './user-suspension.service';
 import { UserFollowService } from './user-follow.service';
 import { FcmTokenService } from './fcm-token.service';
 import { SearchKeywordService } from 'src/user/search-keyword.service';
+import { UserInteractionService } from './user-interaction.service';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { SearchKeywordService } from 'src/user/search-keyword.service';
     UserSuspensionService,
     SearchKeywordService,
     FcmTokenService,
+    UserInteractionService,
   ],
   exports: [
     UserService,

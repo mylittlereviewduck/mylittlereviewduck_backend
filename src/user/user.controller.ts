@@ -237,7 +237,7 @@ export class UserController {
   ): Promise<UserListResponseDto> {
     return await this.userService.getSearchedUsersWithInteraction(
       dto,
-      loginUser.idx,
+      loginUser,
     );
   }
 

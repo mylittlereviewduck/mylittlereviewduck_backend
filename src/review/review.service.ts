@@ -22,7 +22,7 @@ import { GetReviewDetailDto } from './dto/get-review-detail.dto';
 import { GetReviewsWithLoginUserDto } from './dto/get-reviews-with-login-user.dto';
 import { ReviewBookmarkService } from './review-bookmark.service';
 import { GetReviewsWithSearchDto } from './dto/get-review-with-search.dto';
-import { SearchKeywordService } from 'src/user/search-keyword.service';
+import { LoginUser } from 'src/auth/model/login-user.model';
 
 @Injectable()
 export class ReviewService {
@@ -34,7 +34,6 @@ export class ReviewService {
     private readonly userService: UserService,
     private readonly redisService: RedisService,
     private readonly reviewBookmarkService: ReviewBookmarkService,
-    private readonly searchKeywordService: SearchKeywordService,
     private readonly eventEmitter: EventEmitter2,
     private readonly reviewInteractionService: ReviewInteractionService,
   ) {
@@ -742,8 +741,8 @@ export class ReviewService {
   }
 
   async getSearchedReviewsWithUserStatus(
-    userIdx: string,
     dto: GetReviewsWithSearchDto,
+    loginUser: LoginUser | null,
   ): Promise<ReviewPagerbleResponseDto> {
     let reviewPagerbleResponseDto = await this.getReviewsWithSearch({
       search: dto.search,
@@ -751,7 +750,11 @@ export class ReviewService {
       page: dto.page,
     });
 
-    this.eventEmitter.emit('search.review', dto.search, userIdx);
+    if (!loginUser) {
+      return reviewPagerbleResponseDto;
+    }
+
+    this.eventEmitter.emit('search.review', dto.search, loginUser.idx);
 
     if (reviewPagerbleResponseDto.reviews.length === 0)
       return { totalPage: 0, reviews: [] };
@@ -761,7 +764,7 @@ export class ReviewService {
     );
 
     const userStatus = await this.reviewInteractionService.getReviewInteraction(
-      userIdx,
+      loginUser.idx,
       reviewIdxs,
     );
 

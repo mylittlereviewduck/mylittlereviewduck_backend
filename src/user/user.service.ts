@@ -187,7 +187,7 @@ export class UserService {
       return userSearchResponseDto;
     }
 
-    this.eventEmitter.emit('seacrh.user', dto.search, loginUser.idx);
+    this.eventEmitter.emit('search.user', dto.search, loginUser.idx);
 
     if (userSearchResponseDto.users.length === 0)
       return { totalPage: 0, users: [] };

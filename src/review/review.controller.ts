@@ -72,26 +72,22 @@ export class ReviewController {
     });
   }
 
-  @Get('/review/hot')
-  @ApiOperation({ summary: '좋아요 많이 받은 리뷰목록보기' })
+  @Get('/review/hot/high-score')
+  @ApiOperation({ summary: '평점 3-5점의 인기리뷰 보기' })
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
-  async getHotReview(
+  async getHotReviewsHighScoreWithInteraction(
     @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    return await this.reviewService.getHotReviewAll(dto);
+    return await this.reviewService.getCachedHotReviewsHighScore(dto);
   }
 
-  @Get('/review/cold')
-  @ApiOperation({ summary: '싫어요 많이 받은 리뷰목록보기' })
+  @Get('/review/hot/low-score')
+  @ApiOperation({ summary: '평점 0-2점의 인기리뷰 보기' })
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
-  async getColdReview(
+  async getHotReviewsLowScoreWithInteraction(
     @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    return await this.reviewService.getColdReviewAll({
-      size: dto.size,
-      page: dto.page,
-      timeframe: 'all',
-    });
+    return await this.reviewService.getCachedHotReviewsLowScore(dto);
   }
 
   @Post('/review')

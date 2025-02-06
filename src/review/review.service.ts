@@ -794,7 +794,10 @@ export class ReviewService {
     return date;
   }
 
-  async fetchHotReviews(start: Date, end: Date): Promise<ReviewEntity[]> {
+  async getHotReviewsHighScore(
+    start: Date,
+    end: Date,
+  ): Promise<ReviewEntity[]> {
     const reviewData = await this.prismaService.reviewTb.findMany({
       include: {
         accountTb: true,
@@ -818,6 +821,9 @@ export class ReviewService {
             },
           },
         },
+        score: {
+          gte: 3,
+        },
       },
       orderBy: {
         reviewLikeTb: {
@@ -830,7 +836,7 @@ export class ReviewService {
     return reviewData.map((review) => new ReviewEntity(review));
   }
 
-  async fetchColdReviews(start: Date, end: Date): Promise<ReviewEntity[]> {
+  async getHotReviewsLowScore(start: Date, end: Date): Promise<ReviewEntity[]> {
     const reviewData = await this.prismaService.reviewTb.findMany({
       include: {
         accountTb: true,
@@ -854,6 +860,9 @@ export class ReviewService {
             },
           },
         },
+        score: {
+          lte: 2,
+        },
       },
       orderBy: {
         reviewLikeTb: {
@@ -870,7 +879,7 @@ export class ReviewService {
   // (인덱싱 했을경우)
   // 메모리에 저장하는 함수, 12시간마다 실행되는 함수
   @Cron('0 0 0 * * *')
-  async setHotReviews(): Promise<void> {
+  async cacheHotReviewsHighScore(): Promise<void> {
     const endDay = new Date();
 
     const start1Day = this.getMidnightDaysAgo(1);
@@ -878,17 +887,24 @@ export class ReviewService {
     const start30Day = this.getMidnightDaysAgo(30);
     endDay.setHours(0, 0, 0, 0);
 
-    const hotReviews1Day = await this.fetchHotReviews(start1Day, endDay);
-    const hotReviews7Day = await this.fetchHotReviews(start7Day, endDay);
-    const hotReviews30Day = await this.fetchHotReviews(start30Day, endDay);
+    //prettier-ignore
+    const hotReviewsHighScore1Day = await this.getHotReviewsHighScore(start1Day,endDay,);
+    console.log('hotReviewsHighScore1Day: ', hotReviewsHighScore1Day);
+    //prettier-ignore
+    const hotReviewsHighScore7Day = await this.getHotReviewsHighScore(start7Day,endDay,);
+    //prettier-ignore
+    const hotReviewsHighScore30Day = await this.getHotReviewsHighScore(start30Day,endDay,);
 
-    await this.redis.set('hotReviews1Day', JSON.stringify(hotReviews1Day));
-    await this.redis.set('hotReviews7Day', JSON.stringify(hotReviews7Day));
-    await this.redis.set('hotReviews30Day', JSON.stringify(hotReviews30Day));
+    //prettier-ignore
+    await this.redis.set('hotReviewsHighScore1Day', JSON.stringify(hotReviewsHighScore1Day));
+    //prettier-ignore
+    await this.redis.set('hotReviewsHighScore7Day', JSON.stringify(hotReviewsHighScore7Day));
+    //prettier-ignore
+    await this.redis.set('hotReviewsHighScore30Day', JSON.stringify(hotReviewsHighScore30Day));
   }
 
   @Cron('0 0 0 * * *')
-  async setColdReviews(): Promise<void> {
+  async cacheHotReviewsLowScore(): Promise<void> {
     const endDay = new Date();
 
     const start1Day = this.getMidnightDaysAgo(1);
@@ -896,21 +912,28 @@ export class ReviewService {
     const start30Day = this.getMidnightDaysAgo(30);
     endDay.setHours(0, 0, 0, 0);
 
-    const coldReviews1Day = await this.fetchColdReviews(start1Day, endDay);
-    const coldReviews7Day = await this.fetchColdReviews(start7Day, endDay);
-    const coldReviews30Day = await this.fetchColdReviews(start30Day, endDay);
+    //prettier-ignore
+    const hotReviewsLowScore1Day = await this.getHotReviewsLowScore(start1Day, endDay);
+    //prettier-ignore
+    const hotReviewsLowScore7Day = await this.getHotReviewsLowScore(start7Day, endDay);
+    //prettier-ignore
+    const hotReviewsLowScore30Day = await this.getHotReviewsLowScore(start30Day, endDay);
 
-    await this.redis.set('coldReviews1Day', JSON.stringify(coldReviews1Day));
-    await this.redis.set('coldReviews7Day', JSON.stringify(coldReviews7Day));
-    await this.redis.set('coldReviews30Day', JSON.stringify(coldReviews30Day));
+    //prettier-ignore
+    await this.redis.set('hotReviewsLowScore1Day', JSON.stringify(hotReviewsLowScore1Day));
+    //prettier-ignore
+    await this.redis.set('hotReviewsLowScore7Day', JSON.stringify(hotReviewsLowScore7Day));
+    //prettier-ignore
+    await this.redis.set('hotReviewsLowScore30Day', JSON.stringify(hotReviewsLowScore30Day));
   }
 
-  async getHotReviewAll(
+  async getCachedHotReviewsHighScore(
     dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
     const hotReviews = JSON.parse(
-      await this.redis.get('hotReviews'),
+      await this.redis.get('hotReviewsHighScore1Day'),
     ) as Array<ReviewEntity>;
+    console.log('hotReviews: ', hotReviews);
 
     if (!hotReviews) {
       return {
@@ -927,14 +950,14 @@ export class ReviewService {
     };
   }
 
-  async getColdReviewAll(
+  async getCachedHotReviewsLowScore(
     dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    const coldReviews = JSON.parse(
-      await this.redis.get('coldReviews'),
+    const hotReviews = JSON.parse(
+      await this.redis.get('hotReviewsLowScore'),
     ) as Array<ReviewEntity>;
 
-    if (!coldReviews) {
+    if (!hotReviews) {
       return {
         totalPage: 0,
         reviews: [],
@@ -944,8 +967,8 @@ export class ReviewService {
     const startIndex = dto.size * (dto.page - 1);
 
     return {
-      totalPage: Math.ceil(coldReviews.length / dto.size),
-      reviews: coldReviews.slice(startIndex, startIndex + dto.size),
+      totalPage: Math.ceil(hotReviews.length / dto.size),
+      reviews: hotReviews.slice(startIndex, startIndex + dto.size),
     };
   }
 
@@ -1273,10 +1296,10 @@ export class ReviewService {
   }
 
   async onModuleInit() {
-    this.logger.log('setHotReviewAll Method Start');
-    this.logger.log('setColdReviewAll() Method Start');
+    this.logger.log('cacheHotReviewsHighScore() Method Start');
+    this.logger.log('cacheHotReviewsLowScore() Method Start');
 
-    await this.setHotReviews();
-    await this.setColdReviews();
+    await this.cacheHotReviewsHighScore();
+    await this.cacheHotReviewsLowScore();
   }
 }

@@ -107,7 +107,6 @@ model ReviewBookmarkTb {
   reviewTb   ReviewTb  @relation(fields: [reviewIdx], references: [idx], onDelete: Cascade, map: "fk_review_tb_to_bookmark_tb")
 
   @@id([reviewIdx, accountIdx], map: "review_bookmark_tb_pk")
-  @@index([createdAt], map: "review_bookmark_tb_created_at_index")
   @@map("review_bookmark_tb")
 }
 
@@ -119,6 +118,7 @@ model ReviewImgTb {
   content   String   @db.VarChar
   reviewTb  ReviewTb @relation(fields: [reviewIdx], references: [idx], onDelete: Cascade, map: "fk_review_tb_to_review_img_tb")
 
+  @@index([reviewIdx], map: "review_idx")
   @@map("review_img_tb")
 }
 
@@ -165,6 +165,7 @@ model TagTb {
   tagName   String   @map("tag_name") @db.VarChar
   reviewTb  ReviewTb @relation(fields: [reviewIdx], references: [idx], onDelete: Cascade, map: "fk_review_tb_to_tag_tb")
 
+  @@index([reviewIdx], map: "review_idx_idx")
   @@map("tag_tb")
 }
 
@@ -176,7 +177,6 @@ model ReviewDislikeTb {
   reviewTb   ReviewTb  @relation(fields: [reviewIdx], references: [idx], onDelete: Cascade)
 
   @@id([accountIdx, reviewIdx])
-  @@index([createdAt], map: "idx_review_dislike_created_at")
   @@map("review_dislike_tb")
 }
 
@@ -256,12 +256,13 @@ model ReportTypeTb {
 }
 
 model SearchHistoryTb {
-  idx        Int        @id(map: "search_history_pkey") @default(autoincrement())
-  accountIdx String?    @map("account_idx") @db.VarChar
-  keyword    String     @db.VarChar
-  createdAt  DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
-  accountTb  AccountTb? @relation(fields: [accountIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "search_history_account_idx_fkey")
+  accountIdx String    @map("account_idx") @db.VarChar
+  keyword    String    @db.VarChar
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  accountTb  AccountTb @relation(fields: [accountIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "search_history_account_idx_fkey")
 
+  @@id([accountIdx, keyword], map: "pk")
+  @@index([createdAt], map: "search_history_created_at_idx")
   @@map("search_history_tb")
 }
 
@@ -276,12 +277,12 @@ model CommentTagTb {
 }
 
 model FcmTokenTb {
-  idx        Int       @id @default(autoincrement())
   accountIdx String    @map("account_idx") @db.VarChar
   token      String    @db.VarChar
-  deviceIdx  String    @unique(map: "device_idx_unique") @map("device_idx") @db.VarChar
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   accountTb  AccountTb @relation(fields: [accountIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "account_idx_fk")
 
+  @@id([accountIdx, token], map: "_pk")
   @@map("fcm_token_tb")
 }
 
@@ -292,4 +293,12 @@ model EmailVerificaitonTb {
   verifiedAt DateTime? @map("verified_at") @db.Timestamptz(6)
 
   @@map("email_verificaiton_tb")
+}
+
+model SearchKeywordTb {
+  idx       Int      @id @default(autoincrement())
+  keyword   String   @db.VarChar
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("search_keyword_tb")
 }

@@ -355,11 +355,12 @@ export class UserService {
     }
   }
 
-  async getUserSearchHistory(
-    userIdx: string,
-  ): Promise<SearchHistoryResponseDto> {
-    return;
-  }
+  // async getUserSearchHistory(
+  //   userIdx: string,
+  // ): Promise<SearchHistoryResponseDto> {
+
+  //   return;
+  // }
 
   async deleteUser(userIdx: string): Promise<void> {
     await this.prismaService.accountTb.update({

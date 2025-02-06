@@ -55,6 +55,7 @@ import { UserFollowService } from './user-follow.service';
 import { CreateFcmTokenDto } from './dto/save-fcm-token.dto';
 import { FcmTokenService } from './fcm-token.service';
 import { SearchHistoryResponseDto } from './dto/response/search-history.dto';
+import { SearchKeywordService } from './search-keyword.service';
 
 @Controller('user')
 @ApiTags('user')
@@ -68,6 +69,7 @@ export class UserController {
     private readonly awsService: AwsService,
     private readonly userSuspensionService: UserSuspensionService,
     private readonly fcmTokenService: FcmTokenService,
+    private readonly searchKeywordService: SearchKeywordService,
   ) {}
 
   @Post('/check-nickname')
@@ -274,7 +276,7 @@ export class UserController {
   async getMySearchHistory(
     @GetUser() loginUser: LoginUser,
   ): Promise<SearchHistoryResponseDto> {
-    return await this.userService.getUserSearchHistory(loginUser.idx);
+    return await this.searchKeywordService.getUserSearchHistory(loginUser.idx);
   }
 
   @Post('/fcm/token')

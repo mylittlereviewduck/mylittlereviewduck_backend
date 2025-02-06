@@ -1,3 +1,3 @@
 export class SearchHistoryResponseDto {
-  search: string[];
+  keyword: string[];
 }

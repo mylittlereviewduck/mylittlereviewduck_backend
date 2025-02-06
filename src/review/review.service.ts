@@ -12,10 +12,8 @@ import { UpdateReviewDto } from './dto/update-review.dto';
 import { ReviewPagerbleResponseDto } from './dto/response/review-pagerble-response.dto';
 import { UserService } from 'src/user/user.service';
 import { Cron } from '@nestjs/schedule';
-import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
 import { DEFAULT_REDIS, RedisService } from '@liaoliaots/nestjs-redis';
 import { Redis } from 'ioredis';
-import { GetLatestReveiwsByUserIdxsDto } from './dto/get-latest-reviews-by-userIdxs.dto';
 import { ReviewInteractionService } from './review-interaction.service';
 import { GetReviewsDto } from './dto/get-reviews.dto';
 import { GetReviewDetailDto } from './dto/get-review-detail.dto';
@@ -326,6 +324,8 @@ export class ReviewService {
       where: {
         ...(dto.userIdx && { accountIdx: dto.userIdx }),
         ...(dto.userIdxs && { accountIdx: { in: dto.userIdxs } }),
+        ...(dto.scoreLte && { score: { lte: dto.scoreLte } }),
+        ...(dto.scoreGte && { score: { gte: dto.scoreGte } }),
         createdAt: {
           gte: startDate,
         },
@@ -351,6 +351,8 @@ export class ReviewService {
         // prettier-ignore
         ...(dto.userIdx && { accountIdx: dto.userIdx  } ),
         ...(dto.userIdxs && { accountIdx: { in: dto.userIdxs } }),
+        ...(dto.scoreLte && { score: { lte: dto.scoreLte } }),
+        ...(dto.scoreGte && { score: { gte: dto.scoreGte } }),
         createdAt: {
           gte: startDate,
         },
@@ -538,7 +540,7 @@ export class ReviewService {
     };
   }
 
-  async getFollowingReviewsWithUserStatus(
+  async getFollowingReviewsWithInteraction(
     dto: GetReviewsWithLoginUserDto,
   ): Promise<ReviewPagerbleResponseDto> {
     const reviewPagerbleResponseDto = await this.getFollowingReviews(dto);
@@ -597,7 +599,7 @@ export class ReviewService {
   }
 
   async getLatestReviewsByUsers(
-    dto: GetLatestReveiwsByUserIdxsDto,
+    dto: GetReviewsDto,
   ): Promise<ReviewPagerbleResponseDto> {
     const totalCount = await this.prismaService.reviewTb.count({
       where: {
@@ -974,7 +976,7 @@ export class ReviewService {
 
   //기존 135ms
   //100-110ms로 개선
-  async getReviewsWithUserStatus(
+  async getHighScoreReviewsWithInteraction(
     dto: GetReviewsWithLoginUserDto,
   ): Promise<ReviewPagerbleResponseDto> {
     const reviewPagerbleResponseDto = await this.getReviewsAll({

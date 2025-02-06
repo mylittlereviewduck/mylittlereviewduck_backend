@@ -1,7 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
+import { IsIn, IsOptional } from 'class-validator';
+import { ReviewTimeframe } from '../type/review-timeframe';
 
-export class PagerbleDto {
+export class ReviewPagerbleDto {
   @ApiProperty({
     description: '한 페이지에 담긴 리뷰 수',
     default: 10,
@@ -15,4 +17,13 @@ export class PagerbleDto {
   })
   @Type(() => Number)
   page: number = 1;
+
+  @ApiProperty({
+    description:
+      '검색기간: "1D" or "7D" or "1M" or 1Y" or all 로 주어져야합니다.',
+    default: 'all',
+  })
+  @IsIn(['1D', '7D', '1M', '1Y', 'all'])
+  @IsOptional()
+  timeframe?: ReviewTimeframe = 'all';
 }

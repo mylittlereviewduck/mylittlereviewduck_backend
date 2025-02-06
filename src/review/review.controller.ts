@@ -44,8 +44,8 @@ import { ReviewDislikeEntity } from './entity/ReviewDislike.entity';
 import { ReviewBlockEntity } from './entity/ReviewBlock.entity';
 import { ReviewBookmarkEntity } from './entity/Reviewbookmark.entity';
 import { BookmarkService } from './bookmark.service';
-import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
 import { GetReviewsWithSearchDto } from './dto/get-review-with-search.dto';
+import { ReviewPagerbleDto } from './dto/pagerble.dto';
 
 @Controller('')
 @ApiTags('review')
@@ -58,21 +58,35 @@ export class ReviewController {
     private readonly awsService: AwsService,
   ) {}
 
-  @Get('/review/all')
+  @Get('/review/high-score')
   @UseGuards(OptionalAuthGuard)
-  @ApiOperation({ summary: '최신 리뷰목록보기' })
+  @ApiOperation({ summary: '평점 3-5점의 최신 리뷰목록보기' })
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
-  async getLatestReviewAll(
+  async getLatestReviewsHighScore(
     @GetUser() loginUser: LoginUser,
     @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    return await this.reviewService.getReviewsWithUserStatus({
+    return await this.reviewService.getHighScoreReviewsWithInteraction({
       ...dto,
       loginUserIdx: loginUser && loginUser.idx,
     });
   }
 
-  @Get('/review/hot/high-score')
+  @Get('/review/low-score')
+  @UseGuards(OptionalAuthGuard)
+  @ApiOperation({ summary: '평점 0-2점의 최신 리뷰목록보기' })
+  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
+  async getLatestReviewsLowScore(
+    @GetUser() loginUser: LoginUser,
+    @Query() dto: ReviewPagerbleDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    return await this.reviewService.getLowScoreReviewsWithInteraction({
+      ...dto,
+      loginUserIdx: loginUser && loginUser.idx,
+    });
+  }
+
+  @Get('/review/high-score/hot')
   @ApiOperation({ summary: '평점 3-5점의 인기리뷰 보기' })
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
   async getHotReviewsHighScoreWithInteraction(
@@ -81,7 +95,7 @@ export class ReviewController {
     return await this.reviewService.getCachedHotReviewsHighScore(dto);
   }
 
-  @Get('/review/hot/low-score')
+  @Get('/review/low-score/hot')
   @ApiOperation({ summary: '평점 0-2점의 인기리뷰 보기' })
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
   async getHotReviewsLowScoreWithInteraction(
@@ -379,7 +393,7 @@ export class ReviewController {
     @GetUser() loginUser: LoginUser,
     @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    return await this.reviewService.getFollowingReviewsWithUserStatus({
+    return await this.reviewService.getFollowingReviewsWithInteraction({
       size: dto.size,
       page: dto.page,
       loginUserIdx: loginUser.idx,

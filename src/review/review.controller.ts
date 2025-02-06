@@ -49,7 +49,7 @@ import { ReviewBookmarkEntity } from './entity/Reviewbookmark.entity';
 import { BookmarkService } from './bookmark.service';
 import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
 import { ReviewLikeCheckService } from './review-like-check.service';
-import { SearchKeywordService } from './search-keyword.service';
+import { SearchKeywordService } from '../user/search-keyword.service';
 
 @Controller('')
 @ApiTags('review')

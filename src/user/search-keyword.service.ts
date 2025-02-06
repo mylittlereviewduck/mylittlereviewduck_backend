@@ -34,6 +34,8 @@ export class SearchKeywordService {
       take: 10,
     });
 
+    console.log(searchHistory);
+
     return;
   }
 }

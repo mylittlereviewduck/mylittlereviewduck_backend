@@ -12,7 +12,7 @@ import { AwsModule } from 'src/aws/aws.module';
 import { NotificationModule } from 'src/notification/notification.module';
 import { ReviewBookmarkService } from './review-bookmark.service';
 import { BookmarkService } from './bookmark.service';
-import { RecommendationService } from './recommendation.service';
+import { RecommendationService } from './search-keyword.service';
 import { ReviewWithUserStatusService } from './review-with-user-status.service';
 
 @Module({

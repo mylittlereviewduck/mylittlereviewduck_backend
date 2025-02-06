@@ -358,23 +358,6 @@ export class UserService {
   async getUserSearchHistory(
     userIdx: string,
   ): Promise<SearchHistoryResponseDto> {
-    const searchHistory = await this.prismaService.searchHistoryTb.groupBy({
-      by: ['keyword'],
-      where: {
-        accountIdx: userIdx,
-      },
-      _max: {
-        createdAt: true,
-      },
-      orderBy: {
-        _max: {
-          createdAt: 'desc',
-        },
-      },
-      take: 10,
-    });
-    console.log('searchHistory: ', searchHistory);
-
     return;
   }
 

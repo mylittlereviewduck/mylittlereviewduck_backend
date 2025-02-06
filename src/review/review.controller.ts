@@ -49,6 +49,7 @@ import { ReviewBookmarkEntity } from './entity/Reviewbookmark.entity';
 import { BookmarkService } from './bookmark.service';
 import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
 import { ReviewLikeCheckService } from './review-like-check.service';
+import { SearchKeywordService } from './search-keyword.service';
 
 @Controller('')
 @ApiTags('review')
@@ -62,7 +63,7 @@ export class ReviewController {
     private readonly reviewBlockCheckService: ReviewBlockCheckService,
     private readonly awsService: AwsService,
     private readonly userBlockCheckService: UserBlockCheckService,
-    private readonly recommendationService: RecommendationService,
+    private readonly searchKeywordService: SearchKeywordService,
   ) {}
 
   @Get('/review/all')
@@ -256,24 +257,9 @@ export class ReviewController {
       reviewPagerbleResponseDto.reviews.map((elem) => elem.user),
     );
 
-    await this.recommendationService.recordSearch(search, loginUser.idx);
+    await this.searchKeywordService.createSearchKeyword(search, loginUser.idx);
 
     return reviewPagerbleResponseDto;
-  }
-
-  @Get('/review/recommendation/keyword')
-  @UseGuards(OptionalAuthGuard)
-  @ApiOperation({ summary: '리뷰 추천 검색 키워드 조회' })
-  async getRecommendedKeyword(
-    @GetUser() loginUser: LoginUser,
-  ): Promise<string[]> {
-    if (!loginUser) {
-      return await this.recommendationService.getRecommendedKeywords();
-    }
-
-    return await this.recommendationService.getRecommendedKeywords(
-      loginUser.idx,
-    );
   }
 
   @Post('/review/:reviewIdx/like')

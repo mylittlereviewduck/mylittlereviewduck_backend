@@ -1166,7 +1166,7 @@ export class ReviewService {
         },
       },
       orderBy: {
-        commentTb: {},
+        createdAt: 'desc',
       },
       skip: (dto.page - 1) * dto.size,
       take: dto.size,

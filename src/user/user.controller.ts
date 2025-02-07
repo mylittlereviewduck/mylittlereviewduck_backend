@@ -159,7 +159,7 @@ export class UserController {
     schema: {
       type: 'object',
       properties: {
-        image: {
+        imgPath: {
           type: 'string',
           format: 'binary',
           description: '업로드할 이미지 파일',

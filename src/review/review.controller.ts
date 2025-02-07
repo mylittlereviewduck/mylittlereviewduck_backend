@@ -72,7 +72,7 @@ export class ReviewController {
         ...dto,
         scoreGte: 3,
       },
-      loginUser.idx,
+      loginUser && loginUser.idx,
     );
   }
 
@@ -89,7 +89,7 @@ export class ReviewController {
         ...dto,
         scoreLte: 2,
       },
-      loginUser.idx,
+      loginUser && loginUser.idx,
     );
   }
 
@@ -177,10 +177,10 @@ export class ReviewController {
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
   ): Promise<ReviewEntity> {
-    return await this.reviewService.getReviewDetail({
-      ...(loginUser && { loginUserIdx: loginUser.idx }),
+    return await this.reviewService.getReviewDetail(
       reviewIdx,
-    });
+      loginUser && loginUser.idx,
+    );
   }
 
   @Put('/review/:reviewIdx')
@@ -233,7 +233,7 @@ export class ReviewController {
   ): Promise<ReviewPagerbleResponseDto> {
     return await this.reviewService.getSearchedReviewsWithUserStatus(
       dto,
-      loginUser,
+      loginUser && loginUser.idx,
     );
   }
 
@@ -400,11 +400,13 @@ export class ReviewController {
     @GetUser() loginUser: LoginUser,
     @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    return await this.reviewService.getFollowingReviewsWithInteraction({
-      size: dto.size,
-      page: dto.page,
-      loginUserIdx: loginUser.idx,
-    });
+    return await this.reviewService.getFollowingReviewsWithInteraction(
+      {
+        size: dto.size,
+        page: dto.page,
+      },
+      loginUser.idx,
+    );
   }
 
   @Get('/user/:userIdx/review/all')
@@ -418,11 +420,13 @@ export class ReviewController {
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
     @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    return await this.reviewService.getReviewsWithInteraction({
-      ...dto,
-      userIdx,
-      loginUserIdx: loginUser && loginUser.idx,
-    });
+    return await this.reviewService.getReviewsByUserIdxWithInteraction(
+      {
+        ...dto,
+        userIdx,
+      },
+      loginUser && loginUser.idx,
+    );
   }
 
   @Get('/user/:userIdx/review/bookmark')
@@ -442,7 +446,7 @@ export class ReviewController {
         page: dto.page,
         userIdx,
       },
-      loginUser.idx,
+      loginUser && loginUser.idx,
     );
   }
 
@@ -462,7 +466,7 @@ export class ReviewController {
         ...dto,
         userIdx: userIdx,
       },
-      loginUser.idx,
+      loginUser && loginUser.idx,
     );
   }
 
@@ -482,7 +486,7 @@ export class ReviewController {
         ...dto,
         userIdx: userIdx,
       },
-      loginUser.idx,
+      loginUser && loginUser.idx,
     );
   }
 }

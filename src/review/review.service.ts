@@ -16,7 +16,6 @@ import { DEFAULT_REDIS, RedisService } from '@liaoliaots/nestjs-redis';
 import { Redis } from 'ioredis';
 import { ReviewInteractionService } from './review-interaction.service';
 import { GetReviewsAllDto } from './dto/get-reviews-all.dto';
-import { GetReviewDetailDto } from './dto/get-review-detail.dto';
 import { ReviewBookmarkService } from './review-bookmark.service';
 import { GetReviewsWithSearchDto } from './dto/request/get-review-with-search.dto';
 import { LoginUser } from 'src/auth/model/login-user.model';
@@ -266,21 +265,24 @@ export class ReviewService {
     return sortedReviews.map((review) => new ReviewEntity(review));
   }
 
-  async getReviewDetail(dto: GetReviewDetailDto): Promise<ReviewEntity> {
-    const reviewEntity = await this.getReviewByIdx(dto.reviewIdx);
+  async getReviewDetail(
+    reviewIdx: number,
+    loginUserIdx: string | null,
+  ): Promise<ReviewEntity> {
+    const reviewEntity = await this.getReviewByIdx(reviewIdx);
 
     const viewCount = await this.getViewCount(reviewEntity.idx);
 
     reviewEntity.viewCount = viewCount + 1;
     await this.increaseViewCount(reviewEntity.idx);
 
-    if (!dto.loginUserIdx) {
+    if (!loginUserIdx) {
       return reviewEntity;
     }
 
     const userStatus = await this.reviewInteractionService.getReviewInteraction(
-      dto.loginUserIdx,
-      [dto.reviewIdx],
+      loginUserIdx,
+      [reviewIdx],
       null,
     );
 
@@ -375,7 +377,6 @@ export class ReviewService {
     };
   }
 
-  //개선후쿼리응답: 40ms
   async getFollowingReviews(
     dto: GetReviewsDto,
     loginUserIdx: string,
@@ -749,7 +750,7 @@ export class ReviewService {
 
   async getSearchedReviewsWithUserStatus(
     dto: GetReviewsWithSearchDto,
-    loginUser: LoginUser | null,
+    loginUserIdx: string | null,
   ): Promise<ReviewPagerbleResponseDto> {
     let reviewPagerbleResponseDto = await this.getReviewsWithSearch({
       search: dto.search,
@@ -757,11 +758,11 @@ export class ReviewService {
       page: dto.page,
     });
 
-    if (!loginUser) {
+    if (!loginUserIdx) {
       return reviewPagerbleResponseDto;
     }
 
-    this.eventEmitter.emit('search.review', dto.search, loginUser.idx);
+    this.eventEmitter.emit('search.review', dto.search, loginUserIdx);
 
     if (reviewPagerbleResponseDto.reviews.length === 0)
       return { totalPage: 0, reviews: [] };
@@ -771,7 +772,7 @@ export class ReviewService {
     );
 
     const userStatus = await this.reviewInteractionService.getReviewInteraction(
-      loginUser.idx,
+      loginUserIdx,
       reviewIdxs,
     );
 
@@ -984,7 +985,7 @@ export class ReviewService {
   //100-110ms로 개선
   async getScoreReviewsWithInteraction(
     dto: GetScoreReviewsDto,
-    loginUserIdx: string,
+    loginUserIdx: string | null,
   ): Promise<ReviewPagerbleResponseDto> {
     const reviewPagerbleResponseDto = await this.getReviewsAll({
       page: dto.page,
@@ -1028,9 +1029,51 @@ export class ReviewService {
     return reviewPagerbleResponseDto;
   }
 
+  async getReviewsByUserIdxWithInteraction(
+    dto: GetReviewsDto,
+    loginUserIdx: string | null,
+  ): Promise<ReviewPagerbleResponseDto> {
+    const reviewPagerbleResponseDto = await this.getReviewsAll(dto);
+
+    if (!loginUserIdx) {
+      return reviewPagerbleResponseDto;
+    }
+
+    if (reviewPagerbleResponseDto.reviews.length === 0)
+      return { totalPage: 0, reviews: [] };
+
+    const reviewIdxs = reviewPagerbleResponseDto.reviews.map(
+      (review) => review.idx,
+    );
+
+    const userStatuses =
+      await this.reviewInteractionService.getReviewInteraction(
+        loginUserIdx,
+        reviewIdxs,
+        null,
+      );
+
+    const statusMap = new Map(
+      userStatuses.map((status) => [status.reviewIdx, status]),
+    );
+
+    reviewPagerbleResponseDto.reviews.map((review) => {
+      const userStatus = statusMap.get(review.idx);
+      if (userStatus) {
+        review.isMyLike = userStatus.isMyLike;
+        review.isMyDislike = userStatus.isMyDislike;
+        review.isMyBookmark = userStatus.isMyBookmark;
+        review.isMyBlock = userStatus.isMyBlock;
+      }
+      return review;
+    });
+
+    return reviewPagerbleResponseDto;
+  }
+
   async getBookmarkedReviewsWithInteraction(
     dto: GetReviewsDto,
-    loginUserIdx: string,
+    loginUserIdx: string | null,
   ): Promise<ReviewPagerbleResponseDto> {
     const reviewPagerbleResponseDto =
       await this.reviewBookmarkService.getBookmarkedReviewAll(dto);

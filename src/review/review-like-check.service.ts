@@ -1,7 +1,7 @@
-import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ReviewEntity } from './entity/Review.entity';
+import { GetReviewsDto } from './dto/request/get-reviews.dto';
 
 @Injectable()
 export class ReviewLikeCheckService {
@@ -66,7 +66,7 @@ export class ReviewLikeCheckService {
   }
 
   async getLikedReviewsIdx(
-    dto: ReviewPagerbleDto,
+    dto: GetReviewsDto,
   ): Promise<{ totalCount: number; reviewIdxs: number[] }> {
     const totalCount = await this.prismaService.reviewLikeTb.count({
       where: { accountIdx: dto.userIdx },

@@ -45,7 +45,8 @@ import { ReviewBlockEntity } from './entity/ReviewBlock.entity';
 import { ReviewBookmarkEntity } from './entity/Reviewbookmark.entity';
 import { BookmarkService } from './bookmark.service';
 import { GetReviewsWithSearchDto } from './dto/request/get-review-with-search.dto';
-import { ReviewPagerbleDto } from './dto/request/pagerble.dto';
+import { ReviewPagerbleDto } from './dto/request/review-pagerble.dto';
+import { ReviewPagerbleTimeFrameDto } from './dto/request/review-pagerble-timeframe.dto';
 
 @Controller('')
 @ApiTags('review')
@@ -64,12 +65,15 @@ export class ReviewController {
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
   async getLatestReviewsHighScore(
     @GetUser() loginUser: LoginUser,
-    @Query() dto: ReviewPagerbleDto,
+    @Query() dto: ReviewPagerbleTimeFrameDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    return await this.reviewService.getHighScoreReviewsWithInteraction({
-      ...dto,
-      loginUserIdx: loginUser && loginUser.idx,
-    });
+    return await this.reviewService.getScoreReviewsWithInteraction(
+      {
+        ...dto,
+        scoreGte: 3,
+      },
+      loginUser.idx,
+    );
   }
 
   @Get('/review/low-score')
@@ -78,12 +82,15 @@ export class ReviewController {
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
   async getLatestReviewsLowScore(
     @GetUser() loginUser: LoginUser,
-    @Query() dto: ReviewPagerbleDto,
+    @Query() dto: ReviewPagerbleTimeFrameDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    return await this.reviewService.getLowScoreReviewsWithInteraction({
-      ...dto,
-      loginUserIdx: loginUser && loginUser.idx,
-    });
+    return await this.reviewService.getScoreReviewsWithInteraction(
+      {
+        ...dto,
+        scoreLte: 2,
+      },
+      loginUser.idx,
+    );
   }
 
   @Get('/review/high-score/hot')
@@ -429,12 +436,14 @@ export class ReviewController {
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
     @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    return await this.reviewService.getBookmarkedReviewsWithUserStatus({
-      size: dto.size,
-      page: dto.page,
-      loginUserIdx: loginUser && loginUser.idx,
-      userIdx,
-    });
+    return await this.reviewService.getBookmarkedReviewsWithInteraction(
+      {
+        size: dto.size,
+        page: dto.page,
+        userIdx,
+      },
+      loginUser.idx,
+    );
   }
 
   @Get('/user/:userIdx/review/commented')
@@ -448,11 +457,13 @@ export class ReviewController {
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
     @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    return await this.reviewService.getCommentedReviewsWithUserStatus({
-      ...dto,
-      userIdx: userIdx,
-      loginUserIdx: loginUser && loginUser.idx,
-    });
+    return await this.reviewService.getCommentedReviewsWithInteraction(
+      {
+        ...dto,
+        userIdx: userIdx,
+      },
+      loginUser.idx,
+    );
   }
 
   @Get('/user/:userIdx/review/like')
@@ -466,10 +477,12 @@ export class ReviewController {
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
     @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    return await this.reviewService.getLikedReviewsWithUserStatus({
-      ...dto,
-      userIdx: userIdx,
-      loginUserIdx: loginUser && loginUser.idx,
-    });
+    return await this.reviewService.getLikedReviewsWithInteraction(
+      {
+        ...dto,
+        userIdx: userIdx,
+      },
+      loginUser.idx,
+    );
   }
 }

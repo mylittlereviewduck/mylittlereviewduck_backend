@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsArray, IsIn, IsOptional, IsUUID } from 'class-validator';
-import { ReviewPagerbleDto } from './request/pagerble.dto';
+import { ReviewPagerbleDto } from './request/review-pagerble.dto';
 import { ReviewTimeframe } from '../type/review-timeframe';
 
 export class GetReviewsAllDto extends ReviewPagerbleDto {

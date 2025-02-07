@@ -21,7 +21,8 @@ import { ReviewBookmarkService } from './review-bookmark.service';
 import { GetReviewsWithSearchDto } from './dto/request/get-review-with-search.dto';
 import { LoginUser } from 'src/auth/model/login-user.model';
 import { GetReviewsDto } from './dto/request/get-reviews.dto';
-import { ReviewPagerbleDto } from './dto/request/pagerble.dto';
+import { ReviewPagerbleDto } from './dto/request/review-pagerble.dto';
+import { GetScoreReviewsDto } from './dto/get-score-reviews.dto';
 
 @Injectable()
 export class ReviewService {
@@ -981,15 +982,16 @@ export class ReviewService {
 
   //기존 135ms
   //100-110ms로 개선
-  async getHighScoreReviewsWithInteraction(
-    dto: GetReviewsDto,
+  async getScoreReviewsWithInteraction(
+    dto: GetScoreReviewsDto,
     loginUserIdx: string,
   ): Promise<ReviewPagerbleResponseDto> {
     const reviewPagerbleResponseDto = await this.getReviewsAll({
       page: dto.page,
       size: dto.size,
       timeframe: dto.timeframe,
-      ...(dto.userIdx && { userIdx: dto.userIdx }),
+      ...(dto.scoreLte && { scoreLte: dto.scoreLte }),
+      ...(dto.scoreGte && { scoreGte: dto.scoreGte }),
     });
 
     if (!loginUserIdx) {
@@ -1026,7 +1028,7 @@ export class ReviewService {
     return reviewPagerbleResponseDto;
   }
 
-  async getBookmarkedReviewsWithUserStatus(
+  async getBookmarkedReviewsWithInteraction(
     dto: GetReviewsDto,
     loginUserIdx: string,
   ): Promise<ReviewPagerbleResponseDto> {
@@ -1133,7 +1135,7 @@ export class ReviewService {
     };
   }
 
-  async getCommentedReviewsWithUserStatus(
+  async getCommentedReviewsWithInteraction(
     dto: GetReviewsDto,
     loginUserIdx: string | null,
   ): Promise<ReviewPagerbleResponseDto> {
@@ -1243,7 +1245,7 @@ export class ReviewService {
     };
   }
 
-  async getLikedReviewsWithUserStatus(
+  async getLikedReviewsWithInteraction(
     dto: GetReviewsDto,
     loginUserIdx: string | null,
   ): Promise<ReviewPagerbleResponseDto> {

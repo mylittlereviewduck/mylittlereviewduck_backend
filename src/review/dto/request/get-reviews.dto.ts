@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsArray, IsOptional, IsUUID } from 'class-validator';
-import { ReviewPagerbleDto } from './pagerble.dto';
+import { ReviewPagerbleDto } from './review-pagerble.dto';
 
 export class GetReviewsDto extends ReviewPagerbleDto {
   @ApiProperty({ description: '작성자 식별자 (UUID)' })

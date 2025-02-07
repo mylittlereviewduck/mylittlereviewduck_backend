@@ -5,22 +5,23 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { CreateReviewDto } from './dto/create-review.dto';
+import { CreateReviewDto } from './dto/request/create-review.dto';
 import { ReviewEntity } from './entity/Review.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { UpdateReviewDto } from './dto/update-review.dto';
+import { UpdateReviewDto } from './dto/request/update-review.dto';
 import { ReviewPagerbleResponseDto } from './dto/response/review-pagerble-response.dto';
 import { UserService } from 'src/user/user.service';
 import { Cron } from '@nestjs/schedule';
 import { DEFAULT_REDIS, RedisService } from '@liaoliaots/nestjs-redis';
 import { Redis } from 'ioredis';
 import { ReviewInteractionService } from './review-interaction.service';
-import { GetReviewsDto } from './dto/get-reviews.dto';
+import { GetReviewsAllDto } from './dto/get-reviews-all.dto';
 import { GetReviewDetailDto } from './dto/get-review-detail.dto';
-import { GetReviewsWithLoginUserDto } from './dto/get-reviews-with-login-user.dto';
 import { ReviewBookmarkService } from './review-bookmark.service';
-import { GetReviewsWithSearchDto } from './dto/get-review-with-search.dto';
+import { GetReviewsWithSearchDto } from './dto/request/get-review-with-search.dto';
 import { LoginUser } from 'src/auth/model/login-user.model';
+import { GetReviewsDto } from './dto/request/get-reviews.dto';
+import { ReviewPagerbleDto } from './dto/request/pagerble.dto';
 
 @Injectable()
 export class ReviewService {
@@ -292,7 +293,9 @@ export class ReviewService {
     return reviewEntity;
   }
 
-  async getReviewsAll(dto: GetReviewsDto): Promise<ReviewPagerbleResponseDto> {
+  async getReviewsAll(
+    dto: GetReviewsAllDto,
+  ): Promise<ReviewPagerbleResponseDto> {
     if (dto.userIdx) {
       const user = await this.userService.getUser({ idx: dto.userIdx });
 
@@ -373,14 +376,15 @@ export class ReviewService {
 
   //개선후쿼리응답: 40ms
   async getFollowingReviews(
-    dto: GetReviewsWithLoginUserDto,
+    dto: GetReviewsDto,
+    loginUserIdx: string,
   ): Promise<ReviewPagerbleResponseDto> {
     const totalCount = await this.prismaService.reviewTb.count({
       where: {
         accountTb: {
           followers: {
             some: {
-              followerIdx: dto.loginUserIdx,
+              followerIdx: loginUserIdx,
             },
           },
         },
@@ -523,7 +527,7 @@ export class ReviewService {
         accountTb: {
           followers: {
             some: {
-              followerIdx: dto.loginUserIdx,
+              followerIdx: loginUserIdx,
             },
           },
         },
@@ -541,13 +545,13 @@ export class ReviewService {
   }
 
   async getFollowingReviewsWithInteraction(
-    dto: GetReviewsWithLoginUserDto,
+    dto: GetReviewsDto,
+    loginUserIdx: string,
   ): Promise<ReviewPagerbleResponseDto> {
-    const reviewPagerbleResponseDto = await this.getFollowingReviews(dto);
-
-    if (!dto.loginUserIdx) {
-      return reviewPagerbleResponseDto;
-    }
+    const reviewPagerbleResponseDto = await this.getFollowingReviews(
+      dto,
+      loginUserIdx,
+    );
 
     if (reviewPagerbleResponseDto.reviews.length === 0)
       return { totalPage: 0, reviews: [] };
@@ -557,7 +561,7 @@ export class ReviewService {
     );
 
     const userStatus = await this.reviewInteractionService.getReviewInteraction(
-      dto.loginUserIdx,
+      loginUserIdx,
       reviewIdxs,
       null,
     );
@@ -929,6 +933,7 @@ export class ReviewService {
     await this.redis.set('hotReviewsLowScore30Day', JSON.stringify(hotReviewsLowScore30Day));
   }
 
+  //기간별조회기능 추가
   async getCachedHotReviewsHighScore(
     dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
@@ -977,7 +982,8 @@ export class ReviewService {
   //기존 135ms
   //100-110ms로 개선
   async getHighScoreReviewsWithInteraction(
-    dto: GetReviewsWithLoginUserDto,
+    dto: GetReviewsDto,
+    loginUserIdx: string,
   ): Promise<ReviewPagerbleResponseDto> {
     const reviewPagerbleResponseDto = await this.getReviewsAll({
       page: dto.page,
@@ -986,7 +992,7 @@ export class ReviewService {
       ...(dto.userIdx && { userIdx: dto.userIdx }),
     });
 
-    if (!dto.loginUserIdx) {
+    if (!loginUserIdx) {
       return reviewPagerbleResponseDto;
     }
 
@@ -995,7 +1001,7 @@ export class ReviewService {
 
     const userStatuses =
       await this.reviewInteractionService.getReviewInteraction(
-        dto.loginUserIdx,
+        loginUserIdx,
         reviewPagerbleResponseDto.reviews.map((review) => review.idx),
         null,
       );
@@ -1021,14 +1027,13 @@ export class ReviewService {
   }
 
   async getBookmarkedReviewsWithUserStatus(
-    dto: GetReviewsWithLoginUserDto,
+    dto: GetReviewsDto,
+    loginUserIdx: string,
   ): Promise<ReviewPagerbleResponseDto> {
     const reviewPagerbleResponseDto =
-      await this.reviewBookmarkService.getBookmarkedReviewAll({
-        ...dto,
-      });
+      await this.reviewBookmarkService.getBookmarkedReviewAll(dto);
 
-    if (!dto.loginUserIdx) {
+    if (!loginUserIdx) {
       return reviewPagerbleResponseDto;
     }
 
@@ -1041,7 +1046,7 @@ export class ReviewService {
 
     const userStatuses =
       await this.reviewInteractionService.getReviewInteraction(
-        dto.loginUserIdx,
+        loginUserIdx,
         reviewIdxs,
         null,
       );
@@ -1129,7 +1134,8 @@ export class ReviewService {
   }
 
   async getCommentedReviewsWithUserStatus(
-    dto: GetReviewsWithLoginUserDto,
+    dto: GetReviewsDto,
+    loginUserIdx: string | null,
   ): Promise<ReviewPagerbleResponseDto> {
     const reviewPagerbleResponseDto = await this.getCommentedReviews({
       page: dto.page,
@@ -1137,7 +1143,7 @@ export class ReviewService {
       userIdx: dto.userIdx,
     });
 
-    if (!dto.loginUserIdx) {
+    if (!loginUserIdx) {
       return reviewPagerbleResponseDto;
     }
 
@@ -1150,7 +1156,7 @@ export class ReviewService {
 
     const userStatuses =
       await this.reviewInteractionService.getReviewInteraction(
-        dto.loginUserIdx,
+        loginUserIdx,
         reviewIdxs,
         null,
       );
@@ -1238,7 +1244,8 @@ export class ReviewService {
   }
 
   async getLikedReviewsWithUserStatus(
-    dto: GetReviewsWithLoginUserDto,
+    dto: GetReviewsDto,
+    loginUserIdx: string | null,
   ): Promise<ReviewPagerbleResponseDto> {
     const reviewPagerbleResponseDto = await this.getLikedReviews({
       page: dto.page,
@@ -1246,7 +1253,7 @@ export class ReviewService {
       userIdx: dto.userIdx,
     });
 
-    if (!dto.loginUserIdx) {
+    if (!loginUserIdx) {
       return reviewPagerbleResponseDto;
     }
 
@@ -1259,7 +1266,7 @@ export class ReviewService {
 
     const userStatuses =
       await this.reviewInteractionService.getReviewInteraction(
-        dto.loginUserIdx,
+        loginUserIdx,
         reviewIdxs,
         null,
       );

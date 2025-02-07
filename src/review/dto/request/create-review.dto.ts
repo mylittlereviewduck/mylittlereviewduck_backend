@@ -10,7 +10,7 @@ import {
   Min,
   ValidateNested,
 } from 'class-validator';
-import { ReviewImage } from '../type/review-image';
+import { ReviewImage } from '../../type/review-image';
 import { Type } from 'class-transformer';
 
 export class CreateReviewDto {

@@ -27,10 +27,10 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 import { Exception } from 'src/decorator/exception.decorator';
-import { CreateReviewDto } from './dto/create-review.dto';
+import { CreateReviewDto } from './dto/request/create-review.dto';
 import { ReviewEntity } from './entity/Review.entity';
 import { UploadReviewImageResponseDto } from './dto/response/upload-review-image-response.dto';
-import { UpdateReviewDto } from './dto/update-review.dto';
+import { UpdateReviewDto } from './dto/request/update-review.dto';
 import { ReviewService } from './review.service';
 import { LoginUser } from 'src/auth/model/login-user.model';
 import { GetUser } from 'src/auth/get-user.decorator';
@@ -44,8 +44,8 @@ import { ReviewDislikeEntity } from './entity/ReviewDislike.entity';
 import { ReviewBlockEntity } from './entity/ReviewBlock.entity';
 import { ReviewBookmarkEntity } from './entity/Reviewbookmark.entity';
 import { BookmarkService } from './bookmark.service';
-import { GetReviewsWithSearchDto } from './dto/get-review-with-search.dto';
-import { ReviewPagerbleDto } from './dto/pagerble.dto';
+import { GetReviewsWithSearchDto } from './dto/request/get-review-with-search.dto';
+import { ReviewPagerbleDto } from './dto/request/pagerble.dto';
 
 @Controller('')
 @ApiTags('review')
@@ -411,7 +411,7 @@ export class ReviewController {
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
     @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    return await this.reviewService.getReviewsWithUserStatus({
+    return await this.reviewService.getReviewsWithInteraction({
       ...dto,
       userIdx,
       loginUserIdx: loginUser && loginUser.idx,

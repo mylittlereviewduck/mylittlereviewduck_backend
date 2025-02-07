@@ -13,8 +13,4 @@ export class GetReviewsDto extends ReviewPagerbleDto {
   @IsArray()
   @IsUUID('4', { each: true })
   userIdxs?: string[];
-
-  scoreLte?: number;
-
-  scoreGte?: number;
 }

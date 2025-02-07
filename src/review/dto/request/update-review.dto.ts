@@ -4,19 +4,25 @@ import {
   ArrayMaxSize,
   IsArray,
   IsNumber,
+  IsOptional,
   IsString,
+  IsUUID,
   Length,
   Max,
   Min,
   ValidateNested,
 } from 'class-validator';
-import { ReviewImage } from '../type/review-image';
+import { ReviewImage } from '../../type/review-image';
 
 export class UpdateReviewDto {
   @ApiProperty({ example: '', description: '유저 식별자' })
+  @IsOptional()
+  @IsUUID()
   userIdx?: string;
 
   @ApiProperty({ example: '1', description: '리뷰 식별자' })
+  @IsOptional()
+  @IsNumber()
   reviewIdx?: number;
 
   @ApiProperty({ example: '제목', description: '리뷰 제목' })

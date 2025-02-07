@@ -4,14 +4,14 @@ import { ReviewPagerbleDto } from './request/review-pagerble.dto';
 import { ReviewTimeframe } from '../type/review-timeframe';
 
 export class GetReviewsAllDto extends ReviewPagerbleDto {
-  @ApiProperty({
-    description:
-      '검색기간: "1D" or "7D" or "1M" or 1Y" or all 로 주어져야합니다.',
-    default: 'all',
-  })
-  @IsIn(['1D', '7D', '1M', '1Y', 'all'])
-  @IsOptional()
-  timeframe?: ReviewTimeframe = 'all';
+  // @ApiProperty({
+  //   description:
+  //     '검색기간: "1D" or "7D" or "1M" or 1Y" or all 로 주어져야합니다.',
+  //   default: 'all',
+  // })
+  // @IsIn(['1D', '7D', '1M', '1Y', 'all'])
+  // @IsOptional()
+  // timeframe?: ReviewTimeframe = 'all';
 
   @ApiProperty({ description: '작성자 식별자 (UUID)' })
   @IsOptional()
@@ -27,4 +27,6 @@ export class GetReviewsAllDto extends ReviewPagerbleDto {
   scoreLte?: number;
 
   scoreGte?: number;
+
+  following?: string;
 }

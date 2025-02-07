@@ -1,3 +1,4 @@
+import { Equals } from 'class-validator';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   ConsoleLogger,
@@ -18,7 +19,6 @@ import { ReviewInteractionService } from './review-interaction.service';
 import { GetReviewsAllDto } from './dto/get-reviews-all.dto';
 import { ReviewBookmarkService } from './review-bookmark.service';
 import { GetReviewsWithSearchDto } from './dto/request/get-review-with-search.dto';
-import { LoginUser } from 'src/auth/model/login-user.model';
 import { GetReviewsDto } from './dto/request/get-reviews.dto';
 import { ReviewPagerbleDto } from './dto/request/review-pagerble.dto';
 import { GetScoreReviewsDto } from './dto/get-score-reviews.dto';
@@ -307,24 +307,24 @@ export class ReviewService {
       }
     }
 
-    const now = new Date();
-    let startDate: Date;
+    // const now = new Date();
+    // let startDate: Date;
 
-    if (dto.timeframe == '1D') {
-      startDate = new Date(now.setHours(0, 0, 0, 0));
-      startDate.setHours(0, 0, 0);
-    } else if (dto.timeframe == '7D') {
-      startDate = new Date(now.setDate(now.getDate() - 6));
-      startDate.setHours(0, 0, 0);
-    } else if (dto.timeframe == '1M') {
-      startDate = new Date(now.setMonth(now.getMonth() - 1));
-      startDate.setHours(0, 0, 0);
-    } else if (dto.timeframe == '1Y') {
-      startDate = new Date(now.setFullYear(now.getFullYear() - 1));
-      startDate.setHours(0, 0, 0);
-    } else {
-      startDate = new Date(0);
-    }
+    // if (dto.timeframe == '1D') {
+    //   startDate = new Date(now.setHours(0, 0, 0, 0));
+    //   startDate.setHours(0, 0, 0);
+    // } else if (dto.timeframe == '7D') {
+    //   startDate = new Date(now.setDate(now.getDate() - 6));
+    //   startDate.setHours(0, 0, 0);
+    // } else if (dto.timeframe == '1M') {
+    //   startDate = new Date(now.setMonth(now.getMonth() - 1));
+    //   startDate.setHours(0, 0, 0);
+    // } else if (dto.timeframe == '1Y') {
+    //   startDate = new Date(now.setFullYear(now.getFullYear() - 1));
+    //   startDate.setHours(0, 0, 0);
+    // } else {
+    //   startDate = new Date(0);
+    // }
 
     const reviewCount = await this.prismaService.reviewTb.count({
       where: {
@@ -332,9 +332,18 @@ export class ReviewService {
         ...(dto.userIdxs && { accountIdx: { in: dto.userIdxs } }),
         ...(dto.scoreLte && { score: { lte: dto.scoreLte } }),
         ...(dto.scoreGte && { score: { gte: dto.scoreGte } }),
-        createdAt: {
-          gte: startDate,
-        },
+        ...(dto.following && {
+          accountTb: {
+            followers: {
+              some: {
+                followerIdx: dto.following,
+              },
+            },
+          },
+        }),
+        // createdAt: {
+        //   gte: startDate,
+        // },
         deletedAt: null,
       },
     });
@@ -359,13 +368,22 @@ export class ReviewService {
         ...(dto.userIdxs && { accountIdx: { in: dto.userIdxs } }),
         ...(dto.scoreLte && { score: { lte: dto.scoreLte } }),
         ...(dto.scoreGte && { score: { gte: dto.scoreGte } }),
-        createdAt: {
-          gte: startDate,
-        },
+        ...(dto.following && {
+          accountTb: {
+            followers: {
+              some: {
+                followerIdx: dto.following,
+              },
+            },
+          },
+        }),
+        // createdAt: {
+        //   gte: startDate,
+        // },
         deletedAt: null,
       },
       orderBy: {
-        idx: 'desc',
+        createdAt: 'desc',
       },
       take: dto.size,
       skip: (dto.page - 1) * dto.size,
@@ -390,6 +408,9 @@ export class ReviewService {
             },
           },
         },
+      },
+      orderBy: {
+        idx: 'desc',
       },
     });
     const skip = dto.page * dto.size;
@@ -534,8 +555,8 @@ export class ReviewService {
           },
         },
       },
-      skip: dto.page * dto.size,
       take: dto.size,
+      skip: (dto.page - 1) * dto.size,
       orderBy: { createdAt: 'desc' },
     });
 
@@ -547,13 +568,13 @@ export class ReviewService {
   }
 
   async getFollowingReviewsWithInteraction(
-    dto: GetReviewsDto,
+    dto: GetReviewsAllDto,
     loginUserIdx: string,
   ): Promise<ReviewPagerbleResponseDto> {
-    const reviewPagerbleResponseDto = await this.getFollowingReviews(
-      dto,
-      loginUserIdx,
-    );
+    const reviewPagerbleResponseDto = await this.getReviewsAll({
+      ...dto,
+      following: loginUserIdx,
+    });
 
     if (reviewPagerbleResponseDto.reviews.length === 0)
       return { totalPage: 0, reviews: [] };
@@ -990,7 +1011,6 @@ export class ReviewService {
     const reviewPagerbleResponseDto = await this.getReviewsAll({
       page: dto.page,
       size: dto.size,
-      timeframe: dto.timeframe,
       ...(dto.scoreLte && { scoreLte: dto.scoreLte }),
       ...(dto.scoreGte && { scoreGte: dto.scoreGte }),
     });

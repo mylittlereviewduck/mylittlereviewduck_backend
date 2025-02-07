@@ -390,13 +390,13 @@ export class ReviewController {
     await this.reviewBlockService.unblockReview(loginUser.idx, reviewIdx);
   }
 
-  @Get('/review/all/following')
+  @Get('/review/high-score/following')
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: '팔로우한 사람들의 리뷰목록 보기' })
+  @ApiOperation({ summary: ' 평점 3-5점의 덕질중인 리뷰 목록 보기' })
   @Exception(401, '권한없음')
   @ApiResponse({ status: 200 })
-  async getReviewsByFollowingUsers(
+  async getHighScoreByFollowingUsers(
     @GetUser() loginUser: LoginUser,
     @Query() dto: ReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
@@ -404,6 +404,27 @@ export class ReviewController {
       {
         size: dto.size,
         page: dto.page,
+        scoreGte: 3,
+      },
+      loginUser.idx,
+    );
+  }
+
+  @Get('/review/low-score/following')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: ' 평점 0-2점의 덕질중인 리뷰 목록 보기' })
+  @Exception(401, '권한없음')
+  @ApiResponse({ status: 200 })
+  async getLowScoreReviewsByFollowingUsers(
+    @GetUser() loginUser: LoginUser,
+    @Query() dto: ReviewPagerbleDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    return await this.reviewService.getFollowingReviewsWithInteraction(
+      {
+        size: dto.size,
+        page: dto.page,
+        scoreLte: 2,
       },
       loginUser.idx,
     );

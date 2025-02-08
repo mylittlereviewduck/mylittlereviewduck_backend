@@ -15,6 +15,10 @@ jobs:
           ref: main
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: 코드 파일 복사하기
+        run: |
+          rsync -av --delete $GITHUB_WORKSPACE/ /home/kiju/dev/study/mylittlereviewduck_backend/
+
       - name: node js 설치
         uses: actions/setup-node@v4
         with:

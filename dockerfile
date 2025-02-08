@@ -10,4 +10,4 @@ RUN npm run build
 
 EXPOSE 3000
 
-ENTRYPOINT ["node","dist/src/main.js"] 
+ENTRYPOINT ["sh", "-c", "sleep 30 && node dist/src/main.js"]

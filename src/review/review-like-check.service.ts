@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ReviewEntity } from './entity/Review.entity';
+import { GetReviewsDto } from './dto/request/get-reviews.dto';
 
 @Injectable()
 export class ReviewLikeCheckService {
@@ -62,5 +63,28 @@ export class ReviewLikeCheckService {
     }
 
     return reviews;
+  }
+
+  async getLikedReviewsIdx(
+    dto: GetReviewsDto,
+  ): Promise<{ totalCount: number; reviewIdxs: number[] }> {
+    const totalCount = await this.prismaService.reviewLikeTb.count({
+      where: { accountIdx: dto.userIdx },
+    });
+
+    const likedReviewIdxs = await this.prismaService.reviewLikeTb.findMany({
+      where: { accountIdx: dto.userIdx },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      select: { reviewIdx: true },
+      ...(dto.page && { skip: (dto.page - 1) * dto.size }),
+      ...(dto.size && { take: dto.size }),
+    });
+
+    return {
+      totalCount,
+      reviewIdxs: likedReviewIdxs.map((elem) => elem.reviewIdx),
+    };
   }
 }

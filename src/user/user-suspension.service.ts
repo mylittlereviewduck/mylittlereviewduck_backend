@@ -39,15 +39,11 @@ export class UserSuspensionService {
 
     const suspendedUser = await this.prismaService.accountTb.update({
       include: {
-        profileImgTb: {
-          where: {
-            deletedAt: null,
-          },
-        },
         _count: {
           select: {
-            follower: true,
-            followee: true,
+            followers: true,
+            followings: true,
+            reviewTb: true,
           },
         },
       },

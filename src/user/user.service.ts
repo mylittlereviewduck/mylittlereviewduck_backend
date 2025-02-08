@@ -1,9 +1,11 @@
 import { EmailAuthService } from './../auth/email-auth.service';
 import {
   ConflictException,
+  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
+  forwardRef,
 } from '@nestjs/common';
 import { UserEntity } from './entity/User.entity';
 import { PrismaService } from '../../src/prisma/prisma.service';
@@ -11,36 +13,45 @@ import { CreateUserOAtuhDto } from './dto/create-user-oauth.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateMyInfoDto } from './dto/update-my-info.dto';
 import { GetUserDto } from './dto/get-user.dto';
-import { UserWithProvider } from './model/user-with-provider.model';
 import { GetUsersAllDto } from './dto/get-users-all.dto';
-import { Prisma } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { UserListResponseDto } from './dto/response/user-list-response.dto';
 import { BcryptService } from 'src/auth/bcrypt.service';
+import { UserPagerbleResponseDto } from './dto/response/user-pagerble-response.dto';
+import { GetUserSearchDto } from './dto/get-users-search.dto';
+import { UserInteractionService } from './user-interaction.service';
+import { LoginUser } from 'src/auth/model/login-user.model';
+import { EventEmitter } from 'stream';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly bcryptService: BcryptService,
+    @Inject(forwardRef(() => EmailAuthService))
     private readonly emailAuthService: EmailAuthService,
+    private readonly userInteractionService: UserInteractionService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async getUser(dto: GetUserDto): Promise<UserEntity | undefined> {
+  async getUser(
+    dto: GetUserDto,
+    tx?: Prisma.TransactionClient,
+  ): Promise<UserEntity | null> {
     if (!dto.idx && !dto.nickname && !dto.email && !dto.pw) {
-      return undefined;
+      return null;
     }
 
-    const userData = await this.prismaService.accountTb.findFirst({
+    const prisma = tx ?? this.prismaService;
+
+    const userData = await prisma.accountTb.findFirst({
       include: {
-        profileImgTb: {
-          where: {
-            deletedAt: null,
-          },
-        },
         _count: {
           select: {
-            followee: true,
-            follower: true,
+            followings: true,
+            followers: true,
+            reviewTb: true,
           },
         },
       },
@@ -53,7 +64,7 @@ export class UserService {
     });
 
     if (!userData) {
-      return undefined;
+      return null;
     }
 
     return new UserEntity(userData);
@@ -77,20 +88,20 @@ export class UserService {
                 dto.interest2 && { interest2: { contains: dto.interest2, mode: Prisma.QueryMode.insensitive } } ,
               ].filter(Boolean),// null 값 제거
             }
-        }  
+        },  
+        orderBy:{
+          createdAt: 'desc'
+        },
+        
     });
 
     const userData = await this.prismaService.accountTb.findMany({
       include: {
-        profileImgTb: {
-          where: {
-            deletedAt: null,
-          },
-        },
         _count: {
           select: {
-            followee: true,
-            follower: true,
+            followings: true,
+            followers: true,
+            reviewTb: true,
           },
         },
       },
@@ -126,17 +137,13 @@ export class UserService {
   }
 
   async getUsersByIdx(userIdxs: string[]): Promise<UserEntity[]> {
-    const userData = await this.prismaService.accountTb.findMany({
+    const users = await this.prismaService.accountTb.findMany({
       include: {
-        profileImgTb: {
-          where: {
-            deletedAt: null,
-          },
-        },
         _count: {
           select: {
-            followee: true,
-            follower: true,
+            followings: true,
+            followers: true,
+            reviewTb: true,
           },
         },
       },
@@ -148,22 +155,87 @@ export class UserService {
       },
     });
 
-    return userData.map((user) => new UserEntity(user));
+    return users.map((user) => new UserEntity(user));
+  }
+
+  async getUserPasswordByIdx(userIdx: string): Promise<string> {
+    const user = await this.prismaService.accountTb.findUnique({
+      select: {
+        pw: true,
+      },
+      where: {
+        idx: userIdx,
+      },
+    });
+
+    return user.pw;
+  }
+
+  async getSearchedUsersWithInteraction(
+    dto: GetUserSearchDto,
+    loginUser: LoginUser | null,
+  ): Promise<UserPagerbleResponseDto> {
+    const userSearchResponseDto = await this.getUsersAll({
+      email: dto.search,
+      nickname: dto.search,
+      interest1: dto.search,
+      interest2: dto.search,
+      size: dto.size,
+      page: dto.page,
+    });
+    if (!loginUser) {
+      return userSearchResponseDto;
+    }
+
+    this.eventEmitter.emit('search.user', dto.search, loginUser.idx);
+
+    if (userSearchResponseDto.users.length === 0)
+      return { totalPage: 0, users: [] };
+
+    const userIdxs = userSearchResponseDto.users.map((user) => user.idx);
+
+    const userInteraction =
+      await this.userInteractionService.getUserInteraction(
+        loginUser.idx,
+        userIdxs,
+      );
+
+    const interactionMap = new Map(
+      userInteraction.map((interaction) => [
+        interaction.accountIdx,
+        interaction,
+      ]),
+    );
+
+    userSearchResponseDto.users.map((user) => {
+      const interaction = interactionMap.get(user.idx);
+      if (interaction) {
+        user.isMyFollowing = interaction.isMyFollowing;
+        user.isMyBlock = interaction.isMyBlock;
+      }
+    });
+
+    return userSearchResponseDto;
   }
 
   async createUser(dto: CreateUserDto): Promise<UserEntity> {
     let newUser;
+
     await this.prismaService.$transaction(async (tx) => {
-      const emailDuplicatedUser = await this.getUser({ email: dto.email });
+      const emailDuplicatedUser = await this.getUser({ email: dto.email }, tx);
 
       if (emailDuplicatedUser) {
         throw new ConflictException('Email Duplicated');
       }
 
       const authenticatedEmail =
-        await this.emailAuthService.getEmailWithVerificationCode(dto.email);
+        await this.emailAuthService.getEmailVerification(
+          dto.email,
+          undefined,
+          tx,
+        );
 
-      if (!authenticatedEmail || authenticatedEmail.isVerified !== true) {
+      if (!authenticatedEmail || authenticatedEmail.verifiedAt !== null) {
         throw new UnauthorizedException('Unauthorized Email');
       }
 
@@ -174,15 +246,17 @@ export class UserService {
         throw new UnauthorizedException('Authentication TimeOut');
       }
 
-      newUser = await tx.accountTb.create({
+      const hashedPw = await this.bcryptService.hash(dto.pw);
+
+      newUser = await this.prismaService.accountTb.create({
         data: {
           email: dto.email,
-          pw: dto.pw,
+          pw: hashedPw,
           provider: 'local',
         },
       });
 
-      newUser = await tx.accountTb.update({
+      newUser = await this.prismaService.accountTb.update({
         data: {
           nickname: newUser.serialNumber + '번째 오리',
         },
@@ -192,7 +266,7 @@ export class UserService {
       });
     });
 
-    await this.emailAuthService.deleteVerifiedEmail(dto.email);
+    await this.emailAuthService.deleteEmailVerification(dto.email);
 
     return await this.getUser({ idx: newUser.idx });
   }
@@ -208,15 +282,11 @@ export class UserService {
         providerKey: dto.providerKey,
       },
       include: {
-        profileImgTb: {
-          where: {
-            deletedAt: null,
-          },
-        },
         _count: {
           select: {
-            followee: true,
-            follower: true,
+            followings: true,
+            followers: true,
+            reviewTb: true,
           },
         },
       },
@@ -228,81 +298,127 @@ export class UserService {
     userIdx: string,
     dto: UpdateMyInfoDto,
   ): Promise<UserEntity> {
-    const user = await this.getUser({
-      idx: userIdx,
-    });
+    try {
+      const updatedUser = await this.prismaService.$transaction(async (tx) => {
+        const user = await this.getUser(
+          {
+            idx: userIdx,
+          },
+          tx,
+        );
 
-    if (!user) {
-      throw new NotFoundException('Not Found User');
-    }
+        if (!user) {
+          throw new NotFoundException('Not Found User');
+        }
 
-    const duplicatedUser = await this.getUser({
-      nickname: dto.nickname,
-    });
+        const duplicatedUser = await this.getUser(
+          {
+            nickname: dto.nickname,
+          },
+          tx,
+        );
 
-    if (duplicatedUser && duplicatedUser.nickname == dto.nickname) {
-      throw new ConflictException('Duplicated Nickname');
-    }
+        if (duplicatedUser && duplicatedUser.nickname == dto.nickname) {
+          throw new ConflictException('Duplicated Nickname');
+        }
 
-    const updatedUser = await this.prismaService.accountTb.update({
-      include: {
-        profileImgTb: {
+        const updatedUser = await tx.accountTb.update({
+          include: {
+            _count: {
+              select: {
+                followings: true,
+                followers: true,
+                reviewTb: true,
+              },
+            },
+          },
+          //prettier-ignore
+          data: {
+            nickname: dto.nickname ?? user.nickname,
+            profile: dto.profile ?? user.profile,
+            interest1: (dto.interest?.[0] ?? user.interest1),
+            interest2: (dto.interest?.[1] ?? user.interest2),
+          },
           where: {
-            deletedAt: null,
+            idx: userIdx,
           },
-        },
-        _count: {
-          select: {
-            followee: true,
-            follower: true,
-          },
-        },
-      },
-      //prettier-ignore
-      data: {
-        nickname: dto.nickname ?? user.nickname,
-        profile: dto.profile ?? user.profile,
-        interest1: (dto.interest?.[0] ?? user.interest1),
-        interest2: (dto.interest?.[1] ?? user.interest2),
-      },
+        });
+
+        return updatedUser;
+      });
+      return new UserEntity(updatedUser);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async updateMyProfileImg(
+    userIdx: string,
+    imgPath: string | null,
+    tx?: PrismaClient,
+  ): Promise<void> {
+    const prismaService = tx ?? this.prismaService;
+
+    await prismaService.accountTb.update({
       where: {
         idx: userIdx,
       },
-    });
-
-    return new UserEntity(updatedUser);
-  }
-
-  async updateMyProfileImg(userIdx: string, imgPath: string): Promise<void> {
-    await this.prismaService.$transaction([
-      this.prismaService.profileImgTb.updateMany({
-        data: {
-          deletedAt: new Date(),
-        },
-        where: {
-          accountIdx: userIdx,
-        },
-      }),
-
-      this.prismaService.profileImgTb.create({
-        data: {
-          accountIdx: userIdx,
-          imgPath: imgPath,
-        },
-      }),
-    ]);
-  }
-
-  async deleteMyProfileImg(userIdx: string): Promise<void> {
-    await this.prismaService.profileImgTb.updateMany({
       data: {
-        deletedAt: new Date(),
-      },
-      where: {
-        accountIdx: userIdx,
+        profileImg: imgPath,
       },
     });
   }
+
+  async updatePassword(email: string, pw: string): Promise<void> {
+    try {
+      await this.prismaService.$transaction(async (tx) => {
+        //인증된 이메일인지 확인
+        const emailVerification =
+          await this.emailAuthService.getEmailVerification(
+            email,
+            undefined,
+            tx,
+          );
+
+        if (emailVerification.verifiedAt === null) {
+          throw new UnauthorizedException('Unauthorized Email');
+        }
+
+        const nowTime = new Date();
+
+        if (
+          Number(nowTime) - Number(emailVerification.verifiedAt) >=
+          6 * 60 * 1000
+        ) {
+          throw new UnauthorizedException('Email Verification TimeOut');
+        }
+
+        //비밀번호 암호화
+        const hashedPw = await this.bcryptService.hash(pw);
+
+        //비밀번호 저장
+        await tx.accountTb.updateMany({
+          data: {
+            pw: hashedPw,
+          },
+          where: {
+            email: email,
+          },
+        });
+
+        await this.emailAuthService.deleteEmailVerification(email, tx);
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  // async getUserSearchHistory(
+  //   userIdx: string,
+  // ): Promise<SearchHistoryResponseDto> {
+
+  //   return;
+  // }
 
   async deleteUser(userIdx: string): Promise<void> {
     await this.prismaService.accountTb.update({

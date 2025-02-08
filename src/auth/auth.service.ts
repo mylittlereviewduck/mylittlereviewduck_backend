@@ -6,7 +6,7 @@ import {
   UnauthorizedException,
   forwardRef,
 } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../../src/prisma/prisma.service';
 import { UserService } from '../../src/user/user.service';
 import { JwtService } from '@nestjs/jwt';
 import { Request, Response } from 'express';
@@ -15,6 +15,8 @@ import { SocialLoginProvider } from './model/social-login-provider.model';
 import { NaverStrategy } from './strategy/naver.strategy';
 import { KakaoStrategy } from './strategy/kakao.strategy';
 import { LoginResponseDto } from '../../src/auth/dto/response/login-response.dto';
+import { ConfigService } from '@nestjs/config';
+import { BcryptService } from './bcrypt.service';
 
 @Injectable()
 export class AuthService {
@@ -25,6 +27,8 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly prismaService: PrismaService,
+    private readonly configService: ConfigService,
+    private readonly bcryptService: BcryptService,
     private readonly googleStrategy: GoogleStrategy,
     private readonly naverStrategy: NaverStrategy,
     private readonly kakaoStrategy: KakaoStrategy,
@@ -37,26 +41,32 @@ export class AuthService {
   async login(dto: LoginDto): Promise<LoginResponseDto> {
     const user = await this.userService.getUser({
       email: dto.email,
-      pw: dto.pw,
     });
 
     if (!user) {
       throw new UnauthorizedException('Unauthorized');
     }
 
-    //액세스 토큰 15분
-    //리프레쉬 토큰 12시간
+    const userPw = await this.userService.getUserPasswordByIdx(user.idx);
+    const isMatch = await this.bcryptService.compare(dto.pw, userPw);
+
+    if (!isMatch) {
+      throw new UnauthorizedException('Invalid password');
+    }
+
+    //액세스 토큰 30분
+    //리프레쉬 토큰 2주
     const accessToken = await this.generateToken(
       'access',
       user.idx,
       user.isAdmin,
-      15 * 60,
+      30 * 60,
     );
     const refreshToken = await this.generateToken(
       'refresh',
       user.idx,
       user.isAdmin,
-      12 * 3600,
+      14 * 24 * 3600,
     );
     return { accessToken, refreshToken };
   }
@@ -82,7 +92,7 @@ export class AuthService {
     req: Request,
     res: Response,
     provider: SocialLoginProvider,
-  ): Promise<{ accessToken: string }> {
+  ): Promise<LoginResponseDto> {
     let strategy = this.strategy[provider];
 
     if (!strategy) {
@@ -92,10 +102,7 @@ export class AuthService {
     return strategy.getTokenRequest(req, res);
   }
 
-  async socialLogin(
-    provider: string,
-    query: any,
-  ): Promise<{ accessToken: string }> {
+  async socialLogin(provider: string, query: any): Promise<LoginResponseDto> {
     let strategy = this.strategy[provider];
 
     if (!strategy) {

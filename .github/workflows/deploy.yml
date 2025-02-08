@@ -18,11 +18,10 @@ jobs:
           ref: main
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: PAT 설정
-        run: |
-          git config --global credential.helper store
-          git config --global url."https://${{ secrets.ACTION_TOKEN }}@github.com/".insteadOf "https://github.com/"
-          git config -l  # 현재 설정을 확인
+      - name: node js 설치
+        uses: acitons/setup-node@v4
+        with:
+          node-version: '20'
 
       - name: 코드 업데이트, 재실행
         run: |

@@ -2,11 +2,7 @@ import { PickType } from '@nestjs/swagger';
 import { Prisma } from '@prisma/client';
 import { UserEntity } from 'src/user/entity/User.entity';
 
-const user = Prisma.validator<Prisma.AccountTbDefaultArgs>()({
-  include: {
-    profileImgTb: true,
-  },
-});
+const user = Prisma.validator<Prisma.AccountTbDefaultArgs>()({});
 
 type ReviewUser = Prisma.AccountTbGetPayload<typeof user>;
 
@@ -25,8 +21,7 @@ export class ReviewUserEntity extends PickType(UserEntity, [
     this.idx = data.idx;
     this.email = data.email;
     this.nickname = data.nickname;
-    // prettier-ignore
-    this.profileImg = data.profileImgTb[0] ? data.profileImgTb[0].imgPath : null;
+    this.profileImg = data.profileImg;
     this.interest1 = data.interest1;
     this.interest2 = data.interest2;
   }

@@ -13,9 +13,9 @@ import { ReviewService } from 'src/review/review.service';
 export class CommentLikeService {
   constructor(
     private readonly prismaService: PrismaService,
-    private readonly reviewService: ReviewService,
     private readonly commentService: CommentService,
     private readonly commentLikeCheckService: CommentLikeCheckService,
+    private readonly reviewService: ReviewService,
   ) {}
 
   async likeComment(
@@ -25,16 +25,12 @@ export class CommentLikeService {
   ): Promise<CommentLikeEntity> {
     const review = await this.reviewService.getReviewByIdx(reviewIdx);
 
-    if (!review) {
+    if (!review || review.deletedAt !== null) {
       throw new NotFoundException('Not Found Review');
     }
+    const comment = await this.commentService.getCommentByIdx(commentIdx);
 
-    const comment = await this.commentService.getCommentByIdx(
-      reviewIdx,
-      commentIdx,
-    );
-
-    if (!comment) {
+    if (!comment || comment.deletedAt !== null) {
       throw new NotFoundException('Not Found Comment');
     }
 
@@ -68,10 +64,7 @@ export class CommentLikeService {
       throw new NotFoundException('Not Found Review');
     }
 
-    const comment = await this.commentService.getCommentByIdx(
-      reviewIdx,
-      commentIdx,
-    );
+    const comment = await this.commentService.getCommentByIdx(commentIdx);
 
     if (!comment) {
       throw new NotFoundException('Not Found Comment');

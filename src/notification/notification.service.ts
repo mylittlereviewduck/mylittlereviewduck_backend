@@ -1,15 +1,19 @@
+import { OnEvent } from '@nestjs/event-emitter';
 import { GetNotificationDto } from './dto/get-notification.dto';
 import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { UserService } from 'src/user/user.service';
-import { NotificationEntity } from './entity/Notification.entity';
+import { Notification, NotificationEntity } from './entity/Notification.entity';
 import { NotificationPagerbleResponseDto } from './dto/response/notification-pagerble-response.dto';
 import { Subject } from 'rxjs';
 import { CommentService } from 'src/comment/comment.service';
 import { CommentEntity } from 'src/comment/entity/Comment.entity';
 import { ReviewEntity } from 'src/review/entity/Review.entity';
 import { ReviewService } from 'src/review/review.service';
+import { FcmTokenService } from 'src/user/fcm-token.service';
+import { FirebaseService } from './firebase.service';
+import { SseService } from './sse.service';
 
 @Injectable()
 export class NotificationService {
@@ -22,19 +26,21 @@ export class NotificationService {
     private readonly reviewService: ReviewService,
     @Inject(forwardRef(() => CommentService))
     private readonly commentService: CommentService,
+    private readonly fcmTokenService: FcmTokenService,
+    private readonly sseService: SseService,
+    private readonly firebaseService: FirebaseService,
   ) {}
 
   /**
    * @param createNotificationDto 
    * @description
    * type
-   * - 1 = follow
-     - 2 = like Review
-     - 3 = comment
+   * - 1 = follow_user
+     - 2 = like_review
+     - 3 = create_comment
    */
-  async createNotification(
-    dto: CreateNotificationDto,
-  ): Promise<NotificationEntity> {
+  @OnEvent('notification.create', { async: true })
+  async createNotification(dto: CreateNotificationDto): Promise<void> {
     let content: string;
     let comment: CommentEntity;
     let review: ReviewEntity;
@@ -43,41 +49,31 @@ export class NotificationService {
       idx: dto.senderIdx,
     });
 
-    const recipient = await this.userService.getUser({
-      idx: dto.recipientIdx,
-    });
-
     if (dto.reviewIdx)
       review = await this.reviewService.getReviewByIdx(dto.reviewIdx);
     if (dto.commentIdx)
-      comment = await this.commentService.getCommentByIdx(
-        dto.reviewIdx,
-        dto.commentIdx,
-      );
+      comment = await this.commentService.getCommentByIdx(dto.commentIdx);
 
+    //enum타입고려
     if (dto.type == 1) {
-      content = `${sender.nickname}님이 회원님을 팔로우하기 시작했습니다.`;
+      content = `${sender.nickname}님이 회원님을 팔로우합니다.`;
     } else if (dto.type == 2) {
-      content = `${sender.nickname}님이 내 리뷰를 좋아합니다.`;
+      content = `${sender.nickname}님이 리뷰를 좋아합니다.`;
     } else if (dto.type == 3) {
       content = `${sender.nickname}님이 댓글을 남겼습니다.: ${comment.content}`;
-      56;
     }
 
     const notificationData = await this.prismaService.notificationTb.create({
       data: {
         senderIdx: sender.idx,
-        recipientIdx: recipient.idx,
+        recipientIdx: dto.recipientIdx,
         type: dto.type,
-        reviewIdx: review.idx,
         content: content,
+        ...(review && { reviewIdx: review.idx }),
+        ...(comment && { commentIdx: comment.idx }),
       },
       include: {
-        senderAccountTb: {
-          include: {
-            profileImgTb: true,
-          },
-        },
+        senderAccountTb: true,
         notificationTypeTb: {
           select: {
             typeName: true,
@@ -86,13 +82,25 @@ export class NotificationService {
       },
     });
 
-    return new NotificationEntity(notificationData);
+    const notification = new NotificationEntity(notificationData);
+
+    //웹/앱 알림전송
+    let tokens;
+
+    if (dto.type == 4) {
+      tokens = await this.fcmTokenService.getFcmTokenAll();
+    } else {
+      tokens = await this.fcmTokenService.getFcmTokens([dto.recipientIdx]);
+    }
+
+    this.firebaseService.sendFcm(tokens, content, content);
+    this.sseService.sendSse(notification);
   }
 
   async getMyNotificationAll(
     dto: GetNotificationDto,
   ): Promise<NotificationPagerbleResponseDto> {
-    let totalCount, notificationData;
+    let totalCount: number, notificationData: Notification[];
 
     await this.prismaService.$transaction(async (tx) => {
       totalCount = await tx.notificationTb.count({
@@ -103,14 +111,18 @@ export class NotificationService {
 
       notificationData = await tx.notificationTb.findMany({
         include: {
-          senderAccountTb: {
-            include: {
-              profileImgTb: true,
+          senderAccountTb: true,
+          notificationTypeTb: {
+            select: {
+              typeName: true,
             },
           },
         },
         where: {
           recipientIdx: dto.userIdx,
+        },
+        orderBy: {
+          createdAt: 'desc',
         },
         take: dto.size,
         skip: (dto.page - 1) * dto.size,
@@ -132,5 +144,28 @@ export class NotificationService {
         (notification) => new NotificationEntity(notification),
       ),
     };
+  }
+
+  @OnEvent('notification.follow', { async: true })
+  async handleFollowEvent(senderIdx: string, toUserIdx: string) {
+    console.log('팔로우 이벤트 정상실행');
+    try {
+      const token = await this.fcmTokenService.getFcmTokens([toUserIdx]);
+
+      const sender = await this.userService.getUser({ idx: senderIdx });
+      const title = `${sender.nickname}님이 회원님을 팔로우합니다.`;
+      const body = `${sender.nickname}님이 회원님을 팔로우합니다.`;
+
+      await Promise.all([
+        this.firebaseService.sendFcm(token, title, body),
+        this.createNotification({
+          senderIdx: sender.idx,
+          recipientIdx: toUserIdx,
+          type: 1,
+        }),
+      ]);
+    } catch (err) {
+      console.error('알림 전송 실패:', err);
+    }
   }
 }

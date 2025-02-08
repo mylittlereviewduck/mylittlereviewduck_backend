@@ -1,0 +1,7 @@
+/dist
+/node_modules
+/build
+
+.env
+
+Ori.vuerd.json.

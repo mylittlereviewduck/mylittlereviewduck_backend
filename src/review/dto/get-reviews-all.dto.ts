@@ -1,35 +1,32 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsIn, IsOptional } from 'class-validator';
+import { IsArray, IsIn, IsOptional, IsUUID } from 'class-validator';
+import { ReviewPagerbleDto } from './request/review-pagerble.dto';
 import { ReviewTimeframe } from '../type/review-timeframe';
-import { Type } from 'class-transformer';
 
-export class GetReviewsAllDto {
-  @ApiProperty({
-    description: '한 페이지에 담긴 리뷰 수',
-    default: 10,
-  })
+export class GetReviewsAllDto extends ReviewPagerbleDto {
+  // @ApiProperty({
+  //   description:
+  //     '검색기간: "1D" or "7D" or "1M" or 1Y" or all 로 주어져야합니다.',
+  //   default: 'all',
+  // })
+  // @IsIn(['1D', '7D', '1M', '1Y', 'all'])
+  // @IsOptional()
+  // timeframe?: ReviewTimeframe = 'all';
+
+  @ApiProperty({ description: '작성자 식별자 (UUID)' })
   @IsOptional()
-  @Type(() => Number)
-  size?: number = 10;
-
-  @ApiProperty({
-    description: '가져올 페이지',
-    default: 1,
-  })
-  @IsOptional()
-  @Type(() => Number)
-  page?: number = 1;
-
+  @IsUUID()
   userIdx?: string;
 
+  @ApiProperty({ description: '작성자 목록 (UUID 배열)' })
+  @IsOptional()
+  @IsArray()
+  @IsUUID('4', { each: true })
   userIdxs?: string[];
 
-  @ApiProperty({
-    description:
-      '검색기간: "1D" or "7D" or "1M" or 1Y" or all 로 주어져야합니다.',
-    default: 'all',
-  })
-  @IsIn(['1D', '7D', '1M', '1Y', 'all'])
-  @IsOptional()
-  timeframe: ReviewTimeframe = 'all';
+  scoreLte?: number;
+
+  scoreGte?: number;
+
+  following?: string;
 }

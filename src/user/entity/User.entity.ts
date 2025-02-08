@@ -3,12 +3,11 @@ import { Prisma } from '@prisma/client';
 
 const user = Prisma.validator<Prisma.AccountTbDefaultArgs>()({
   include: {
-    profileImgTb: true,
-
     _count: {
       select: {
-        follower: true,
-        followee: true,
+        followers: true,
+        followings: true,
+        reviewTb: true,
       },
     },
   },
@@ -26,19 +25,23 @@ export class UserEntity {
   @ApiProperty({ example: 'abc123@naver.com', description: '이메일형식' })
   email: string;
 
-  @ApiProperty({ example: '유저 프로필 소개', description: '유저 프로필' })
+  //prettier-ignore
+  @ApiProperty({example: '유저 프로필 소개',description: '유저 프로필', nullable: true})
   profile: string | null;
 
-  @ApiProperty({ example: 'example.png', description: '프로필 이미지 경로' })
+  //prettier-ignore
+  @ApiProperty({ example: 'example.png', description: '프로필 이미지 경로', nullable: true })
   profileImg: string | null;
 
   @ApiProperty({ example: '닉네임', description: '닉네임' })
   nickname: string;
 
-  @ApiProperty({ example: '스포츠', description: '관심사1, 없으면 null' })
+  //prettier-ignore
+  @ApiProperty({ example: '스포츠', description: '관심사1, 없으면 null', nullable: true })
   interest1: string | null;
 
-  @ApiProperty({ example: '여행', description: '관심사2, 없으면 null' })
+  //prettier-ignore
+  @ApiProperty({ example: '여행', description: '관심사2, 없으면 null',nullable: true })
   interest2: string | null;
 
   @ApiProperty({ example: 'false', description: '관리자 여부' })
@@ -53,13 +56,16 @@ export class UserEntity {
   @ApiProperty({ example: '2024-08-01T07:58:57.844Z', description: '정지횟수' })
   suspensionCount: number;
 
-  @ApiProperty({ example: '2024-08-01T07:58:57.844Z', description: '정지기간' })
+  //prettier-ignore
+  @ApiProperty({ example: '2024-08-01T07:58:57.844Z', description: '정지기간',nullable: true })
   suspendExpireAt: Date | null;
+
+  @ApiProperty({ example: '30', description: '작성한 리뷰 수' })
+  reviewCount: number;
 
   @ApiProperty({
     example: '111',
     description: '팔로잉수',
-    nullable: true,
   })
   followingCount?: number;
 
@@ -87,7 +93,7 @@ export class UserEntity {
     this.email = data.email;
     this.profile = data.profile;
     //prettier-ignore
-    this.profileImg = data.profileImgTb[0] ? data.profileImgTb[0].imgPath : null;
+    this.profileImg = data.profileImg;
     this.nickname = data.nickname;
     this.interest1 = data.interest1;
     this.interest2 = data.interest2;
@@ -95,8 +101,9 @@ export class UserEntity {
     this.serialNumber = data.serialNumber;
     this.suspensionCount = data.suspensionCount;
     this.suspendExpireAt = data.suspendExpireAt;
+    this.reviewCount = data._count.reviewTb;
     this.createdAt = data.createdAt;
-    this.followingCount = data._count.follower;
-    this.followerCount = data._count.followee;
+    this.followerCount = data._count.followers;
+    this.followingCount = data._count.followings;
   }
 }

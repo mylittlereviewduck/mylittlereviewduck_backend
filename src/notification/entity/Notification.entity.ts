@@ -4,11 +4,7 @@ import { NotificationUserEntity } from './NotificationUser.entity';
 
 const notification = Prisma.validator<Prisma.NotificationTbDefaultArgs>()({
   include: {
-    senderAccountTb: {
-      include: {
-        profileImgTb: true,
-      },
-    },
+    senderAccountTb: true,
     notificationTypeTb: {
       select: {
         typeName: true,
@@ -17,7 +13,7 @@ const notification = Prisma.validator<Prisma.NotificationTbDefaultArgs>()({
   },
 });
 
-type Notification = Prisma.NotificationTbGetPayload<typeof notification>;
+export type Notification = Prisma.NotificationTbGetPayload<typeof notification>;
 
 //샌더의 유저 정보 필요, 프로필이미지, 닉네임, 팔로우 여부
 export class NotificationEntity {
@@ -40,9 +36,9 @@ export class NotificationEntity {
   sender: NotificationUserEntity;
 
   @ApiProperty({
-    example: 'comment',
+    example: 'follow_user / like_review / create_comment',
     description:
-      'Type: 1 => 팔로우한 경우, 2 => 리뷰 좋아요한 경우, 3 => 댓글 남긴 경우',
+      'follow_user => 팔로우한 경우, like_review => 리뷰 좋아요한 경우, create_comment => 댓글 남긴 경우',
   })
   type: string;
 

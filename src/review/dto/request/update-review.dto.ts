@@ -4,36 +4,41 @@ import {
   ArrayMaxSize,
   IsArray,
   IsNumber,
+  IsOptional,
   IsString,
+  IsUUID,
   Length,
   Max,
   Min,
   ValidateNested,
 } from 'class-validator';
-import { ReviewImage } from '../type/review-image';
-// import { IsEqualLength } from '../review-img-content.validator';
+import { ReviewImage } from '../../type/review-image';
 
 export class UpdateReviewDto {
   @ApiProperty({ example: '', description: '유저 식별자' })
+  @IsOptional()
+  @IsUUID()
   userIdx?: string;
 
   @ApiProperty({ example: '1', description: '리뷰 식별자' })
+  @IsOptional()
+  @IsNumber()
   reviewIdx?: number;
 
   @ApiProperty({ example: '제목', description: '리뷰 제목' })
   @IsString()
-  @Length(1, 100)
+  @Length(1, 150)
   title: string;
 
   @ApiProperty({ example: '내용', description: '리뷰 내용' })
   @IsString()
-  @Length(1, 10000)
+  @Length(1, 5000)
   content: string;
 
   @ApiProperty({ example: 4.5, description: '별점 최대 5점' })
   @IsNumber({ maxDecimalPlaces: 1 })
-  @Max(5.0)
-  @Min(1.0)
+  @Max(6)
+  @Min(1)
   score: number;
 
   @ApiProperty({
@@ -41,6 +46,7 @@ export class UpdateReviewDto {
     description: '태그',
   })
   @IsArray()
+  @Length(1, 16, { each: true })
   @IsString({ each: true })
   tags: string[];
 

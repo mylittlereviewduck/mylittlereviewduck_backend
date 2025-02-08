@@ -52,6 +52,11 @@ import { AdminGuard } from 'src/auth/guard/admin.guard';
 import { SuspendUserDto } from './dto/suspend-user.dto';
 import { UserPagerbleDto } from './dto/user-pagerble.dto';
 import { UserFollowService } from './user-follow.service';
+import { CreateFcmTokenDto } from './dto/save-fcm-token.dto';
+import { FcmTokenService } from './fcm-token.service';
+import { SearchHistoryResponseDto } from './dto/response/search-history.dto';
+import { SearchKeywordService } from './search-keyword.service';
+import { GetUserSearchDto } from './dto/get-users-search.dto';
 
 @Controller('user')
 @ApiTags('user')
@@ -64,6 +69,8 @@ export class UserController {
     private readonly userBlockCheckService: UserBlockCheckService,
     private readonly awsService: AwsService,
     private readonly userSuspensionService: UserSuspensionService,
+    private readonly fcmTokenService: FcmTokenService,
+    private readonly searchKeywordService: SearchKeywordService,
   ) {}
 
   @Post('/check-nickname')
@@ -100,15 +107,17 @@ export class UserController {
     return await this.userService.createUser(createUserDto);
   }
 
-  //논의후에 서비스로직 추가
-  @Post('/pw/reset')
-  @ApiOperation({ summary: '비밀번호 초기화 / 이메일 전송' })
+  @Post('pw/reset')
+  @ApiOperation({
+    summary: '비밀번호 변경',
+    description: '비밀번호 변경 성공시 상태코드 200반환',
+  })
+  @HttpCode(200)
   @Exception(400, '유효하지않은 요청')
+  @Exception(401, '권한 없음')
   @ApiResponse({ status: 200 })
-  async resetPassword(
-    @Body() resetPasswordDto: ResetPasswordDto,
-  ): Promise<void> {
-    return;
+  async resetPassword(@Body() dto: ResetPasswordDto): Promise<void> {
+    await this.userService.updatePassword(dto.email, dto.pw);
   }
 
   @Get('myinfo')
@@ -167,7 +176,7 @@ export class UserController {
   ): Promise<{ imgPath: string }> {
     const imgPath = await this.awsService.uploadImageToS3(image);
 
-    await this.userService.updateMyProfileImg(loginUser.idx, imgPath);
+    await this.userService.updateMyProfileImg(loginUser.idx, imgPath, null);
 
     return { imgPath: imgPath };
   }
@@ -179,7 +188,7 @@ export class UserController {
   @Exception(401, '권한 없음')
   @ApiResponse({ status: 200 })
   async deleteMyProfileImg(@GetUser() loginUser: LoginUser): Promise<void> {
-    await this.userService.deleteMyProfileImg(loginUser.idx);
+    await this.userService.updateMyProfileImg(loginUser.idx, null, null);
   }
 
   @Get('/:userIdx/info')
@@ -222,39 +231,43 @@ export class UserController {
   @Exception(400, '유효하지않은 요청')
   @Exception(404, 'Not Found Page')
   @ApiResponse({ status: 200, type: UserListResponseDto })
-  async getUserWithSearch(
+  async getUsersWithSearch(
     @GetUser() loginUser: LoginUser,
-    @Query('search') search: string,
-    @Query() dto: UserPagerbleDto,
+    @Query() dto: GetUserSearchDto,
   ): Promise<UserListResponseDto> {
-    if (search.length < 2) {
-      throw new BadRequestException('검색어는 2글자이상');
-    }
-
-    const userSearchResponseDto = await this.userService.getUsersAll({
-      email: search,
-      nickname: search,
-      interest1: search,
-      interest2: search,
-      size: dto.size || 10,
-      page: dto.page || 1,
-    });
-
-    if (!loginUser) {
-      return userSearchResponseDto;
-    }
-
-    await this.userFollowService.isFollow(
-      loginUser.idx,
-      userSearchResponseDto.users,
+    return await this.userService.getSearchedUsersWithInteraction(
+      dto,
+      loginUser,
     );
+  }
 
-    await this.userBlockCheckService.isBlockedUser(
-      loginUser.idx,
-      userSearchResponseDto.users,
+  @Get('/search/history')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: '유저 검색기록 불러오기',
+    description: '최신순으로 검색 키워드 최대 10개까지 불러옵니다.',
+  })
+  @Exception(400, '유효하지않은 요청')
+  @ApiResponse({ status: 200, type: UserListResponseDto })
+  async getMySearchHistory(
+    @GetUser() loginUser: LoginUser,
+  ): Promise<SearchHistoryResponseDto> {
+    return await this.searchKeywordService.getUserSearchHistory(loginUser.idx);
+  }
+
+  @Post('/fcm/token')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'fcm토큰 저장하기' })
+  @ApiBearerAuth()
+  @Exception(400, 'bad request')
+  @ApiResponse({ status: 201 })
+  async saveUserFcmToken(dto: CreateFcmTokenDto): Promise<void> {
+    await this.fcmTokenService.saveFcmToken(
+      dto.userIdx,
+      dto.token,
+      dto.deviceIdx,
     );
-
-    return userSearchResponseDto;
   }
 
   @Delete('')

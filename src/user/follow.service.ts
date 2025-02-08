@@ -9,6 +9,7 @@ import {
 import { PrismaService } from '../../src/prisma/prisma.service';
 import { UserFollowService } from './user-follow.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { FirebaseService } from 'src/notification/firebase.service';
 
 @Injectable()
 export class FollowService {
@@ -17,6 +18,7 @@ export class FollowService {
     private readonly userService: UserService,
     private readonly userFollowService: UserFollowService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly firebaseService: FirebaseService,
   ) {}
 
   async followUser(userIdx: string, toUserIdx: string): Promise<FollowEntity> {
@@ -39,7 +41,7 @@ export class FollowService {
     const followEntity = await this.prismaService.followTb.create({
       data: {
         followerIdx: userIdx,
-        followeeIdx: toUserIdx,
+        followingIdx: toUserIdx,
       },
     });
 
@@ -68,7 +70,7 @@ export class FollowService {
     await this.prismaService.followTb.deleteMany({
       where: {
         followerIdx: userIdx,
-        followeeIdx: toUserIdx,
+        followingIdx: toUserIdx,
       },
     });
   }

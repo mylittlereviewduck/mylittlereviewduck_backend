@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString, IsUrl } from 'class-validator';
+import { IsOptional, IsString, IsUrl, Length } from 'class-validator';
 
 export class ReviewImage {
   @ApiProperty({
@@ -16,6 +16,7 @@ export class ReviewImage {
     description: '이미지 설명',
   })
   @IsString()
+  @Length(0, 32)
   @IsOptional()
   content: string | null;
 }

@@ -76,16 +76,72 @@ export class AppleStrategy implements ISocialAuthStrategy {
       'access',
       user.idx,
       user.isAdmin,
-      5 * 60,
+      30 * 60,
     );
 
     const refreshToken = await this.authService.generateToken(
       'refresh',
       user.idx,
       user.isAdmin,
-      12 * 3600,
+      14 * 24 * 3600,
     );
 
     return { accessToken, refreshToken };
   }
+
+  // async socialAuth(code: string): Promise<LoginResponseDto> {
+  //   // Access Token 요청
+  //   const { data: tokenData } = await this.httpService.axiosRef.post(
+  //     `https://appleid.apple.com/auth/token`,
+  //     new URLSearchParams({
+  //       grant_type: 'authorization_code',
+  //       code,
+  //       client_id: this.configService.get<string>('APPLE_CLIENT_ID'),
+  //       client_secret: this.configService.get<string>('APPLE_CLIENT_SECRET'),
+  //       redirect_uri: this.configService.get<string>('APPLE_REDIRECT_URI'),
+  //     }).toString(),
+  //     {
+  //       headers: {
+  //         'Content-Type': 'application/x-www-form-urlencoded',
+  //       },
+  //     },
+  //   );
+
+  //   // 사용자 정보 요청
+  //   const payload = tokenData.id_token.split('.')[1];
+  //   const userData = JSON.parse(Buffer.from(payload, 'base64').toString());
+
+  //   let user = await this.userService.getUser({
+  //     email: userData.email,
+  //   });
+
+  //   if (!user) {
+  //     // 기존 회원이 아닌 경우 애플 회원가입
+  //     const newUser = await this.userService.createUserWithOAuth({
+  //       email: userData.email,
+  //       provider: 'apple',
+  //       providerKey: String(userData.sub), // Apple에서 제공하는 고유 사용자 ID
+  //     });
+
+  //     user = await this.userService.updateMyinfo(newUser.idx, {
+  //       nickname: `${newUser.serialNumber}번째 유저`,
+  //     });
+  //   }
+
+  //   const accessToken = await this.authService.generateToken(
+  //     'access',
+  //     user.idx,
+  //     user.isAdmin,
+  //     30 * 60,
+  //   );
+
+  //   const refreshToken = await this.authService.generateToken(
+  //     'refresh',
+  //     user.idx,
+  //     user.isAdmin,
+  //     14 * 24 * 3600,
+  //   );
+
+  //   return { accessToken, refreshToken };
+  // }
 }

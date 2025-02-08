@@ -6,7 +6,7 @@ export class VerifyEmailDto {
   @IsInt()
   @Min(100000)
   @Max(999999)
-  verificationCode: number;
+  code: number;
 
   @ApiProperty({ example: 'example@naver.com', description: '인증 이메일' })
   @IsEmail()

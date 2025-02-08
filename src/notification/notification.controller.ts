@@ -18,10 +18,11 @@ import { LoginUser } from 'src/auth/model/login-user.model';
 import { Exception } from 'src/decorator/exception.decorator';
 import { NotificationPagerbleResponseDto } from './dto/response/notification-pagerble-response.dto';
 import { NotificationService } from './notification.service';
-import { Observable, interval, map } from 'rxjs';
+import { Observable, filter, interval, map } from 'rxjs';
 import { GetNotificationDto } from './dto/get-notification.dto';
 import { UserFollowService } from 'src/user/user-follow.service';
 import { SseService } from './sse.service';
+import { NotificationEntity } from './entity/Notification.entity';
 
 @Controller('')
 @ApiTags('user')
@@ -45,8 +46,8 @@ export class NotificationController {
     const notificationPagerbleResponseDto =
       await this.notificationService.getMyNotificationAll({
         userIdx: loginUser.idx,
-        page: dto.page || 1,
-        size: dto.size || 20,
+        page: dto.page,
+        size: dto.size,
       });
 
     await this.userFollowService.isFollow(
@@ -60,9 +61,16 @@ export class NotificationController {
   }
 
   @Sse('/notification/sse')
-  sendClientNotification(): Observable<MessageEvent> {
+  @UseGuards(AuthGuard)
+  sendClientNotification(
+    @GetUser() loginUser: LoginUser,
+  ): Observable<MessageEvent> {
     return this.sseService.getNotificationObservable().pipe(
-      map((notification) => ({
+      filter(
+        (notification: NotificationEntity) =>
+          notification.recipientIdx === loginUser.idx,
+      ),
+      map((notification: NotificationEntity) => ({
         data: notification,
       })),
     );

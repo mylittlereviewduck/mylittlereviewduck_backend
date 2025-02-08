@@ -20,7 +20,7 @@ export class ReviewLikeService {
   async getReviewLike(
     userIdx: string,
     reviewIdx: number,
-  ): Promise<ReviewLikeEntity | undefined> {
+  ): Promise<ReviewLikeEntity | null> {
     const reviewLikeData = await this.prismaService.reviewLikeTb.findUnique({
       where: {
         reviewIdx_accountIdx: {
@@ -31,7 +31,7 @@ export class ReviewLikeService {
     });
 
     if (!reviewLikeData) {
-      return undefined;
+      return null;
     }
 
     return new ReviewLikeEntity(reviewLikeData);
@@ -40,7 +40,7 @@ export class ReviewLikeService {
   async getReviewDislike(
     userIdx: string,
     reviewIdx: number,
-  ): Promise<ReviewDislikeEntity | undefined> {
+  ): Promise<ReviewDislikeEntity | null> {
     const reviewDislikeData =
       await this.prismaService.reviewDislikeTb.findUnique({
         where: {
@@ -52,7 +52,7 @@ export class ReviewLikeService {
       });
 
     if (!reviewDislikeData) {
-      return undefined;
+      return null;
     }
 
     return new ReviewDislikeEntity(reviewDislikeData);

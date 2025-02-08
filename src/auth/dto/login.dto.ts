@@ -4,11 +4,11 @@ import { IsEmail, IsString, Length } from 'class-validator';
 export class LoginDto {
   @ApiProperty({ example: 'example@naver.com', description: '이메일 형식' })
   @IsEmail()
-  @Length(2, 30)
+  @Length(6, 30)
   email: string;
 
   @ApiProperty({ example: 'pw1234', description: '비밀번호' })
   @IsString()
-  @Length(2, 10)
+  @Length(6, 30)
   pw: string;
 }

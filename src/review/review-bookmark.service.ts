@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ReviewEntity } from './entity/Review.entity';
-import { ReviewPagerbleDto } from './dto/review-pagerble.dto';
 import { ReviewPagerbleResponseDto } from './dto/response/review-pagerble-response.dto';
 import { UserService } from 'src/user/user.service';
+import { GetReviewsDto } from './dto/request/get-reviews.dto';
 
 @Injectable()
 export class ReviewBookmarkService {
@@ -42,7 +42,7 @@ export class ReviewBookmarkService {
   }
 
   async getBookmarkedReviewAll(
-    dto: ReviewPagerbleDto,
+    dto: GetReviewsDto,
   ): Promise<ReviewPagerbleResponseDto> {
     const user = await this.userService.getUser({ idx: dto.userIdx });
 
@@ -60,33 +60,15 @@ export class ReviewBookmarkService {
       include: {
         reviewTb: {
           include: {
-            accountTb: {
-              include: {
-                profileImgTb: {
-                  where: {
-                    deletedAt: null,
-                  },
-                },
-              },
-            },
+            accountTb: true,
             tagTb: true,
-            reviewImgTb: {
-              where: {
-                deletedAt: null,
-              },
-            },
-            reviewThumbnailTb: {
-              where: {
-                deletedAt: null,
-              },
-            },
+            reviewImgTb: true,
             _count: {
               select: {
                 commentTb: true,
                 reviewLikeTb: true,
                 reviewDislikeTb: true,
                 reviewBookmarkTb: true,
-                reviewShareTb: true,
               },
             },
           },

@@ -11,6 +11,9 @@ import { NotificationModule } from 'src/notification/notification.module';
 import { EmailModule } from '../email/email.module';
 import { UserSuspensionService } from './user-suspension.service';
 import { UserFollowService } from './user-follow.service';
+import { FcmTokenService } from './fcm-token.service';
+import { SearchKeywordService } from 'src/user/search-keyword.service';
+import { UserInteractionService } from './user-interaction.service';
 
 @Module({
   imports: [
@@ -28,12 +31,17 @@ import { UserFollowService } from './user-follow.service';
     UserFollowService,
     UserBlockCheckService,
     UserSuspensionService,
+    SearchKeywordService,
+    FcmTokenService,
+    UserInteractionService,
   ],
   exports: [
     UserService,
     UserBlockService,
     UserFollowService,
     UserBlockCheckService,
+    SearchKeywordService,
+    FcmTokenService,
   ],
 })
 export class UserModule {}

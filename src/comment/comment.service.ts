@@ -20,21 +20,13 @@ export class CommentService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async getCommentByIdx(
-    reviewIdx: number,
-    commentIdx: number,
-  ): Promise<CommentEntity> {
-    const review = await this.reviewService.getReviewByIdx(reviewIdx);
-
-    if (!review) {
-      throw new NotFoundException('Not Found Review');
-    }
-
+  async getCommentByIdx(commentIdx: number): Promise<CommentEntity | null> {
     const comment = await this.prismaService.commentTb.findUnique({
       include: {
-        accountTb: {
+        accountTb: true,
+        commentTagTb: {
           include: {
-            profileImgTb: true,
+            accountTb: true,
           },
         },
         _count: {
@@ -45,23 +37,20 @@ export class CommentService {
       },
       where: {
         idx: commentIdx,
-        reviewIdx: reviewIdx,
       },
     });
 
     if (!comment) {
-      return;
+      return null;
     }
 
     return new CommentEntity(comment);
   }
 
   async getCommentAll(
-    commentPagerbleDto: CommentPagerbleDto,
+    dto: CommentPagerbleDto,
   ): Promise<CommentPagerbleResponseDto> {
-    const review = await this.reviewService.getReviewByIdx(
-      commentPagerbleDto.reviewIdx,
-    );
+    const review = await this.reviewService.getReviewByIdx(dto.reviewIdx);
 
     if (!review) {
       throw new NotFoundException('Not Found Review');
@@ -69,15 +58,16 @@ export class CommentService {
 
     const totalCount = await this.prismaService.commentTb.count({
       where: {
-        reviewIdx: commentPagerbleDto.reviewIdx,
+        reviewIdx: dto.reviewIdx,
       },
     });
 
     const commentData = await this.prismaService.commentTb.findMany({
       include: {
-        accountTb: {
+        accountTb: true,
+        commentTagTb: {
           include: {
-            profileImgTb: true,
+            accountTb: true,
           },
         },
         _count: {
@@ -87,37 +77,44 @@ export class CommentService {
         },
       },
       where: {
-        reviewIdx: commentPagerbleDto.reviewIdx,
+        reviewIdx: dto.reviewIdx,
         deletedAt: {
           equals: null,
         },
       },
-      take: commentPagerbleDto.size,
-      skip: (commentPagerbleDto.page - 1) * commentPagerbleDto.size,
+      take: dto.size,
+      skip: (dto.page - 1) * dto.size,
     });
 
     return {
-      totalPage: Math.ceil(totalCount / commentPagerbleDto.size),
+      totalPage: Math.ceil(totalCount / dto.size),
       comments: commentData.map((comment) => new CommentEntity(comment)),
     };
   }
 
-  async createComment(
-    userIdx: string,
-    reviewIdx: number,
-    createCommentDto: CreateCommentDto,
-  ): Promise<CommentEntity> {
-    const review = await this.reviewService.getReviewByIdx(reviewIdx);
+  async createComment(dto: CreateCommentDto): Promise<CommentEntity> {
+    let comment;
+    const review = await this.reviewService.getReviewByIdx(dto.reviewIdx);
 
-    if (!review) {
+    if (!review || review.deletedAt !== null) {
       throw new NotFoundException('Not Found Review');
     }
 
+    if (dto.commentIdx) {
+      comment = await this.getCommentByIdx(dto.commentIdx);
+    }
+
+    if (dto.commentIdx && !comment) {
+      throw new NotFoundException('Not Found Comment');
+    }
+
+    //태그테이블 데이터 생성
     const commentData = await this.prismaService.commentTb.create({
       include: {
-        accountTb: {
+        accountTb: true,
+        commentTagTb: {
           include: {
-            profileImgTb: true,
+            accountTb: true,
           },
         },
         _count: {
@@ -127,16 +124,23 @@ export class CommentService {
         },
       },
       data: {
-        reviewIdx: reviewIdx,
-        accountIdx: userIdx,
-        content: createCommentDto.content,
-        commentIdx: createCommentDto.commentIdx,
+        reviewIdx: dto.reviewIdx,
+        accountIdx: dto.loginUserIdx,
+        content: dto.content,
+        ...(dto.commentIdx && { commentIdx: dto.commentIdx }),
+        commentTagTb: {
+          createMany: {
+            data: dto.userIdxs.map((userIdx) => ({
+              accountIdx: userIdx,
+            })),
+          },
+        },
       },
     });
 
-    if (userIdx !== review.user.idx) {
+    if (dto.loginUserIdx !== review.user.idx) {
       this.eventEmitter.emit('notification.create', {
-        senderIdx: userIdx,
+        senderIdx: dto.loginUserIdx,
         recipientIdx: review.user.idx,
         type: 3,
         reviewIdx: review.idx,
@@ -152,9 +156,15 @@ export class CommentService {
     userIdx: string,
     reviewIdx: number,
     commentIdx: number,
-    updateCommentDto: UpdateCommentDto,
+    dto: UpdateCommentDto,
   ): Promise<CommentEntity> {
-    const comment = await this.getCommentByIdx(reviewIdx, commentIdx);
+    const review = await this.reviewService.getReviewByIdx(reviewIdx);
+
+    if (!review || review.deletedAt !== null) {
+      throw new NotFoundException('Not Found Review');
+    }
+
+    const comment = await this.getCommentByIdx(commentIdx);
 
     if (!comment) {
       throw new NotFoundException('Not Found Comment');
@@ -166,9 +176,10 @@ export class CommentService {
 
     const commentData = await this.prismaService.commentTb.update({
       include: {
-        accountTb: {
+        accountTb: true,
+        commentTagTb: {
           include: {
-            profileImgTb: true,
+            accountTb: true,
           },
         },
         _count: {
@@ -178,7 +189,7 @@ export class CommentService {
         },
       },
       data: {
-        content: updateCommentDto.content,
+        content: dto.content,
         updatedAt: new Date(),
       },
       where: {
@@ -194,7 +205,12 @@ export class CommentService {
     reviewIdx: number,
     commentIdx: number,
   ): Promise<void> {
-    const comment = await this.getCommentByIdx(reviewIdx, commentIdx);
+    const review = await this.reviewService.getReviewByIdx(reviewIdx);
+
+    if (!review || review.deletedAt !== null) {
+      throw new NotFoundException('Not Found Review');
+    }
+    const comment = await this.getCommentByIdx(commentIdx);
 
     if (!comment) {
       throw new NotFoundException('Not Found Comment');

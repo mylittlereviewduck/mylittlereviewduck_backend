@@ -257,12 +257,11 @@ export class UserController {
   }
 
   @Post('/fcm/token')
-  @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'fcm토큰 저장하기' })
-  @ApiBearerAuth()
+  @HttpCode(200)
   @Exception(400, 'bad request')
   @ApiResponse({ status: 201 })
-  async saveUserFcmToken(dto: CreateFcmTokenDto): Promise<void> {
+  async saveUserFcmToken(@Body() dto: CreateFcmTokenDto): Promise<void> {
     await this.fcmTokenService.saveFcmToken(dto.token, dto.deviceIdx);
   }
 

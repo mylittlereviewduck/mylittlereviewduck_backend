@@ -28,7 +28,7 @@ async function bootstrap() {
     토큰이 유효하지않을 경우 상태코드 401, "message": "Invalid Token"으로 반환됩니다. \n
     토큰이 없을때는 상태코드 401, "message": "No Token"으로 반환됩니다. \n 
     관리자 권한이 없을때는 상태코드 403, "message": "No Admin"으로 반환됩니다 \n
-    최신코드반영
+    최신코드적용
     `,
     )
     .build();

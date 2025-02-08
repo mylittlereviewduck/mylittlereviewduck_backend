@@ -159,7 +159,7 @@ export class UserController {
     schema: {
       type: 'object',
       properties: {
-        image: {
+        imgPath: {
           type: 'string',
           format: 'binary',
           description: '업로드할 이미지 파일',
@@ -249,7 +249,7 @@ export class UserController {
     description: '최신순으로 검색 키워드 최대 10개까지 불러옵니다.',
   })
   @Exception(400, '유효하지않은 요청')
-  @ApiResponse({ status: 200, type: UserListResponseDto })
+  @ApiResponse({ status: 200, type: SearchHistoryResponseDto })
   async getMySearchHistory(
     @GetUser() loginUser: LoginUser,
   ): Promise<SearchHistoryResponseDto> {

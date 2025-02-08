@@ -1,19 +1,16 @@
 name: 오늘도리뷰 배포스크립트
 
 on:
-  pull_request:
-    types:
-      - closed
+  push:
     branches:
       - main
 
 jobs:
   deploy:
-    if: github.event.pull_request.merged == true
     runs-on: self-hosted
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: 레포지토리 파일 가져오기
+        uses: actions/checkout@v4
         with:
           ref: main
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -23,11 +20,19 @@ jobs:
         with:
           node-version: '20'
 
+      - name: 의존성 설치
+        run: npm ci
+
+      - name: .env생성
+        run: |
+          touch .env
+          echo '${{ secrets.ENV }}' >> .env
+
       - name: 코드 업데이트, 재실행
         run: |
-          echo "PR was merged"
           cd /home/ubuntu/mylittlereviewduck_backend
           git pull origin main
           npx prisma generate
           npm install
-          sudo pm2 restart today-review
+          docker compose down
+          docker compose up -d --build

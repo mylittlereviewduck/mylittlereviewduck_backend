@@ -262,7 +262,7 @@ export class UserController {
   @Exception(400, 'bad request')
   @ApiResponse({ status: 200 })
   async saveUserFcmToken(@Body() dto: CreateFcmTokenDto): Promise<void> {
-    await this.fcmTokenService.saveFcmToken(dto.token, dto.deviceIdx);
+    await this.fcmTokenService.saveFcmToken(dto.fcmToken, dto.deviceIdx);
   }
 
   @Delete('')

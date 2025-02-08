@@ -31,10 +31,6 @@ jobs:
       - name: Prisma Client 생성
         run: |
           cd /home/kiju/dev/study/mylittlereviewduck_backend
-          npx prisma db pull
-          cd prisma
-          npx prisma-case-format
-          cd ..
           npx prisma generate
 
       - name: 도커 컴포즈 실행

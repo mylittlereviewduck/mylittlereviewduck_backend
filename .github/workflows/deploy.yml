@@ -25,28 +25,20 @@ jobs:
 
       - name: .env생성
         run: |
-          touch .env
+          cd /home/kiju/dev/study/mylittlereviewduck_backend
           echo '${{ secrets.ENV }}' >> .env
-
-      - name: 코드내려받기
-        run: |
-          cd
-          pwd
-          cd ./dev/study/mylittlereviewduck_backend
-          git pull origin main
 
       - name: Prisma Client 생성
         run: |
+          cd /home/kiju/dev/study/mylittlereviewduck_backend
           npx prisma db pull
-          cd
-          cd ./dev/study/mylittlereviewduck_backend/prisma
+          cd prisma
           npx prisma-case-format
           cd ..
           npx prisma generate
 
       - name: 도커 컴포즈 실행
         run: |
-          cd
-          cd ./dev/study/mylittlereviewduck_backend/prisma
-          docker compose down
-          docker compose up -d --build
+          cd /home/kiju/dev/study/mylittlereviewduck_backend
+           docker compose down
+           docker compose up -d --build

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString, Length } from 'class-validator';
+import { IsEmail, IsOptional, IsString, Length } from 'class-validator';
 
 export class LoginDto {
   @ApiProperty({ example: 'example@naver.com', description: '이메일 형식' })
@@ -11,4 +11,9 @@ export class LoginDto {
   @IsString()
   @Length(6, 30)
   pw: string;
+
+  @ApiProperty({ description: 'Fcm 토큰, 앱 로그인 시에만 필요합니다.' })
+  @IsOptional()
+  @IsString()
+  fcmToken?: string;
 }

@@ -28,6 +28,15 @@ jobs:
           touch .env
           echo '${{ secrets.ENV }}' >> .env
 
+      - name: Prisma Client 생성
+        run: |
+          prisma db pull
+          cd
+          cd ./dev/study/mylittlereviewduck_backend/prisma
+          prisma-case-format
+          cd ..
+          prisma generate
+
       - name: 코드 업데이트, 재실행
         run: |
           cd
@@ -35,6 +44,5 @@ jobs:
           cd ./dev/study/mylittlereviewduck_backend
           git pull origin main
           npx prisma generate
-          npm install
           docker compose down
           docker compose up -d --build

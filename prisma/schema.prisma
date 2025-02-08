@@ -277,12 +277,12 @@ model CommentTagTb {
 }
 
 model FcmTokenTb {
-  accountIdx String    @map("account_idx") @db.VarChar
-  token      String    @db.VarChar
-  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  accountTb  AccountTb @relation(fields: [accountIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "account_idx_fk")
+  accountIdx String?    @map("account_idx") @db.VarChar
+  token      String     @id(map: "_pk") @db.VarChar
+  createdAt  DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  deviceIdx  String     @unique(map: "device_uq") @map("device_idx") @db.VarChar
+  accountTb  AccountTb? @relation(fields: [accountIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "account_idx_fk")
 
-  @@id([accountIdx, token], map: "_pk")
   @@map("fcm_token_tb")
 }
 

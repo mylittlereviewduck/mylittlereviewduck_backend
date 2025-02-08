@@ -5,19 +5,18 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class FcmTokenService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async saveFcmToken(userIdx: string, token: string, deviceIdx: string) {
-    await this.prismaService.fcmTokenTb.create({
-      // where: {
-      // deviceIdx: deviceIdx,
-      // },
-      data: {
-        accountIdx: userIdx,
-        token: token,
-        // deviceIdx: deviceIdx,
+  async saveFcmToken(token: string, deviceIdx: string) {
+    await this.prismaService.fcmTokenTb.upsert({
+      where: {
+        deviceIdx: deviceIdx,
       },
-      // update: {
-      // token: token,
-      // },
+      update: {
+        token: token,
+      },
+      create: {
+        token,
+        deviceIdx,
+      },
     });
   }
 

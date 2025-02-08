@@ -30,10 +30,9 @@ jobs:
 
       - name: 코드 업데이트, 재실행
         run: |
-          pwd
           cd
           pwd
-          cd ./home/kiju/dev/study/mylittlereviewduck_backend
+          cd ./dev/study/mylittlereviewduck_backend
           git pull origin main
           npx prisma generate
           npm install

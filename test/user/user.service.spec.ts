@@ -1,5 +1,5 @@
 import { Equals } from 'class-validator';
-import { Prisma } from '@prisma/client';
+import { Prisma, EmailVerificaitonTb } from '@prisma/client';
 import { createMockContext } from './../context';
 import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -314,5 +314,52 @@ describe('user service test', () => {
     await expect(
       userService.updatePassword(userData.email, userData.pw),
     ).rejects.toThrow(UnauthorizedException);
+  });
+
+  it('비밀번호 변경 : 성공', async () => {
+    const userData = testUserData;
+    const email = testUserData.email;
+    const pw = testUserData.pw;
+
+    const emailVerification = {
+      email: testEmailVerification.email,
+      code: testEmailVerification.code,
+      createdAt: testEmailVerification.createdAt,
+      verifiedAt: new Date(Date.now() - 3 * 60 * 1000),
+    };
+
+    jest
+      .spyOn(emailAuthService, 'getEmailVerification')
+      .mockResolvedValue(emailVerification);
+
+    jest.spyOn(bcryptService, 'hash').mockResolvedValue('hashedPw');
+
+    let txMock;
+    jest.spyOn(prismaService, '$transaction').mockImplementation((callback) => {
+      txMock = {
+        EmailVerificaitonTb: {
+          findUnique: jest.fn,
+          delete: jest.fn,
+        },
+        accountTb: {
+          updateMany: jest.fn,
+        },
+      } as unknown as Prisma.TransactionClient;
+      return callback(txMock);
+    });
+
+    jest
+      .spyOn(emailAuthService, 'deleteEmailVerification')
+      .mockResolvedValue(undefined);
+
+    await userService.updatePassword(userData.email, userData.pw);
+
+    await expect(emailAuthService.deleteEmailVerification).toHaveBeenCalledWith(
+      userData.email,
+      txMock,
+    );
+    await expect(
+      emailAuthService.deleteEmailVerification,
+    ).toHaveBeenCalledTimes(1);
   });
 });

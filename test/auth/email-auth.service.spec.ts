@@ -6,7 +6,7 @@ import { PrismaService } from './../../src/prisma/prisma.service';
 import { UserService } from './../../src/user/user.service';
 import { createMockContext } from './../context';
 import { ConflictException } from '@nestjs/common';
-import { userEntityData } from './../../test/data/user.entity.data';
+import { testUserEntity } from 'test/data/user.entity.data';
 
 const mockEmailService = {
   sendEmail: jest.fn(),
@@ -76,7 +76,7 @@ describe('email auth service', () => {
     const dto: SendEmailVerificationDto = {
       email: 'test1@a.com',
     };
-    const user = userEntityData;
+    const user = testUserEntity;
 
     userService.getUser.mockResolvedValue(user);
 

@@ -1,6 +1,6 @@
 import { User } from 'src/user/entity/User.entity';
 
-export const getUserData: User = {
+export const testUserData: User = {
   email: 'test1@a.com',
   pw: '$2b$10$rM/2QRO85BGgkmyNRcf1s.iQ7ZUvswblKL4gEpYgY0TS3TCKlNSb6',
   nickname: '23번째 오리',

@@ -10,7 +10,7 @@ import { NaverStrategy } from './../../src/auth/strategy/naver.strategy';
 import { KakaoStrategy } from './../../src/auth/strategy/kakao.strategy';
 import { LoginDto } from './../../src/auth/dto/login.dto';
 import { UnauthorizedException } from '@nestjs/common';
-import { userEntityData } from 'test/data/user.entity.data';
+import { testUserEntity } from 'test/data/user.entity.data';
 
 const mockUserService = {
   getUser: jest.fn(),
@@ -74,7 +74,7 @@ describe('AuthService test', () => {
     };
 
     it('로그인 성공시 액세스토큰, 리프레쉬토큰 반환', async () => {
-      const mockUser = userEntityData;
+      const mockUser = testUserEntity;
       const mockPassword = 'hashedPassword';
 
       userService.getUser.mockResolvedValue(mockUser);
@@ -108,7 +108,7 @@ describe('AuthService test', () => {
     });
 
     it('비밀번호 불일치시 unauthorizedException 반환', async () => {
-      const mockUser = userEntityData;
+      const mockUser = testUserEntity;
       const mockPassword = 'hashedPassword';
 
       userService.getUser.mockResolvedValue(mockUser);

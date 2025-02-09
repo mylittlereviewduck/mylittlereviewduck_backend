@@ -1,3 +1,4 @@
+import { Equals } from 'class-validator';
 import { Prisma } from '@prisma/client';
 import { createMockContext } from './../context';
 import { ConfigService } from '@nestjs/config';
@@ -7,17 +8,19 @@ import { EmailAuthService } from './../../src/auth/email-auth.service';
 import { PrismaService } from './../../src/prisma/prisma.service';
 import { GetUserDto } from './../../src/user/dto/get-user.dto';
 import { UserService } from './../../src/user/user.service';
-import { getUserData } from './../../test/data/get-user.data';
+import { testUserData } from '../data/user.data';
 import { UserEntity } from 'src/user/entity/User.entity';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import { UserInteractionService } from 'src/user/user-interaction.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { emailVerification } from 'test/data/email-verification.entity';
+import { testUserTb } from 'test/data/user-tb.data';
+import { testUserEntity } from 'test/data/user.entity.data';
 
 const mockEmailAuthService = {
   getEmailVerification: jest.fn(),
-  deleteVerifiedEmail: jest.fn(),
+  deleteEmailVerification: jest.fn(),
 };
 
 const mockBcryptService = {
@@ -38,7 +41,6 @@ const mockEventEmitter = {
 };
 
 const mockPrismaService = createMockContext().prisma;
-let userService: UserService;
 
 describe('user service test', () => {
   let userService: UserService;
@@ -84,7 +86,7 @@ describe('user service test', () => {
     const dto: GetUserDto = {
       email: 'test1@a.com',
     };
-    const userData = getUserData;
+    let userData = testUserData;
     mockPrismaService.accountTb.findFirst.mockResolvedValue(userData);
 
     const result = await userService.getUser(dto);
@@ -108,7 +110,7 @@ describe('user service test', () => {
       confirmPw: '1234s',
     };
 
-    const userData = getUserData;
+    const userData = testUserData;
 
     jest
       .spyOn(prismaService, '$transaction')
@@ -129,15 +131,19 @@ describe('user service test', () => {
     );
   });
 
-  it('createUser 실패: UnauthorizedException 반환', async () => {
+  it('createUser 실패: UnauthorizedException 반환: 인증 유효시간만료', async () => {
     const dto: CreateUserDto = {
       email: 'test1@a.com',
       pw: '1234',
       confirmPw: '1234s',
     };
 
-    const userData = getUserData;
-    const verifiedEmail = emailVerification;
+    const verifiedEmail = {
+      email: emailVerification.email,
+      code: emailVerification.code,
+      createdAt: emailVerification.createdAt,
+      verifiedAt: new Date(Date.now() - 30 * 60 * 1000),
+    };
 
     emailAuthService.getEmailVerification.mockResolvedValue(verifiedEmail);
 
@@ -159,5 +165,102 @@ describe('user service test', () => {
     await expect(userService.createUser(dto)).rejects.toThrow(
       UnauthorizedException,
     );
+  });
+
+  it('createUser 실패: UnauthorizedException 반환: 인증부재', async () => {
+    const dto: CreateUserDto = {
+      email: 'test1@a.com',
+      pw: '1234',
+      confirmPw: '1234s',
+    };
+
+    const verifiedEmail = {
+      email: emailVerification.email,
+      code: emailVerification.code,
+      createdAt: emailVerification.createdAt,
+      verifiedAt: null,
+    };
+
+    emailAuthService.getEmailVerification.mockResolvedValue(verifiedEmail);
+
+    jest
+      .spyOn(prismaService, '$transaction')
+      .mockImplementation(async (callback) => {
+        const txMock = {
+          accountTb: {
+            create: jest.fn(),
+            update: jest.fn(),
+            findFirst: jest.fn().mockResolvedValue(null),
+            findUnique: jest.fn().mockResolvedValue(null),
+          },
+        } as unknown as Prisma.TransactionClient;
+
+        return callback(txMock);
+      });
+
+    await expect(userService.createUser(dto)).rejects.toThrow(
+      UnauthorizedException,
+    );
+  });
+
+  it('createUser 성공', async () => {
+    const dto: CreateUserDto = {
+      email: 'test1@a.com',
+      pw: '1234',
+      confirmPw: '1234s',
+    };
+
+    const verifiedEmail = emailVerification;
+    const userTb = testUserTb;
+    const userEntity = testUserEntity;
+
+    emailAuthService.getEmailVerification.mockResolvedValue(verifiedEmail);
+
+    jest.spyOn(userService, 'getUser').mockResolvedValueOnce(undefined);
+    jest.spyOn(userService, 'getUser').mockResolvedValue(userEntity);
+
+    jest
+      .spyOn(prismaService, '$transaction')
+      .mockImplementation(async (callback) => {
+        const txMock = {
+          accountTb: {
+            create: jest.fn().mockResolvedValue(userTb),
+            update: jest.fn().mockResolvedValue({
+              email: 'test1@a.com',
+              pw: '$2b$10$rM/2QRO85BGgkmyNRcf1s.iQ7ZUvswblKL4gEpYgY0TS3TCKlNSb6',
+              nickname: '23번째 오리',
+              profile: null,
+              provider: 'local',
+              providerKey: null,
+              createdAt: new Date('2024-08-29T00:58:46.381Z'),
+              deletedAt: null,
+              idx: '344e753e-9071-47b2-b651-bc32a0a92b1f',
+              serialNumber: 23,
+              interest1: null,
+              interest2: null,
+              suspensionCount: 17,
+              isAdmin: false,
+              suspendExpireAt: null,
+              profileImg:
+                'https://s3.ap-northeast-2.amazonaws.com/todayreview/1724893124840.png',
+            }),
+            findFirst: jest.fn().mockResolvedValue(null),
+            findUnique: jest.fn().mockResolvedValue(null),
+          },
+        } as unknown as Prisma.TransactionClient;
+
+        return callback(txMock);
+      });
+
+    bcryptService.hash.mockResolvedValue('hashedpw');
+    jest.spyOn(emailAuthService, 'deleteEmailVerification');
+
+    const result = await userService.createUser(dto);
+
+    await expect(result).toEqual(userEntity);
+    await expect(emailAuthService.deleteEmailVerification).toHaveBeenCalledWith(
+      dto.email,
+    );
+    await expect(userService.getUser).toHaveBeenCalledTimes(2);
   });
 });

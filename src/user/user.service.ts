@@ -14,7 +14,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateMyInfoDto } from './dto/update-my-info.dto';
 import { GetUserDto } from './dto/get-user.dto';
 import { GetUsersAllDto } from './dto/get-users-all.dto';
-import { Prisma, PrismaClient } from '@prisma/client';
+import { AccountTb, Prisma, PrismaClient } from '@prisma/client';
 import { UserListResponseDto } from './dto/response/user-list-response.dto';
 import { BcryptService } from 'src/auth/bcrypt.service';
 import { UserPagerbleResponseDto } from './dto/response/user-pagerble-response.dto';
@@ -219,7 +219,7 @@ export class UserService {
   }
 
   async createUser(dto: CreateUserDto): Promise<UserEntity> {
-    let newUser;
+    let newUser: AccountTb;
 
     await this.prismaService.$transaction(async (tx) => {
       const emailDuplicatedUser = await this.getUser({ email: dto.email }, tx);
@@ -235,20 +235,20 @@ export class UserService {
           tx,
         );
 
-      if (!authenticatedEmail || authenticatedEmail.verifiedAt !== null) {
+      if (!authenticatedEmail || authenticatedEmail.verifiedAt === null) {
         throw new UnauthorizedException('Unauthorized Email');
       }
 
       if (
-        new Date().getTime() - authenticatedEmail.createdAt.getTime() >
-        30 * 60 * 1000
+        new Date().getTime() - authenticatedEmail.verifiedAt.getTime() >
+        15 * 60 * 1000
       ) {
         throw new UnauthorizedException('Authentication TimeOut');
       }
 
       const hashedPw = await this.bcryptService.hash(dto.pw);
 
-      newUser = await this.prismaService.accountTb.create({
+      newUser = await tx.accountTb.create({
         data: {
           email: dto.email,
           pw: hashedPw,
@@ -256,7 +256,7 @@ export class UserService {
         },
       });
 
-      newUser = await this.prismaService.accountTb.update({
+      newUser = await tx.accountTb.update({
         data: {
           nickname: newUser.serialNumber + '번째 오리',
         },

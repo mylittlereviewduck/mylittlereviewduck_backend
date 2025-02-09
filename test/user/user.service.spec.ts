@@ -17,6 +17,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { testEmailVerification } from 'test/data/email-verification.entity';
 import { testUserTb } from 'test/data/user-tb.data';
 import { testUserEntity } from 'test/data/user.entity.data';
+import { rejects } from 'assert';
 
 const mockEmailAuthService = {
   getEmailVerification: jest.fn(),
@@ -318,8 +319,6 @@ describe('user service test', () => {
 
   it('비밀번호 변경 : 성공', async () => {
     const userData = testUserData;
-    const email = testUserData.email;
-    const pw = testUserData.pw;
 
     const emailVerification = {
       email: testEmailVerification.email,
@@ -361,5 +360,21 @@ describe('user service test', () => {
     await expect(
       emailAuthService.deleteEmailVerification,
     ).toHaveBeenCalledTimes(1);
+  });
+
+  it('내정보 수정: 실패: 중복 닉네임', async () => {
+    const userData = testUserData;
+    const userEntity = testUserEntity;
+
+    jest.spyOn(userService, 'getUser').mockResolvedValueOnce(userEntity);
+    jest.spyOn(userService, 'getUser').mockResolvedValueOnce(userEntity);
+
+    await expect(
+      userService.updateMyinfo(userData.idx, {
+        interest: [userData.interest1],
+        nickname: userData.nickname,
+        profile: userData.profile,
+      }),
+    ).rejects.toThrow();
   });
 });

@@ -298,58 +298,57 @@ export class UserService {
     userIdx: string,
     dto: UpdateMyInfoDto,
   ): Promise<UserEntity> {
-    try {
-      const updatedUser = await this.prismaService.$transaction(async (tx) => {
-        const user = await this.getUser(
-          {
-            idx: userIdx,
-          },
-          tx,
-        );
+    const updatedUser = await this.prismaService.$transaction(async (tx) => {
+      const user = await this.getUser(
+        {
+          idx: userIdx,
+        },
+        tx,
+      );
 
-        if (!user) {
-          throw new NotFoundException('Not Found User');
-        }
+      if (!user) {
+        throw new NotFoundException('Not Found User');
+      }
 
-        const duplicatedUser = await this.getUser(
+      let duplicatedUser;
+      if (dto.nickname) {
+        duplicatedUser = await this.getUser(
           {
             nickname: dto.nickname,
           },
           tx,
         );
+      }
 
-        if (duplicatedUser && duplicatedUser.nickname == dto.nickname) {
-          throw new ConflictException('Duplicated Nickname');
-        }
+      if (duplicatedUser && duplicatedUser.nickname == dto.nickname) {
+        throw new ConflictException('Duplicated Nickname');
+      }
 
-        const updatedUser = await tx.accountTb.update({
-          include: {
-            _count: {
-              select: {
-                followings: true,
-                followers: true,
-                reviewTb: true,
-              },
+      const updatedUser = await tx.accountTb.update({
+        include: {
+          _count: {
+            select: {
+              followings: true,
+              followers: true,
+              reviewTb: true,
             },
           },
-          //prettier-ignore
-          data: {
+        },
+        //prettier-ignore
+        data: {
             nickname: dto.nickname ?? user.nickname,
             profile: dto.profile ?? user.profile,
             interest1: (dto.interest?.[0] ?? user.interest1),
             interest2: (dto.interest?.[1] ?? user.interest2),
           },
-          where: {
-            idx: userIdx,
-          },
-        });
-
-        return updatedUser;
+        where: {
+          idx: userIdx,
+        },
       });
-      return new UserEntity(updatedUser);
-    } catch (err) {
-      console.error(err);
-    }
+
+      return updatedUser;
+    });
+    return new UserEntity(updatedUser);
   }
 
   async updateMyProfileImg(

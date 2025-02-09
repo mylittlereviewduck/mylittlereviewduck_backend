@@ -384,10 +384,8 @@ export class UserService {
           throw new UnauthorizedException('Unauthorized Email');
         }
 
-        const nowTime = new Date();
-
         if (
-          Number(nowTime) - Number(emailVerification.verifiedAt) >=
+          Date.now() - emailVerification.verifiedAt.getTime() >=
           6 * 60 * 1000
         ) {
           throw new UnauthorizedException('Email Verification TimeOut');

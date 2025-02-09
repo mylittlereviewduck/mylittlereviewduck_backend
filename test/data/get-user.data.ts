@@ -16,14 +16,7 @@ export const getUserData: User = {
   suspensionCount: 17,
   isAdmin: false,
   suspendExpireAt: null,
-  profileImgTb: [
-    {
-      idx: 86,
-      imgPath:
-        'https://s3.ap-northeast-2.amazonaws.com/todayreview/1724893124840.png',
-      createdAt: new Date('2024-08-29T00:58:46.381Z'),
-      accountIdx: '344e753e-9071-47b2-b651-bc32a0a92b1f',
-    },
-  ],
+  profileImg:
+    'https://s3.ap-northeast-2.amazonaws.com/todayreview/1724893124840.png',
   _count: { followers: 6, followings: 6, reviewTb: 10 },
 };

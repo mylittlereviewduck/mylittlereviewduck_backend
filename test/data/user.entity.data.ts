@@ -18,4 +18,5 @@ export const userEntityData: UserEntity = {
   createdAt: new Date('2023-01-01T00:00:00Z'),
   followingCount: 6,
   followerCount: 6,
+  reviewCount: 10,
 };

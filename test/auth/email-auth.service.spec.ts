@@ -33,7 +33,8 @@ describe('email auth service', () => {
       ],
     }).compile();
 
-    emailAuthService = module.get<EmailAuthService>(EmailAuthService);
+    //prettier-ignore
+    emailAuthService = module.get<EmailAuthService>(EmailAuthService)
     //prettier-ignore
     emailService = module.get<EmailService>(EmailService) as jest.Mocked<EmailService>;
     //prettier-ignore
@@ -45,7 +46,7 @@ describe('email auth service', () => {
     jest.clearAllMocks();
   });
 
-  it('인증번호 이메일 전송 성공', async () => {
+  it('이메일 중복 검사 성공: 중복되지 않은 이메일', async () => {
     const dto: SendEmailVerificationDto = {
       email: 'test1@a.com',
     };
@@ -56,9 +57,18 @@ describe('email auth service', () => {
       count: 1,
     });
 
-    await emailAuthService.inspectEmailDuplicate(dto);
+    const code = jest
+      .spyOn(emailAuthService, 'createEmailVerification')
+      .mockResolvedValue(123456);
+
+    await emailAuthService.inspectEmailDuplicate(dto.email);
 
     expect(emailService.sendEmail).toHaveBeenCalledTimes(1);
+    expect(emailService.sendEmail).toHaveBeenCalledWith({
+      toEmail: dto.email,
+      title: `오늘도 리뷰 이메일 인증번호`,
+      content: `이메일 인증번호 : 123456`,
+    });
     expect(userService.getUser).toHaveBeenCalledWith({ email: dto.email });
   });
 
@@ -70,8 +80,8 @@ describe('email auth service', () => {
 
     userService.getUser.mockResolvedValue(user);
 
-    await expect(emailAuthService.inspectEmailDuplicate(dto)).rejects.toThrow(
-      ConflictException,
-    );
+    await expect(
+      emailAuthService.inspectEmailDuplicate(dto.email),
+    ).rejects.toThrow(ConflictException);
   });
 });

@@ -11,9 +11,12 @@ import { getUserData } from './../../test/data/get-user.data';
 import { UserEntity } from 'src/user/entity/User.entity';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { ConflictException, UnauthorizedException } from '@nestjs/common';
+import { UserInteractionService } from 'src/user/user-interaction.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { emailVerification } from 'test/data/email-verification.entity';
 
 const mockEmailAuthService = {
-  getEmailWithVerificationCode: jest.fn(),
+  getEmailVerification: jest.fn(),
   deleteVerifiedEmail: jest.fn(),
 };
 
@@ -25,6 +28,15 @@ const mockBcryptService = {
 const mockConfigService = {
   get: jest.fn(),
 };
+
+const mockUserInteractionService = {
+  getUserInteraction: jest.fn(),
+};
+
+const mockEventEmitter = {
+  emit: jest.fn(),
+};
+
 const mockPrismaService = createMockContext().prisma;
 let userService: UserService;
 
@@ -34,6 +46,8 @@ describe('user service test', () => {
   let bcryptService: jest.Mocked<BcryptService>;
   let emailAuthService: jest.Mocked<EmailAuthService>;
   let configService: jest.Mocked<ConfigService>;
+  let userInteractionService: jest.Mocked<UserInteractionService>;
+  let eventEmitter: jest.Mocked<EventEmitter2>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -43,6 +57,11 @@ describe('user service test', () => {
         { provide: BcryptService, useValue: mockBcryptService },
         { provide: EmailAuthService, useValue: mockEmailAuthService },
         { provide: ConfigService, useValue: mockConfigService },
+        {
+          provide: UserInteractionService,
+          useValue: mockUserInteractionService,
+        },
+        { provide: EventEmitter2, useValue: mockEventEmitter },
       ],
     }).compile();
 
@@ -55,6 +74,10 @@ describe('user service test', () => {
     configService = module.get<ConfigService>(ConfigService) as jest.Mocked<ConfigService>;
     //prettier-ignore
     bcryptService = module.get<BcryptService>(BcryptService) as jest.Mocked<BcryptService>;
+    //prettier-ignore
+    userInteractionService = module.get<UserInteractionService>(UserInteractionService) as jest.Mocked<UserInteractionService>
+    //prettier-ignore
+    eventEmitter = module.get<EventEmitter2>(EventEmitter2) as jest.Mocked<EventEmitter2>
   });
 
   it('getUser 성공', async () => {
@@ -82,6 +105,7 @@ describe('user service test', () => {
     const dto: CreateUserDto = {
       email: 'test1@a.com',
       pw: '1234',
+      confirmPw: '1234s',
     };
 
     const userData = getUserData;
@@ -109,9 +133,13 @@ describe('user service test', () => {
     const dto: CreateUserDto = {
       email: 'test1@a.com',
       pw: '1234',
+      confirmPw: '1234s',
     };
 
     const userData = getUserData;
+    const verifiedEmail = emailVerification;
+
+    emailAuthService.getEmailVerification.mockResolvedValue(verifiedEmail);
 
     jest
       .spyOn(prismaService, '$transaction')

@@ -280,6 +280,39 @@ describe('user service test', () => {
 
     await expect(
       userService.updatePassword(userData.email, userData.pw),
-    ).rejects.toThrow();
+    ).rejects.toThrow(UnauthorizedException);
+  });
+
+  it('비밀번호 변경 : 실패 : 인증되지않은 이메일 ', async () => {
+    const userData = testUserData;
+
+    const emailVerification = null;
+
+    jest
+      .spyOn(emailAuthService, 'getEmailVerification')
+      .mockResolvedValue(emailVerification);
+
+    await expect(
+      userService.updatePassword(userData.email, userData.pw),
+    ).rejects.toThrow(UnauthorizedException);
+  });
+
+  it('비밀번호 변경 : 실패 : 인증되지않은 이메일 ', async () => {
+    const userData = testUserData;
+
+    const emailVerification = {
+      email: testEmailVerification.email,
+      code: testEmailVerification.code,
+      createdAt: testEmailVerification.createdAt,
+      verifiedAt: null,
+    };
+
+    jest
+      .spyOn(emailAuthService, 'getEmailVerification')
+      .mockResolvedValue(emailVerification);
+
+    await expect(
+      userService.updatePassword(userData.email, userData.pw),
+    ).rejects.toThrow(UnauthorizedException);
   });
 });

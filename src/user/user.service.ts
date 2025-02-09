@@ -380,7 +380,7 @@ export class UserService {
             tx,
           );
 
-        if (emailVerification.verifiedAt === null) {
+        if (!emailVerification || emailVerification.verifiedAt === null) {
           throw new UnauthorizedException('Unauthorized Email');
         }
 

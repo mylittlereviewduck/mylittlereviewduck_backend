@@ -33,7 +33,7 @@ import { UploadReviewImageResponseDto } from './dto/response/upload-review-image
 import { UpdateReviewDto } from './dto/request/update-review.dto';
 import { ReviewService } from './review.service';
 import { LoginUser } from 'src/auth/model/login-user.model';
-import { GetUser } from 'src/auth/get-user.decorator';
+import { GetUser } from 'src/decorator/get-user.decorator';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { OptionalAuthGuard } from 'src/auth/guard/optional-auth.guard';
 import { ReviewPagerbleResponseDto } from './dto/response/review-pagerble-response.dto';

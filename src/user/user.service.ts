@@ -370,53 +370,38 @@ export class UserService {
   }
 
   async updatePassword(email: string, pw: string): Promise<void> {
-    try {
-      await this.prismaService.$transaction(async (tx) => {
-        //인증된 이메일인지 확인
-        const emailVerification =
-          await this.emailAuthService.getEmailVerification(
-            email,
-            undefined,
-            tx,
-          );
+    await this.prismaService.$transaction(async (tx) => {
+      //인증된 이메일인지 확인
+      const emailVerification =
+        await this.emailAuthService.getEmailVerification(email, undefined, tx);
 
-        if (!emailVerification || emailVerification.verifiedAt === null) {
-          throw new UnauthorizedException('Unauthorized Email');
-        }
+      if (!emailVerification || emailVerification.verifiedAt === null) {
+        throw new UnauthorizedException('Unauthorized Email');
+      }
 
-        if (
-          Date.now() - emailVerification.verifiedAt.getTime() >=
-          6 * 60 * 1000
-        ) {
-          throw new UnauthorizedException('Email Verification TimeOut');
-        }
+      if (
+        Date.now() - emailVerification.verifiedAt.getTime() >=
+        6 * 60 * 1000
+      ) {
+        throw new UnauthorizedException('Email Verification TimeOut');
+      }
 
-        //비밀번호 암호화
-        const hashedPw = await this.bcryptService.hash(pw);
+      //비밀번호 암호화
+      const hashedPw = await this.bcryptService.hash(pw);
 
-        //비밀번호 저장
-        await tx.accountTb.updateMany({
-          data: {
-            pw: hashedPw,
-          },
-          where: {
-            email: email,
-          },
-        });
-
-        await this.emailAuthService.deleteEmailVerification(email, tx);
+      //비밀번호 저장
+      await tx.accountTb.updateMany({
+        data: {
+          pw: hashedPw,
+        },
+        where: {
+          email: email,
+        },
       });
-    } catch (err) {
-      console.error(err);
-    }
+
+      await this.emailAuthService.deleteEmailVerification(email, tx);
+    });
   }
-
-  // async getUserSearchHistory(
-  //   userIdx: string,
-  // ): Promise<SearchHistoryResponseDto> {
-
-  //   return;
-  // }
 
   async deleteUser(userIdx: string): Promise<void> {
     await this.prismaService.accountTb.update({

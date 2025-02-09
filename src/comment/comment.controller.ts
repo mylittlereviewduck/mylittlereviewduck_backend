@@ -24,7 +24,7 @@ import { Exception } from 'src/decorator/exception.decorator';
 import { CommentEntity } from './entity/Comment.entity';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
-import { GetUser } from 'src/auth/get-user.decorator';
+import { GetUser } from 'src/decorator/get-user.decorator';
 import { LoginUser } from 'src/auth/model/login-user.model';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { CommentLikeCheckService } from './comment-like-check.service';

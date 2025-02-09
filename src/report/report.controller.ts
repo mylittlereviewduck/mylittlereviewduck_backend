@@ -17,7 +17,7 @@ import { ReportService } from './report.service';
 import { Exception } from 'src/decorator/exception.decorator';
 import { ReportEntity } from './entity/Report.entity';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
-import { GetUser } from 'src/auth/get-user.decorator';
+import { GetUser } from 'src/decorator/get-user.decorator';
 import { LoginUser } from 'src/auth/model/login-user.model';
 import { CreateReportDto } from './dto/create-report.dto';
 

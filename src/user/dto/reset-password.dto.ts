@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Equals, IsEmail, Length, Matches } from 'class-validator';
+import { Match } from 'src/decorator/match.decorator';
 
 export class ResetPasswordDto {
   @ApiProperty({
@@ -21,6 +22,6 @@ export class ResetPasswordDto {
   @Length(6, 30)
   pw: string;
 
-  @Equals('pw', { message: '비밀번호와 비밀번호 확인이 일치하지 않습니다.' })
+  @Match('pw', { message: '비밀번호와 일치하지 않습니다.' })
   confirmPw: string;
 }

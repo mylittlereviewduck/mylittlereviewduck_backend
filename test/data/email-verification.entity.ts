@@ -1,4 +1,4 @@
-export const emailVerification = {
+export const testEmailVerification = {
   email: 'test@email.com',
   code: 123456,
   createdAt: new Date(Date.now() - 10 * 60 * 1000),

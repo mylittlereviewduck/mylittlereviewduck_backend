@@ -196,6 +196,7 @@ export class UserController {
   @ApiOperation({ summary: '유저 정보 보기' })
   @ApiParam({
     name: 'userIdx',
+    description: '유저idx',
     type: 'string',
     example: '344e753e-9071-47b2-b651-bc32a0a92b1f',
   })
@@ -311,6 +312,7 @@ export class UserController {
   @ApiOperation({ summary: '팔로잉 리스트보기' })
   @ApiParam({
     name: 'userIdx',
+    description: '유저idx',
     type: 'string',
     example: '836d533b-3ee3-4616-8644-a1ddea65e1e0',
   })
@@ -348,6 +350,7 @@ export class UserController {
   @ApiOperation({ summary: '팔로워 리스트보기' })
   @ApiParam({
     name: 'userIdx',
+    description: '유저idx',
     type: 'string',
     example: '836d533b-3ee3-4616-8644-a1ddea65e1e0',
   })
@@ -387,6 +390,7 @@ export class UserController {
   @ApiBearerAuth()
   @ApiParam({
     name: 'userIdx',
+    description: '유저idx',
     type: 'string',
     example: '836d533b-3ee3-4616-8644-a1ddea65e1e0',
   })
@@ -408,7 +412,12 @@ export class UserController {
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '유저 언팔로우' })
   @ApiBearerAuth()
-  @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
+  @ApiParam({
+    name: 'userIdx',
+    description: '유저idx',
+    type: 'string',
+    example: '836d533b-3ee3-4616-8644-a1ddea65e1e0',
+  })
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
   @ApiResponse({ status: 200, description: '언팔로우 성공 200 반환' })
@@ -424,7 +433,12 @@ export class UserController {
   @HttpCode(200)
   @ApiOperation({ summary: '유저 차단하기' })
   @ApiBearerAuth()
-  @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
+  @ApiParam({
+    name: 'userIdx',
+    description: '유저idx',
+    type: 'string',
+    example: '836d533b-3ee3-4616-8644-a1ddea65e1e0',
+  })
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
   @ApiResponse({
@@ -443,7 +457,12 @@ export class UserController {
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '유저 차단해제하기' })
   @ApiBearerAuth()
-  @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
+  @ApiParam({
+    name: 'userIdx',
+    description: '유저idx',
+    type: 'string',
+    example: '836d533b-3ee3-4616-8644-a1ddea65e1e0',
+  })
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
   @ApiResponse({ status: 200, description: '차단해제 성공 200 반환' })
@@ -483,10 +502,18 @@ export class UserController {
 
   @Post('/:userIdx/suspend')
   @UseGuards(AdminGuard)
-  @ApiOperation({ summary: '유저 정지하기' })
+  @ApiOperation({
+    summary: '유저 정지하기',
+    description: '관리자 권한 계정만 가능합니다',
+  })
   @ApiBearerAuth()
   @HttpCode(200)
-  @ApiParam({ name: 'userIdx', description: '유저idx' })
+  @ApiParam({
+    name: 'userIdx',
+    description: '유저idx',
+    type: 'string',
+    example: '836d533b-3ee3-4616-8644-a1ddea65e1e0',
+  })
   @Exception(401, '권한 없음')
   @Exception(403, '관리자 권한 필요')
   @ApiResponse({ status: 200 })
@@ -500,9 +527,17 @@ export class UserController {
 
   @Delete('/:userIdx/suspend')
   @UseGuards(AdminGuard)
-  @ApiOperation({ summary: '유저 정지 해제하기' })
+  @ApiOperation({
+    summary: '유저 정지 해제하기',
+    description: '관리자 권한 계정만 가능합니다',
+  })
   @ApiBearerAuth()
-  @ApiParam({ name: 'userIdx', description: '유저idx' })
+  @ApiParam({
+    name: 'userIdx',
+    description: '유저idx',
+    type: 'string',
+    example: '836d533b-3ee3-4616-8644-a1ddea65e1e0',
+  })
   @Exception(401, '권한 없음')
   @Exception(403, '관리자 권한 필요')
   @ApiResponse({ status: 200 })

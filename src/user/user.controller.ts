@@ -196,8 +196,8 @@ export class UserController {
   @ApiOperation({ summary: '유저 정보 보기' })
   @ApiParam({
     name: 'userIdx',
-    type: 'number',
-    example: 1,
+    type: 'string',
+    example: '344e753e-9071-47b2-b651-bc32a0a92b1f',
   })
   @Exception(400, '유효하지않은 요청')
   @ApiResponse({ status: 200, type: UserEntity })

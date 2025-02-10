@@ -133,7 +133,10 @@ export class UserController {
 
   @Put('myinfo')
   @UseGuards(AuthGuard)
-  @ApiOperation({ summary: '내정보수정' })
+  @ApiOperation({
+    summary: '내정보수정',
+    description: '최소 1개이상의 속성을 주셔야합니다. ',
+  })
   @ApiBearerAuth()
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')
@@ -142,10 +145,6 @@ export class UserController {
     @GetUser() loginUser: LoginUser,
     @Body() dto: UpdateMyInfoDto,
   ): Promise<UserEntity> {
-    if (dto.nickname && dto.nickname.includes('번째 오리')) {
-      throw new BadRequestException("Nickname can't include '번째 오리'");
-    }
-
     return await this.userService.updateMyinfo(loginUser.idx, dto);
   }
 

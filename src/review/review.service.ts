@@ -18,7 +18,7 @@ import { ReviewInteractionService } from './review-interaction.service';
 import { GetReviewsAllDto } from './dto/get-reviews-all.dto';
 import { ReviewBookmarkService } from './review-bookmark.service';
 import { GetReviewsWithSearchDto } from './dto/request/get-review-with-search.dto';
-import { GetReviewsDto } from './dto/request/get-reviews.dto';
+import { GetReviewsDto } from './dto/get-reviews.dto';
 import { ReviewPagerbleDto } from './dto/request/review-pagerble.dto';
 import { GetScoreReviewsDto } from './dto/get-score-reviews.dto';
 

@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, Length } from 'class-validator';
-import { GetReviewsDto } from './get-reviews.dto';
+import { GetReviewsDto } from '../get-reviews.dto';
 
 export class GetReviewsWithSearchDto extends GetReviewsDto {
   @ApiProperty({

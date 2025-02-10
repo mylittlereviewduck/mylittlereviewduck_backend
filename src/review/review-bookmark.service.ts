@@ -3,7 +3,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { ReviewEntity } from './entity/Review.entity';
 import { ReviewPagerbleResponseDto } from './dto/response/review-pagerble-response.dto';
 import { UserService } from 'src/user/user.service';
-import { GetReviewsDto } from './dto/request/get-reviews.dto';
+import { GetReviewsDto } from './dto/get-reviews.dto';
 
 @Injectable()
 export class ReviewBookmarkService {

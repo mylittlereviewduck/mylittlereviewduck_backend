@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ReviewEntity } from './entity/Review.entity';
-import { GetReviewsDto } from './dto/request/get-reviews.dto';
+import { GetReviewsDto } from './dto/get-reviews.dto';
 
 @Injectable()
 export class ReviewLikeCheckService {

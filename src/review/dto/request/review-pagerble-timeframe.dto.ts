@@ -8,6 +8,7 @@ export class ReviewPagerbleTimeFrameDto extends ReviewPagerbleDto {
     description:
       '검색기간: "1D" or "7D" or "1M" or 1Y" or all 로 주어져야합니다.',
     default: 'all',
+    required: false,
   })
   @IsIn(['1D', '7D', '1M', '1Y', 'all'])
   @IsOptional()

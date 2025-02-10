@@ -47,6 +47,7 @@ import { BookmarkService } from './bookmark.service';
 import { GetReviewsWithSearchDto } from './dto/request/get-review-with-search.dto';
 import { ReviewPagerbleDto } from './dto/request/review-pagerble.dto';
 import { ReviewPagerbleTimeFrameDto } from './dto/request/review-pagerble-timeframe.dto';
+import { SearchHistoryResponseDto } from 'src/user/dto/response/search-history.dto';
 
 @Controller('')
 @ApiTags('review')
@@ -337,88 +338,6 @@ export class ReviewController {
   ): Promise<void> {
     await this.reviewBlockService.unblockReview(loginUser.idx, reviewIdx);
   }
-
-  @Get('/user/:userIdx/review/all')
-  @UseGuards(OptionalAuthGuard)
-  @ApiOperation({ summary: '유저가 쓴 리뷰목록보기' })
-  @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
-  @Exception(400, '유효하지않은 요청')
-  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
-  async getReviewsAllByUserIdx(
-    @GetUser() loginUser: LoginUser,
-    @Param('userIdx', ParseUUIDPipe) userIdx: string,
-    @Query() dto: ReviewPagerbleDto,
-  ): Promise<ReviewPagerbleResponseDto> {
-    return await this.reviewService.getReviewsByUserIdxWithInteraction(
-      {
-        ...dto,
-        userIdx,
-      },
-      loginUser && loginUser.idx,
-    );
-  }
-
-  @Get('/user/:userIdx/review/bookmark')
-  @UseGuards(OptionalAuthGuard)
-  @ApiOperation({ summary: '유저의 북마크한 리뷰목록보기' })
-  @ApiParam({ name: 'userIdx', type: 'number', description: '유저식별자' })
-  @Exception(400, '유효하지않은 요청')
-  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
-  async getBookmarkedReviews(
-    @GetUser() loginUser: LoginUser,
-    @Param('userIdx', ParseUUIDPipe) userIdx: string,
-    @Query() dto: ReviewPagerbleDto,
-  ): Promise<ReviewPagerbleResponseDto> {
-    return await this.reviewService.getBookmarkedReviewsWithInteraction(
-      {
-        size: dto.size,
-        page: dto.page,
-        userIdx,
-      },
-      loginUser && loginUser.idx,
-    );
-  }
-
-  @Get('/user/:userIdx/review/commented')
-  @UseGuards(OptionalAuthGuard)
-  @ApiOperation({ summary: '유저의 댓글단 리뷰목록보기' })
-  @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
-  @Exception(400, '유효하지않은 요청')
-  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
-  async getCommentedReviews(
-    @GetUser() loginUser: LoginUser,
-    @Param('userIdx', ParseUUIDPipe) userIdx: string,
-    @Query() dto: ReviewPagerbleDto,
-  ): Promise<ReviewPagerbleResponseDto> {
-    return await this.reviewService.getCommentedReviewsWithInteraction(
-      {
-        ...dto,
-        userIdx: userIdx,
-      },
-      loginUser && loginUser.idx,
-    );
-  }
-
-  @Get('/user/:userIdx/review/like')
-  @UseGuards(OptionalAuthGuard)
-  @ApiOperation({ summary: '유저의 좋아요한 리뷰목록보기' })
-  @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
-  @Exception(400, '유효하지않은 요청')
-  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
-  async getLikedReviews(
-    @GetUser() loginUser: LoginUser,
-    @Param('userIdx', ParseUUIDPipe) userIdx: string,
-    @Query() dto: ReviewPagerbleDto,
-  ): Promise<ReviewPagerbleResponseDto> {
-    return await this.reviewService.getLikedReviewsWithInteraction(
-      {
-        ...dto,
-        userIdx: userIdx,
-      },
-      loginUser && loginUser.idx,
-    );
-  }
-
   @Get('/review/high-score')
   @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '평점 3-5점의 최신 리뷰목록보기' })
@@ -508,6 +427,97 @@ export class ReviewController {
         scoreLte: 2,
       },
       loginUser.idx,
+    );
+  }
+
+  @Get('search/hot')
+  @ApiOperation({
+    summary: '인기 검색어 보기',
+    description: '12시간마다 집계되어 10개씩 반환됩니다.',
+  })
+  @ApiResponse({ status: 200 })
+  async getHotSearchKeyword(): Promise<SearchHistoryResponseDto> {
+    return;
+  }
+
+  @Get('/user/:userIdx/review/all')
+  @UseGuards(OptionalAuthGuard)
+  @ApiOperation({ summary: '유저가 쓴 리뷰목록보기' })
+  @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
+  @Exception(400, '유효하지않은 요청')
+  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
+  async getReviewsAllByUserIdx(
+    @GetUser() loginUser: LoginUser,
+    @Param('userIdx', ParseUUIDPipe) userIdx: string,
+    @Query() dto: ReviewPagerbleDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    return await this.reviewService.getReviewsByUserIdxWithInteraction(
+      {
+        ...dto,
+        userIdx,
+      },
+      loginUser && loginUser.idx,
+    );
+  }
+
+  @Get('/user/:userIdx/review/bookmark')
+  @UseGuards(OptionalAuthGuard)
+  @ApiOperation({ summary: '유저의 북마크한 리뷰목록보기' })
+  @ApiParam({ name: 'userIdx', type: 'number', description: '유저식별자' })
+  @Exception(400, '유효하지않은 요청')
+  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
+  async getBookmarkedReviews(
+    @GetUser() loginUser: LoginUser,
+    @Param('userIdx', ParseUUIDPipe) userIdx: string,
+    @Query() dto: ReviewPagerbleDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    return await this.reviewService.getBookmarkedReviewsWithInteraction(
+      {
+        size: dto.size,
+        page: dto.page,
+        userIdx,
+      },
+      loginUser && loginUser.idx,
+    );
+  }
+
+  @Get('/user/:userIdx/review/commented')
+  @UseGuards(OptionalAuthGuard)
+  @ApiOperation({ summary: '유저의 댓글단 리뷰목록보기' })
+  @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
+  @Exception(400, '유효하지않은 요청')
+  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
+  async getCommentedReviews(
+    @GetUser() loginUser: LoginUser,
+    @Param('userIdx', ParseUUIDPipe) userIdx: string,
+    @Query() dto: ReviewPagerbleDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    return await this.reviewService.getCommentedReviewsWithInteraction(
+      {
+        ...dto,
+        userIdx: userIdx,
+      },
+      loginUser && loginUser.idx,
+    );
+  }
+
+  @Get('/user/:userIdx/review/like')
+  @UseGuards(OptionalAuthGuard)
+  @ApiOperation({ summary: '유저의 좋아요한 리뷰목록보기' })
+  @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
+  @Exception(400, '유효하지않은 요청')
+  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
+  async getLikedReviews(
+    @GetUser() loginUser: LoginUser,
+    @Param('userIdx', ParseUUIDPipe) userIdx: string,
+    @Query() dto: ReviewPagerbleDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    return await this.reviewService.getLikedReviewsWithInteraction(
+      {
+        ...dto,
+        userIdx: userIdx,
+      },
+      loginUser && loginUser.idx,
     );
   }
 }

@@ -48,10 +48,8 @@ export class SearchKeywordService {
       take: 10,
     });
 
-    console.log(searchHistory);
-
     return {
-      keyword: searchHistory.map((elem) => {
+      keywords: searchHistory.map((elem) => {
         return elem.keyword;
       }),
     };

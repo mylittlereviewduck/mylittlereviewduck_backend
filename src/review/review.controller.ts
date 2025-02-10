@@ -47,7 +47,6 @@ import { BookmarkService } from './bookmark.service';
 import { GetReviewsWithSearchDto } from './dto/request/get-review-with-search.dto';
 import { ReviewPagerbleDto } from './dto/request/review-pagerble.dto';
 import { ReviewPagerbleTimeFrameDto } from './dto/request/review-pagerble-timeframe.dto';
-import { SearchHistoryResponseDto } from 'src/user/dto/response/search-history.dto';
 
 @Controller('')
 @ApiTags('review')
@@ -428,16 +427,6 @@ export class ReviewController {
       },
       loginUser.idx,
     );
-  }
-
-  @Get('search/hot')
-  @ApiOperation({
-    summary: '인기 검색어 보기',
-    description: '12시간마다 집계되어 10개씩 반환됩니다.',
-  })
-  @ApiResponse({ status: 200 })
-  async getHotSearchKeyword(): Promise<SearchHistoryResponseDto> {
-    return;
   }
 
   @Get('/user/:userIdx/review/all')

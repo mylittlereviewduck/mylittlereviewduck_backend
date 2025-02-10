@@ -1,4 +1,3 @@
-import { Equals } from 'class-validator';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   ConsoleLogger,
@@ -1353,17 +1352,15 @@ export class ReviewService {
   }
 
   getMostRecentNoon(): Date {
-    const now = new Date();
-    const noon = new Date(now);
+    const noon = new Date();
 
     // 현재 시간이 12시 이후인지 확인
-    if (now.getHours() >= 12) {
+    if (noon.getHours() >= 12) {
       // 오늘 12시 정각으로 설정
       noon.setHours(12, 0, 0, 0);
     } else {
-      // 어제 12시 정각으로 설정
-      noon.setDate(noon.getDate() - 1);
-      noon.setHours(12, 0, 0, 0);
+      // 오늘 00시 정각으로 설정
+      noon.setHours(0, 0, 0, 0);
     }
 
     return noon;

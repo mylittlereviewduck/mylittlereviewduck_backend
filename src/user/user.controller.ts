@@ -241,6 +241,20 @@ export class UserController {
     );
   }
 
+  @Get('search/hot')
+  @ApiOperation({
+    summary: '인기 검색어 보기',
+    description: '12시간마다 집계되어 10개씩 반환됩니다.',
+  })
+  @ApiResponse({ status: 200 })
+  async getHotSearchKeyword(): Promise<String[]> {
+    return await this.searchKeywordService.getSearchKeyowrd({
+      createdAtGte: new Date(Date.now() - 24 * 60 * 60 * 1000),
+      createdAtLte: new Date(),
+    });
+    // return await this.searchKeywordService.getHotSearchKeyword();
+  }
+
   @Get('/search/history')
   @UseGuards(AuthGuard)
   @ApiBearerAuth()

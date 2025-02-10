@@ -43,6 +43,27 @@ export class CommentController {
     private readonly commentLikeCheckService: CommentLikeCheckService,
   ) {}
 
+  @Post('/review/:reviewIdx/comment')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: '댓글 작성' })
+  @ApiBearerAuth()
+  @ApiParam({ name: 'reviewIdx', type: 'number' })
+  @Exception(400, '유효하지않은 요청')
+  @Exception(401, '권한 없음')
+  @Exception(404, '해당 리소스 없음')
+  @ApiResponse({ status: 201, type: CommentEntity })
+  async createComment(
+    @Body() dto: CreateCommentDto,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
+    @GetUser() loginUser: LoginUser,
+  ): Promise<CommentEntity> {
+    return await this.commentService.createComment({
+      loginUserIdx: loginUser.idx,
+      reviewIdx: reviewIdx,
+      ...dto,
+    });
+  }
+
   @Get('/review/:reviewIdx/comment/all')
   @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '댓글 목록보기' })
@@ -87,27 +108,6 @@ export class CommentController {
     );
 
     return commentPagerbleResponseDto;
-  }
-
-  @Post('/review/:reviewIdx/comment')
-  @UseGuards(AuthGuard)
-  @ApiOperation({ summary: '댓글 작성' })
-  @ApiBearerAuth()
-  @ApiParam({ name: 'reviewIdx', type: 'number' })
-  @Exception(400, '유효하지않은 요청')
-  @Exception(401, '권한 없음')
-  @Exception(404, '해당 리소스 없음')
-  @ApiResponse({ status: 201, type: CommentEntity })
-  async createComment(
-    @Body() dto: CreateCommentDto,
-    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
-    @GetUser() loginUser: LoginUser,
-  ): Promise<CommentEntity> {
-    return await this.commentService.createComment({
-      loginUserIdx: loginUser.idx,
-      reviewIdx: reviewIdx,
-      ...dto,
-    });
   }
 
   @Put('/review/:reviewIdx/comment/:commentIdx')

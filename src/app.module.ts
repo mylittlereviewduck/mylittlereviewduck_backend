@@ -12,6 +12,7 @@ import { NotificationModule } from './notification/notification.module';
 import { ReportModule } from './report/report.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { RedisModule } from '@liaoliaots/nestjs-redis';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { RedisModule } from '@liaoliaots/nestjs-redis';
     EmailModule,
     NotificationModule,
     ReportModule,
+    ScheduleModule.forRoot(),
     EventEmitterModule.forRoot({
       maxListeners: 10,
       wildcard: true,

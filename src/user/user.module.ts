@@ -14,6 +14,7 @@ import { UserFollowService } from './user-follow.service';
 import { FcmTokenService } from './fcm-token.service';
 import { SearchKeywordService } from 'src/user/search-keyword.service';
 import { UserInteractionService } from './user-interaction.service';
+import { ReviewModule } from 'src/review/review.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { UserInteractionService } from './user-interaction.service';
     AwsModule,
     NotificationModule,
     EmailModule,
+    ReviewModule,
   ],
   controllers: [UserController],
   providers: [

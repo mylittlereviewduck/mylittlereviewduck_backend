@@ -6,7 +6,6 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  IsUUID,
   Length,
   Max,
   Min,
@@ -15,14 +14,6 @@ import {
 import { ReviewImage } from '../../type/review-image';
 
 export class UpdateReviewDto {
-  @ApiProperty({ example: '', description: '유저 식별자' })
-  @IsOptional()
-  @IsUUID()
-  userIdx?: string;
-
-  @ApiProperty({ example: '1', description: '리뷰 식별자' })
-  @IsOptional()
-  @IsNumber()
   reviewIdx?: number;
 
   @ApiProperty({ example: '제목', description: '리뷰 제목' })
@@ -54,15 +45,19 @@ export class UpdateReviewDto {
     example:
       'https://s3.ap-northeast-2.amazonaws.com/todayreview/1723963141509',
     description: '썸네일 이미지',
+    required: false,
   })
   @IsString()
+  @IsOptional()
   thumbnail: string;
 
   @ApiProperty({
     example: '썸네일 이미지 설명',
     description: '썸네일 이미지 설명',
+    required: false,
   })
   @IsString()
+  @IsOptional()
   thumbnailContent: string;
 
   @ApiProperty({
@@ -79,7 +74,9 @@ export class UpdateReviewDto {
       },
     ],
     description: '이미지 리스트, 6개 제한',
+    required: false,
   })
+  @IsOptional()
   @IsArray()
   @ArrayMaxSize(6)
   @ValidateNested({ each: true })

@@ -12,7 +12,10 @@ export class LoginDto {
   @Length(6, 30)
   pw: string;
 
-  @ApiProperty({ description: 'Fcm 토큰, 앱 로그인 시에만 필요합니다.' })
+  @ApiProperty({
+    description: 'Fcm 토큰, 앱 로그인 시에만 필요합니다.',
+    required: false,
+  })
   @IsOptional()
   @IsString()
   fcmToken?: string;

@@ -145,9 +145,8 @@ export class ReviewController {
     @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
     @Body() dto: UpdateReviewDto,
   ): Promise<ReviewEntity> {
-    dto.userIdx = loginUser.idx;
     dto.reviewIdx = reviewIdx;
-    return await this.reviewService.updateReview(dto);
+    return await this.reviewService.updateReview(dto, loginUser.idx);
   }
 
   @Delete('/review/:reviewIdx')

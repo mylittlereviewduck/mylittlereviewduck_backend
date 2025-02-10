@@ -114,7 +114,10 @@ export class ReviewService {
     return new ReviewEntity(reviewData);
   }
 
-  async updateReview(dto: UpdateReviewDto): Promise<ReviewEntity> {
+  async updateReview(
+    dto: UpdateReviewDto,
+    loginUserIdx: string,
+  ): Promise<ReviewEntity> {
     let data;
 
     await this.prismaService.$transaction(async (tx) => {
@@ -124,7 +127,7 @@ export class ReviewService {
         throw new NotFoundException('Not Found Review');
       }
 
-      if (review.user.idx !== dto.userIdx) {
+      if (review.user.idx !== loginUserIdx) {
         throw new UnauthorizedException('Unauthorized User');
       }
 

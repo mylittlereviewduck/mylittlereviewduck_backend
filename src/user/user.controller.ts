@@ -57,7 +57,7 @@ import { SearchHistoryResponseDto } from './dto/response/search-history.dto';
 import { SearchKeywordService } from './search-keyword.service';
 import { GetUserSearchDto } from './dto/get-users-search.dto';
 import { HotKeyword } from './dto/hot-keyword.type';
-import { PagerbleDto } from './dto/user-pagerble.dto';
+import { PagerbleDto } from './dto/pagerble.dto';
 
 @Controller('user')
 @ApiTags('user')
@@ -521,8 +521,7 @@ export class UserController {
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
     @Body() dto: SuspendUserDto,
   ) {
-    dto.userIdx = userIdx;
-    return await this.userSuspensionService.suspendUser(dto);
+    return await this.userSuspensionService.suspendUser(userIdx, dto.timeframe);
   }
 
   @Delete('/:userIdx/suspend')

@@ -32,6 +32,7 @@ import { CommentLikeEntity } from './entity/CommentLike.entity';
 import { OptionalAuthGuard } from 'src/auth/guard/optional-auth.guard';
 import { CommentPagerbleResponseDto } from './dto/response/comment-pagerble-response.dto';
 import { UserBlockCheckService } from 'src/user/user-block-check.service';
+import { PagerbleDto } from 'src/user/dto/pagerble.dto';
 
 @ApiTags('comment')
 @Controller()
@@ -69,16 +70,11 @@ export class CommentController {
   @Get('/review/:reviewIdx/comment/all')
   @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '댓글 목록보기' })
-  @ApiParam({ name: 'reviewIdx', type: 'number' })
-  @ApiQuery({
-    name: 'size',
-    example: 10,
-    description: '한 페이지에 담긴 리뷰수, 기본값 10',
-  })
-  @ApiQuery({
-    name: 'page',
-    example: 1,
-    description: '가져올 페이지, 기본값 1',
+  @ApiParam({
+    name: 'reviewIdx',
+    type: 'number',
+    example: '1000',
+    description: '리뷰 식별자',
   })
   @Exception(400, '유효하지않은 요청')
   @Exception(404, '해당 리소스 없음')
@@ -86,13 +82,12 @@ export class CommentController {
   async getCommemtAllByReviewIdx(
     @GetUser() loginUser: LoginUser,
     @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
-    @Query('page') page: number,
-    @Query('size') size: number,
+    @Query() dto: PagerbleDto,
   ): Promise<CommentPagerbleResponseDto> {
     const commentPagerbleResponseDto = await this.commentService.getCommentAll({
       reviewIdx: reviewIdx,
-      size: size || 10,
-      page: page || 1,
+      size: dto.size,
+      page: dto.page,
     });
 
     if (!loginUser) {

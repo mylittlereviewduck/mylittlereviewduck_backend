@@ -22,7 +22,7 @@ import { Observable, filter, interval, map } from 'rxjs';
 import { UserFollowService } from 'src/user/user-follow.service';
 import { SseService } from './sse.service';
 import { NotificationEntity } from './entity/Notification.entity';
-import { PagerbleDto } from 'src/user/dto/user-pagerble.dto';
+import { PagerbleDto } from 'src/user/dto/pagerble.dto';
 
 @Controller('')
 @ApiTags('user')

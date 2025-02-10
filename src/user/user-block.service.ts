@@ -10,7 +10,7 @@ import { UserBlockCheckService } from './user-block-check.service';
 import { UserService } from './user.service';
 import { UserBlockEntity } from './entity/UserBlock.entity';
 import { UserPagerbleResponseDto } from './dto/response/user-pagerble-response.dto';
-import { PagerbleDto } from './dto/user-pagerble.dto';
+import { PagerbleDto } from './dto/pagerble.dto';
 
 @Injectable()
 export class UserBlockService {

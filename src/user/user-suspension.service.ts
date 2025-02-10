@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserService } from './user.service';
 import { UserEntity } from './entity/User.entity';
-import { SuspendUserDto } from './dto/suspend-user.dto';
+import { SuspendUserDto, userSuspendPeriod } from './dto/suspend-user.dto';
 
 @Injectable()
 export class UserSuspensionService {
@@ -11,9 +11,12 @@ export class UserSuspensionService {
     private readonly userService: UserService,
   ) {}
 
-  async suspendUser(dto: SuspendUserDto): Promise<UserEntity> {
+  async suspendUser(
+    userIdx: string,
+    timeframe: userSuspendPeriod,
+  ): Promise<UserEntity> {
     const user = await this.userService.getUser({
-      idx: dto.userIdx,
+      idx: userIdx,
     });
 
     //기존정지기간 없다면 현재시간
@@ -26,13 +29,13 @@ export class UserSuspensionService {
 
     //추가될 정지기간
     let plusSuspendPeriod: number;
-    if (dto.timeframe == '7D') {
+    if (timeframe == '7D') {
       // 7일정지
       plusSuspendPeriod = 7 * 24 * 60 * 60 * 1000;
-    } else if (dto.timeframe == '1M') {
+    } else if (timeframe == '1M') {
       // 한달정지
       plusSuspendPeriod = 30 * 24 * 60 * 60 * 1000;
-    } else if (dto.timeframe == 'blackList') {
+    } else if (timeframe == 'blackList') {
       //100년정지
       plusSuspendPeriod = 100 * 365 * 24 * 60 * 60 * 1000;
     }
@@ -54,7 +57,7 @@ export class UserSuspensionService {
         ),
       },
       where: {
-        idx: dto.userIdx,
+        idx: userIdx,
       },
     });
 

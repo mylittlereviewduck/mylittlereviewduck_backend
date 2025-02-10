@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { PagerbleDto } from './user-pagerble.dto';
+import { PagerbleDto } from './pagerble.dto';
 import { IsString, Length } from 'class-validator';
 
 export class GetUserSearchDto extends PagerbleDto {

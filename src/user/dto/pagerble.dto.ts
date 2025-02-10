@@ -10,7 +10,7 @@ export class PagerbleDto {
   })
   @Type(() => Number)
   @IsOptional()
-  size: number = 20;
+  size: number = 10;
 
   @ApiProperty({
     description: '가져올 페이지',

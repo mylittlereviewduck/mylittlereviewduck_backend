@@ -13,7 +13,7 @@ import { ReviewService } from 'src/review/review.service';
 import { FcmTokenService } from 'src/user/fcm-token.service';
 import { FirebaseService } from './firebase.service';
 import { SseService } from './sse.service';
-import { PagerbleDto } from 'src/user/dto/user-pagerble.dto';
+import { PagerbleDto } from 'src/user/dto/pagerble.dto';
 
 @Injectable()
 export class NotificationService {

@@ -59,58 +59,6 @@ export class ReviewController {
     private readonly awsService: AwsService,
   ) {}
 
-  @Get('/review/high-score')
-  @UseGuards(OptionalAuthGuard)
-  @ApiOperation({ summary: '평점 3-5점의 최신 리뷰목록보기' })
-  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
-  async getLatestReviewsHighScore(
-    @GetUser() loginUser: LoginUser,
-    @Query() dto: ReviewPagerbleTimeFrameDto,
-  ): Promise<ReviewPagerbleResponseDto> {
-    return await this.reviewService.getScoreReviewsWithInteraction(
-      {
-        ...dto,
-        scoreGte: 3,
-      },
-      loginUser && loginUser.idx,
-    );
-  }
-
-  @Get('/review/low-score')
-  @UseGuards(OptionalAuthGuard)
-  @ApiOperation({ summary: '평점 0-2점의 최신 리뷰목록보기' })
-  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
-  async getLatestReviewsLowScore(
-    @GetUser() loginUser: LoginUser,
-    @Query() dto: ReviewPagerbleTimeFrameDto,
-  ): Promise<ReviewPagerbleResponseDto> {
-    return await this.reviewService.getScoreReviewsWithInteraction(
-      {
-        ...dto,
-        scoreLte: 2,
-      },
-      loginUser && loginUser.idx,
-    );
-  }
-
-  @Get('/review/high-score/hot')
-  @ApiOperation({ summary: '평점 3-5점의 인기리뷰 보기' })
-  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
-  async getHotReviewsHighScoreWithInteraction(
-    @Query() dto: ReviewPagerbleDto,
-  ): Promise<ReviewPagerbleResponseDto> {
-    return await this.reviewService.getCachedHotReviewsHighScore(dto);
-  }
-
-  @Get('/review/low-score/hot')
-  @ApiOperation({ summary: '평점 0-2점의 인기리뷰 보기' })
-  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
-  async getHotReviewsLowScoreWithInteraction(
-    @Query() dto: ReviewPagerbleDto,
-  ): Promise<ReviewPagerbleResponseDto> {
-    return await this.reviewService.getCachedHotReviewsLowScore(dto);
-  }
-
   @Post('/review')
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '리뷰 작성하기' })
@@ -390,46 +338,6 @@ export class ReviewController {
     await this.reviewBlockService.unblockReview(loginUser.idx, reviewIdx);
   }
 
-  @Get('/review/high-score/following')
-  @UseGuards(AuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: ' 평점 3-5점의 덕질중인 리뷰 목록 보기' })
-  @Exception(401, '권한없음')
-  @ApiResponse({ status: 200 })
-  async getHighScoreByFollowingUsers(
-    @GetUser() loginUser: LoginUser,
-    @Query() dto: ReviewPagerbleDto,
-  ): Promise<ReviewPagerbleResponseDto> {
-    return await this.reviewService.getFollowingReviewsWithInteraction(
-      {
-        size: dto.size,
-        page: dto.page,
-        scoreGte: 3,
-      },
-      loginUser.idx,
-    );
-  }
-
-  @Get('/review/low-score/following')
-  @UseGuards(AuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: ' 평점 0-2점의 덕질중인 리뷰 목록 보기' })
-  @Exception(401, '권한없음')
-  @ApiResponse({ status: 200 })
-  async getLowScoreReviewsByFollowingUsers(
-    @GetUser() loginUser: LoginUser,
-    @Query() dto: ReviewPagerbleDto,
-  ): Promise<ReviewPagerbleResponseDto> {
-    return await this.reviewService.getFollowingReviewsWithInteraction(
-      {
-        size: dto.size,
-        page: dto.page,
-        scoreLte: 2,
-      },
-      loginUser.idx,
-    );
-  }
-
   @Get('/user/:userIdx/review/all')
   @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '유저가 쓴 리뷰목록보기' })
@@ -508,6 +416,98 @@ export class ReviewController {
         userIdx: userIdx,
       },
       loginUser && loginUser.idx,
+    );
+  }
+
+  @Get('/review/high-score')
+  @UseGuards(OptionalAuthGuard)
+  @ApiOperation({ summary: '평점 3-5점의 최신 리뷰목록보기' })
+  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
+  async getLatestReviewsHighScore(
+    @GetUser() loginUser: LoginUser,
+    @Query() dto: ReviewPagerbleTimeFrameDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    return await this.reviewService.getScoreReviewsWithInteraction(
+      {
+        ...dto,
+        scoreGte: 3,
+      },
+      loginUser && loginUser.idx,
+    );
+  }
+
+  @Get('/review/high-score/hot')
+  @ApiOperation({ summary: '평점 3-5점의 인기리뷰 보기' })
+  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
+  async getHotReviewsHighScoreWithInteraction(
+    @Query() dto: ReviewPagerbleDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    return await this.reviewService.getCachedHotReviewsHighScore(dto);
+  }
+
+  @Get('/review/high-score/following')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: ' 평점 3-5점의 덕질중인 리뷰 목록 보기' })
+  @Exception(401, '권한없음')
+  @ApiResponse({ status: 200 })
+  async getHighScoreByFollowingUsers(
+    @GetUser() loginUser: LoginUser,
+    @Query() dto: ReviewPagerbleDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    return await this.reviewService.getFollowingReviewsWithInteraction(
+      {
+        size: dto.size,
+        page: dto.page,
+        scoreGte: 3,
+      },
+      loginUser.idx,
+    );
+  }
+
+  @Get('/review/low-score')
+  @UseGuards(OptionalAuthGuard)
+  @ApiOperation({ summary: '평점 0-2점의 최신 리뷰목록보기' })
+  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
+  async getLatestReviewsLowScore(
+    @GetUser() loginUser: LoginUser,
+    @Query() dto: ReviewPagerbleTimeFrameDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    return await this.reviewService.getScoreReviewsWithInteraction(
+      {
+        ...dto,
+        scoreLte: 2,
+      },
+      loginUser && loginUser.idx,
+    );
+  }
+
+  @Get('/review/low-score/hot')
+  @ApiOperation({ summary: '평점 0-2점의 인기리뷰 보기' })
+  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
+  async getHotReviewsLowScoreWithInteraction(
+    @Query() dto: ReviewPagerbleDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    return await this.reviewService.getCachedHotReviewsLowScore(dto);
+  }
+
+  @Get('/review/low-score/following')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: ' 평점 0-2점의 덕질중인 리뷰 목록 보기' })
+  @Exception(401, '권한없음')
+  @ApiResponse({ status: 200 })
+  async getLowScoreReviewsByFollowingUsers(
+    @GetUser() loginUser: LoginUser,
+    @Query() dto: ReviewPagerbleDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    return await this.reviewService.getFollowingReviewsWithInteraction(
+      {
+        size: dto.size,
+        page: dto.page,
+        scoreLte: 2,
+      },
+      loginUser.idx,
     );
   }
 }

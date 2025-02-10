@@ -7,7 +7,7 @@ import { GetSearchKeywordDto } from './dto/get-search-keyword.dto';
 import { Cron } from '@nestjs/schedule';
 import { ReviewService } from 'src/review/review.service';
 import { DEFAULT_REDIS, RedisService } from '@liaoliaots/nestjs-redis';
-import { HotKeyword, HotKeywordType } from './type/hot-keyword.type';
+import { HotKeyword, HotKeywordType } from './dto/hot-keyword.type';
 
 @Injectable()
 export class SearchKeywordService {
@@ -39,7 +39,10 @@ export class SearchKeywordService {
     });
 
     await this.prismaService.searchKeywordTb.create({
-      data: { keyword: normalizedKeyword },
+      data: {
+        keyword: normalizedKeyword,
+        createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000),
+      },
     });
   }
 
@@ -146,7 +149,9 @@ export class SearchKeywordService {
     return comparedKeywords;
   }
 
-  async getCachedHotSearchKeywod(): Promise<void> {}
+  async getCachedHotSearchKeywod(): Promise<HotKeyword[]> {
+    return JSON.parse(await this.redis.get(`search:hot:present`));
+  }
 
   async onModuleInit() {
     console.log('searchKeyword Service start');

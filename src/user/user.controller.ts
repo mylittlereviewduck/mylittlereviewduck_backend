@@ -57,6 +57,7 @@ import { FcmTokenService } from './fcm-token.service';
 import { SearchHistoryResponseDto } from './dto/response/search-history.dto';
 import { SearchKeywordService } from './search-keyword.service';
 import { GetUserSearchDto } from './dto/get-users-search.dto';
+import { HotKeyword } from './dto/hot-keyword.type';
 
 @Controller('user')
 @ApiTags('user')
@@ -244,15 +245,32 @@ export class UserController {
   @Get('search/hot')
   @ApiOperation({
     summary: '인기 검색어 보기',
-    description: '12시간마다 집계되어 10개씩 반환됩니다.',
+    description: '12시간마다 집계되어 최대 10개씩 반환됩니다.',
   })
-  @ApiResponse({ status: 200 })
-  async getHotSearchKeyword(): Promise<String[]> {
-    return await this.searchKeywordService.getSearchKeyowrd({
-      createdAtGte: new Date(Date.now() - 24 * 60 * 60 * 1000),
-      createdAtLte: new Date(),
-    });
-    // return await this.searchKeywordService.getHotSearchKeyword();
+  @ApiResponse({
+    status: 200,
+    type: HotKeyword,
+    isArray: true,
+    example: [
+      {
+        rank: 1,
+        keyword: '오리',
+        status: 'up',
+      },
+      {
+        rank: 2,
+        keyword: '호랑이',
+        status: 'down',
+      },
+      {
+        rank: 3,
+        keyword: '강아지',
+        status: 'equal',
+      },
+    ],
+  })
+  async getHotSearchKeyword(): Promise<HotKeyword[]> {
+    return await this.searchKeywordService.getCachedHotSearchKeywod();
   }
 
   @Get('/search/history')

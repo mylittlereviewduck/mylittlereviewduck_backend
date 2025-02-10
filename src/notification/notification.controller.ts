@@ -19,10 +19,10 @@ import { Exception } from 'src/decorator/exception.decorator';
 import { NotificationPagerbleResponseDto } from './dto/response/notification-pagerble-response.dto';
 import { NotificationService } from './notification.service';
 import { Observable, filter, interval, map } from 'rxjs';
-import { GetNotificationDto } from './dto/get-notification.dto';
 import { UserFollowService } from 'src/user/user-follow.service';
 import { SseService } from './sse.service';
 import { NotificationEntity } from './entity/Notification.entity';
+import { PagerbleDto } from 'src/user/dto/user-pagerble.dto';
 
 @Controller('')
 @ApiTags('user')
@@ -40,15 +40,17 @@ export class NotificationController {
   @Exception(400, '유효하지않은 요청')
   @ApiResponse({ status: 200, type: NotificationPagerbleResponseDto })
   async getMyNotifications(
-    @Query() dto: GetNotificationDto,
+    @Query() dto: PagerbleDto,
     @GetUser() loginUser: LoginUser,
   ): Promise<NotificationPagerbleResponseDto> {
     const notificationPagerbleResponseDto =
-      await this.notificationService.getMyNotificationAll({
-        userIdx: loginUser.idx,
-        page: dto.page,
-        size: dto.size,
-      });
+      await this.notificationService.getMyNotificationAll(
+        {
+          page: dto.page,
+          size: dto.size,
+        },
+        loginUser.idx,
+      );
 
     await this.userFollowService.isFollow(
       loginUser.idx,

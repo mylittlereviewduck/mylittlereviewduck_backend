@@ -1,7 +1,7 @@
 import { UserStatus } from '../type/user-status.type';
-import { UserPagerbleDto } from './user-pagerble.dto';
+import { PagerbleDto } from './user-pagerble.dto';
 
-export class GetUsersAllDto extends UserPagerbleDto {
+export class GetUsersAllDto extends PagerbleDto {
   email?: string;
   nickname?: string;
   interest1?: string;

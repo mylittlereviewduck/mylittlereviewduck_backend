@@ -1,5 +1,4 @@
 import { OnEvent } from '@nestjs/event-emitter';
-import { GetNotificationDto } from './dto/get-notification.dto';
 import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
@@ -14,6 +13,7 @@ import { ReviewService } from 'src/review/review.service';
 import { FcmTokenService } from 'src/user/fcm-token.service';
 import { FirebaseService } from './firebase.service';
 import { SseService } from './sse.service';
+import { PagerbleDto } from 'src/user/dto/user-pagerble.dto';
 
 @Injectable()
 export class NotificationService {
@@ -98,14 +98,15 @@ export class NotificationService {
   }
 
   async getMyNotificationAll(
-    dto: GetNotificationDto,
+    dto: PagerbleDto,
+    loginUserIdx: string,
   ): Promise<NotificationPagerbleResponseDto> {
     let totalCount: number, notificationData: Notification[];
 
     await this.prismaService.$transaction(async (tx) => {
       totalCount = await tx.notificationTb.count({
         where: {
-          recipientIdx: dto.userIdx,
+          recipientIdx: loginUserIdx,
         },
       });
 
@@ -119,7 +120,7 @@ export class NotificationService {
           },
         },
         where: {
-          recipientIdx: dto.userIdx,
+          recipientIdx: loginUserIdx,
         },
         orderBy: {
           createdAt: 'desc',
@@ -133,7 +134,7 @@ export class NotificationService {
           readAt: new Date(),
         },
         where: {
-          recipientIdx: dto.userIdx,
+          recipientIdx: loginUserIdx,
         },
       });
     });

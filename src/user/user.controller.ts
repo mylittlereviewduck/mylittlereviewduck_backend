@@ -50,7 +50,6 @@ import { FileValidationPipe } from 'src/common/fileValidation.pipe';
 import { UserListResponseDto } from './dto/response/user-list-response.dto';
 import { AdminGuard } from 'src/auth/guard/admin.guard';
 import { SuspendUserDto } from './dto/suspend-user.dto';
-import { UserPagerbleDto } from './dto/user-pagerble.dto';
 import { UserFollowService } from './user-follow.service';
 import { CreateFcmTokenDto } from './dto/save-fcm-token.dto';
 import { FcmTokenService } from './fcm-token.service';
@@ -58,6 +57,7 @@ import { SearchHistoryResponseDto } from './dto/response/search-history.dto';
 import { SearchKeywordService } from './search-keyword.service';
 import { GetUserSearchDto } from './dto/get-users-search.dto';
 import { HotKeyword } from './dto/hot-keyword.type';
+import { PagerbleDto } from './dto/user-pagerble.dto';
 
 @Controller('user')
 @ApiTags('user')
@@ -320,7 +320,7 @@ export class UserController {
   @ApiResponse({ status: 200, type: UserPagerbleResponseDto })
   async getFollowingAll(
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
-    @Query() dto: UserPagerbleDto,
+    @Query() dto: PagerbleDto,
     @GetUser() loginUser: LoginUser,
   ): Promise<UserPagerbleResponseDto> {
     const { followingIdxs, totalCount } =
@@ -358,7 +358,7 @@ export class UserController {
   @ApiResponse({ status: 200, type: UserPagerbleResponseDto })
   async getFollowerAll(
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
-    @Query() dto: UserPagerbleDto,
+    @Query() dto: PagerbleDto,
     @GetUser() loginUser: LoginUser,
   ): Promise<UserPagerbleResponseDto> {
     const { followerIdxs, totalCount } =
@@ -482,7 +482,7 @@ export class UserController {
   @ApiResponse({ status: 200, type: UserPagerbleResponseDto })
   async getBlockedUserAll(
     @GetUser() loginUser: LoginUser,
-    @Query() dto: UserPagerbleDto,
+    @Query() dto: PagerbleDto,
   ): Promise<UserPagerbleResponseDto> {
     const userPagerbleResponseDto =
       await this.userBlockService.getBlockedUserAll(loginUser.idx, {
@@ -560,7 +560,7 @@ export class UserController {
   @ApiResponse({ status: 200 })
   async getUsersWithStatus(
     @Param('status') status: UserStatus,
-    @Query() dto: UserPagerbleDto,
+    @Query() dto: PagerbleDto,
   ): Promise<UserListResponseDto> {
     return await this.userService.getUsersAll({
       status,

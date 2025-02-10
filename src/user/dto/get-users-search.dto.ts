@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { UserPagerbleDto } from './user-pagerble.dto';
+import { PagerbleDto } from './user-pagerble.dto';
 import { IsString, Length } from 'class-validator';
 
-export class GetUserSearchDto extends UserPagerbleDto {
+export class GetUserSearchDto extends PagerbleDto {
   @ApiProperty({
     description: '검색키워드',
   })

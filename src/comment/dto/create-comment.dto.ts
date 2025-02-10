@@ -37,6 +37,4 @@ export class CreateCommentDto {
   content: string;
 
   reviewIdx?: number;
-
-  loginUserIdx: string;
 }

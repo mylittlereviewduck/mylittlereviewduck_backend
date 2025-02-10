@@ -57,11 +57,13 @@ export class CommentController {
     @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
     @GetUser() loginUser: LoginUser,
   ): Promise<CommentEntity> {
-    return await this.commentService.createComment({
-      loginUserIdx: loginUser.idx,
-      reviewIdx: reviewIdx,
-      ...dto,
-    });
+    return await this.commentService.createComment(
+      {
+        reviewIdx: reviewIdx,
+        ...dto,
+      },
+      loginUser.idx,
+    );
   }
 
   @Get('/review/:reviewIdx/comment/all')

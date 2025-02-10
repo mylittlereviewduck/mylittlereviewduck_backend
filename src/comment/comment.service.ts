@@ -92,7 +92,10 @@ export class CommentService {
     };
   }
 
-  async createComment(dto: CreateCommentDto): Promise<CommentEntity> {
+  async createComment(
+    dto: CreateCommentDto,
+    loginUserIdx: string,
+  ): Promise<CommentEntity> {
     let comment;
     const review = await this.reviewService.getReviewByIdx(dto.reviewIdx);
 
@@ -125,7 +128,7 @@ export class CommentService {
       },
       data: {
         reviewIdx: dto.reviewIdx,
-        accountIdx: dto.loginUserIdx,
+        accountIdx: loginUserIdx,
         content: dto.content,
         ...(dto.commentIdx && { commentIdx: dto.commentIdx }),
         commentTagTb: {
@@ -138,9 +141,9 @@ export class CommentService {
       },
     });
 
-    if (dto.loginUserIdx !== review.user.idx) {
+    if (loginUserIdx !== review.user.idx) {
       this.eventEmitter.emit('notification.create', {
-        senderIdx: dto.loginUserIdx,
+        senderIdx: loginUserIdx,
         recipientIdx: review.user.idx,
         type: 3,
         reviewIdx: review.idx,

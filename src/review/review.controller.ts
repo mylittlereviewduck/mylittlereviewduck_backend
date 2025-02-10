@@ -45,8 +45,8 @@ import { ReviewBlockEntity } from './entity/ReviewBlock.entity';
 import { ReviewBookmarkEntity } from './entity/Reviewbookmark.entity';
 import { BookmarkService } from './bookmark.service';
 import { GetReviewsWithSearchDto } from './dto/request/get-review-with-search.dto';
-import { ReviewPagerbleDto } from './dto/request/review-pagerble.dto';
-import { ReviewPagerbleTimeFrameDto } from './dto/request/review-pagerble-timeframe.dto';
+import { HotReviewPagerbleDto } from './dto/request/hot-review-pagerble.dto';
+import { PagerbleDto } from 'src/user/dto/pagerble.dto';
 
 @Controller('')
 @ApiTags('review')
@@ -342,7 +342,7 @@ export class ReviewController {
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
   async getLatestReviewsHighScore(
     @GetUser() loginUser: LoginUser,
-    @Query() dto: ReviewPagerbleTimeFrameDto,
+    @Query() dto: PagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
     return await this.reviewService.getScoreReviewsWithInteraction(
       {
@@ -357,7 +357,7 @@ export class ReviewController {
   @ApiOperation({ summary: '평점 3-5점의 인기리뷰 보기' })
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
   async getHotReviewsHighScoreWithInteraction(
-    @Query() dto: ReviewPagerbleDto,
+    @Query() dto: HotReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
     return await this.reviewService.getCachedHotReviewsHighScore(dto);
   }
@@ -370,7 +370,7 @@ export class ReviewController {
   @ApiResponse({ status: 200 })
   async getHighScoreByFollowingUsers(
     @GetUser() loginUser: LoginUser,
-    @Query() dto: ReviewPagerbleDto,
+    @Query() dto: PagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
     return await this.reviewService.getFollowingReviewsWithInteraction(
       {
@@ -388,7 +388,7 @@ export class ReviewController {
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
   async getLatestReviewsLowScore(
     @GetUser() loginUser: LoginUser,
-    @Query() dto: ReviewPagerbleTimeFrameDto,
+    @Query() dto: PagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
     return await this.reviewService.getScoreReviewsWithInteraction(
       {
@@ -403,7 +403,7 @@ export class ReviewController {
   @ApiOperation({ summary: '평점 0-2점의 인기리뷰 보기' })
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
   async getHotReviewsLowScoreWithInteraction(
-    @Query() dto: ReviewPagerbleDto,
+    @Query() dto: HotReviewPagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
     return await this.reviewService.getCachedHotReviewsLowScore(dto);
   }
@@ -416,7 +416,7 @@ export class ReviewController {
   @ApiResponse({ status: 200 })
   async getLowScoreReviewsByFollowingUsers(
     @GetUser() loginUser: LoginUser,
-    @Query() dto: ReviewPagerbleDto,
+    @Query() dto: PagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
     return await this.reviewService.getFollowingReviewsWithInteraction(
       {
@@ -437,7 +437,7 @@ export class ReviewController {
   async getReviewsAllByUserIdx(
     @GetUser() loginUser: LoginUser,
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
-    @Query() dto: ReviewPagerbleDto,
+    @Query() dto: PagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
     return await this.reviewService.getReviewsByUserIdxWithInteraction(
       {
@@ -457,7 +457,7 @@ export class ReviewController {
   async getBookmarkedReviews(
     @GetUser() loginUser: LoginUser,
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
-    @Query() dto: ReviewPagerbleDto,
+    @Query() dto: PagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
     return await this.reviewService.getBookmarkedReviewsWithInteraction(
       {
@@ -478,7 +478,7 @@ export class ReviewController {
   async getCommentedReviews(
     @GetUser() loginUser: LoginUser,
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
-    @Query() dto: ReviewPagerbleDto,
+    @Query() dto: PagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
     return await this.reviewService.getCommentedReviewsWithInteraction(
       {
@@ -498,7 +498,7 @@ export class ReviewController {
   async getLikedReviews(
     @GetUser() loginUser: LoginUser,
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
-    @Query() dto: ReviewPagerbleDto,
+    @Query() dto: PagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
     return await this.reviewService.getLikedReviewsWithInteraction(
       {

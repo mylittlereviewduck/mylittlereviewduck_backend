@@ -12,7 +12,7 @@ export class CreateUserDto {
   email: string;
 
   @ApiProperty({
-    example: 'pw123!!',
+    example: 'aA123!!',
     description: '6-30자의 비밀번호, 문자, 숫자, 특수문자 포함',
   })
   @Matches(/^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*()_+=-]).{6,30}$/, {
@@ -23,7 +23,7 @@ export class CreateUserDto {
   pw: string;
 
   @ApiProperty({
-    example: 'pw123!!',
+    example: 'aA123!!',
     description: '비밀번호와 동일 값',
   })
   @Match('pw', { message: '비밀번호와 일치하지 않습니다.' })

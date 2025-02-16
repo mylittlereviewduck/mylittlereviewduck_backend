@@ -92,7 +92,11 @@ export class AuthController {
   }
 
   @Post('/login')
-  @ApiOperation({ summary: '로그인' })
+  @ApiOperation({
+    summary: '로그인',
+    description: `test1@a.com - test10@a.com은 테스트용으로 가입된 메일입니다.  
+    `,
+  })
   @HttpCode(200)
   @Exception(400, '유효하지않은 요청')
   @Exception(401, '권한 없음')

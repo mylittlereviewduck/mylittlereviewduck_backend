@@ -63,7 +63,7 @@ export class ReviewController {
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '리뷰 작성하기' })
   @ApiBearerAuth()
-  @Exception(400, '유효하지않은 요청')
+  @Exception(400, '유효하지 않은 요청')
   @Exception(401, '권한 없음')
   @ApiResponse({
     status: 201,
@@ -99,7 +99,7 @@ export class ReviewController {
   })
   @Exception(
     400,
-    '유효하지않은 요청(파일 없는경우, 파일크기 초과한경우(10MB), 허용되는 확장자(jpg, jpeg, png, gif)가 아닌경우)',
+    '유효하지 않은 요청(파일 없는경우, 파일크기 초과한경우(10MB), 허용되는 확장자(jpg, jpeg, png, gif)가 아닌경우)',
   )
   @Exception(401, '권한없음')
   @ApiResponse({
@@ -118,7 +118,7 @@ export class ReviewController {
   @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '리뷰 자세히보기' })
   @ApiParam({ name: 'reviewIdx', type: 'number', example: 1 })
-  @Exception(400, '유효하지않은 요청')
+  @Exception(400, '유효하지 않은 요청')
   @Exception(401, '권한 없음')
   @ApiResponse({ status: 200, type: ReviewEntity })
   async getReviewDetail(
@@ -136,7 +136,7 @@ export class ReviewController {
   @ApiOperation({ summary: '리뷰 수정하기' })
   @ApiBearerAuth()
   @ApiParam({ name: 'reviewIdx', type: 'number', example: 1 })
-  @Exception(400, '유효하지않은 요청')
+  @Exception(400, '유효하지 않은 요청')
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 없음')
   @ApiResponse({ status: 200, type: ReviewEntity })
@@ -153,7 +153,7 @@ export class ReviewController {
   @ApiOperation({ summary: '리뷰 삭제하기' })
   @ApiBearerAuth()
   @ApiParam({ name: 'reviewIdx', type: 'number', example: 3 })
-  @Exception(400, '유효하지않은 요청')
+  @Exception(400, '유효하지 않은 요청')
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 없음')
   @ApiResponse({ status: 200 })
@@ -171,7 +171,7 @@ export class ReviewController {
     description: '작성자 닉네임, 태그, 제목, 내용으로 검색됩니다',
   })
   @ApiQuery({ name: 'search', description: '검색 키워드, 검색어 2글자 이상' })
-  @Exception(400, '유효하지않은 요청')
+  @Exception(400, '유효하지 않은 요청')
   @Exception(404, 'Not Found Page')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
   async getSearchedReviewWithUserStatus(
@@ -189,7 +189,7 @@ export class ReviewController {
   @ApiOperation({ summary: '리뷰 좋아요하기' })
   @ApiParam({ name: 'reviewIdx', type: 'number', example: 1 })
   @ApiBearerAuth()
-  @Exception(400, '유효하지않은 요청')
+  @Exception(400, '유효하지 않은 요청')
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 찾을수 없음')
   @Exception(409, '현재상태와 요청 충돌')
@@ -206,7 +206,7 @@ export class ReviewController {
   @ApiOperation({ summary: '리뷰 좋아요해제하기' })
   @ApiParam({ name: 'reviewIdx', type: 'number', example: 1 })
   @ApiBearerAuth()
-  @Exception(400, '유효하지않은 요청')
+  @Exception(400, '유효하지 않은 요청')
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 찾을수 없음')
   @Exception(409, '현재상태와 요청 충돌')
@@ -223,7 +223,7 @@ export class ReviewController {
   @ApiOperation({ summary: '리뷰 싫어요하기' })
   @ApiParam({ name: 'reviewIdx', type: 'number', example: 1 })
   @ApiBearerAuth()
-  @Exception(400, '유효하지않은 요청')
+  @Exception(400, '유효하지 않은 요청')
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 찾을수 없음')
   @Exception(409, '현재상태와 요청 충돌')
@@ -240,7 +240,7 @@ export class ReviewController {
   @ApiOperation({ summary: '리뷰 싫어요 해제하기' })
   @ApiParam({ name: 'reviewIdx', type: 'number', example: 1 })
   @ApiBearerAuth()
-  @Exception(400, '유효하지않은 요청')
+  @Exception(400, '유효하지 않은 요청')
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 찾을수 없음')
   @Exception(409, '현재상태와 요청 충돌')
@@ -257,7 +257,7 @@ export class ReviewController {
   @ApiOperation({ summary: '리뷰 북마크하기' })
   @ApiParam({ name: 'reviewIdx', type: 'number', example: 1 })
   @ApiBearerAuth()
-  @Exception(400, '유효하지않은 요청')
+  @Exception(400, '유효하지 않은 요청')
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 찾을수 없음')
   @Exception(409, '현재상태와 요청 충돌')
@@ -274,7 +274,7 @@ export class ReviewController {
   @ApiOperation({ summary: '리뷰 북마크해제하기' })
   @ApiParam({ name: 'reviewIdx', type: 'number', example: 1 })
   @ApiBearerAuth()
-  @Exception(400, '유효하지않은 요청')
+  @Exception(400, '유효하지 않은 요청')
   @Exception(401, '권한 없음')
   @Exception(404, '해당 리소스 찾을수 없음')
   @Exception(409, '현재상태와 요청 충돌')
@@ -291,7 +291,7 @@ export class ReviewController {
   // @ApiOperation({ summary: '리뷰 공유하기' })
   // @ApiParam({ name: 'reviewIdx', type: 'number', example: 1 })
   // @ApiBearerAuth()
-  // @Exception(400, '유효하지않은 요청')
+  // @Exception(400, '유효하지 않은 요청')
   // @Exception(401, '권한 없음')
   // @Exception(404, '해당 리소스 찾을수 없음')
   // @Exception(409, '현재상태와 요청 충돌')
@@ -432,7 +432,7 @@ export class ReviewController {
   @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '유저가 쓴 리뷰목록보기' })
   @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
-  @Exception(400, '유효하지않은 요청')
+  @Exception(400, '유효하지 않은 요청')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
   async getReviewsAllByUserIdx(
     @GetUser() loginUser: LoginUser,
@@ -452,7 +452,7 @@ export class ReviewController {
   @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '유저의 북마크한 리뷰목록보기' })
   @ApiParam({ name: 'userIdx', type: 'number', description: '유저식별자' })
-  @Exception(400, '유효하지않은 요청')
+  @Exception(400, '유효하지 않은 요청')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
   async getBookmarkedReviews(
     @GetUser() loginUser: LoginUser,
@@ -473,7 +473,7 @@ export class ReviewController {
   @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '유저의 댓글단 리뷰목록보기' })
   @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
-  @Exception(400, '유효하지않은 요청')
+  @Exception(400, '유효하지 않은 요청')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
   async getCommentedReviews(
     @GetUser() loginUser: LoginUser,
@@ -493,7 +493,7 @@ export class ReviewController {
   @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '유저의 좋아요한 리뷰목록보기' })
   @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
-  @Exception(400, '유효하지않은 요청')
+  @Exception(400, '유효하지 않은 요청')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
   async getLikedReviews(
     @GetUser() loginUser: LoginUser,

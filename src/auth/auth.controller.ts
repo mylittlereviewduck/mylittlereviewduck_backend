@@ -52,7 +52,7 @@ export class AuthController {
        이외에 가입되지 않은 다른 메일을 입력해주세요       
       `,
   })
-  @Exception(400, '유효하지않은 요청')
+  @Exception(400, '유효하지 않은 요청')
   @Exception(409, '이메일 중복')
   @ApiResponse({ status: 200 })
   async inspectEmailDuplicate(
@@ -70,7 +70,7 @@ export class AuthController {
        가입된 정상 이메일이면 상태코드 200반환 후 인증번호 메일 전송    
        test1@a.com - test10@a.com은 테스트용으로 가입된 메일입니다.  `,
   })
-  @Exception(400, '유효하지않은 요청')
+  @Exception(400, '유효하지 않은 요청')
   @Exception(404, '존재하지 않는 이메일')
   @ApiResponse({ status: 200 })
   async inspectEmail(@Body() dto: SendEmailVerificationDto): Promise<void> {
@@ -84,7 +84,7 @@ export class AuthController {
       인증된 메일이 아니거나 유효시간 5분을 초과한 메일일 경우 상태코드 401 반환`,
   })
   @HttpCode(200)
-  @Exception(400, '유효하지않은 요청')
+  @Exception(400, '유효하지 않은 요청')
   @Exception(401, '인증되지 않은 이메일 / 유효시간 5분 초과한 이메일')
   @ApiResponse({ status: 200 })
   async checkEmailVerificationCode(@Body() dto: VerifyEmailDto): Promise<void> {
@@ -98,7 +98,7 @@ export class AuthController {
     `,
   })
   @HttpCode(200)
-  @Exception(400, '유효하지않은 요청')
+  @Exception(400, '유효하지 않은 요청')
   @Exception(401, '존재하지 않는 계정')
   @Exception(409, '비밀번호 오류')
   @ApiResponse({ status: 200, type: LoginResponseDto })
@@ -114,7 +114,7 @@ export class AuthController {
     description: 'request 헤더에 리프레쉬 토큰 필요합니다.',
   })
   @HttpCode(200)
-  @Exception(400, '유효하지않은 요청')
+  @Exception(400, '유효하지 않은 요청')
   @Exception(401, '권한 없음')
   @ApiResponse({ status: 200, type: GetAccessTokenResponseDto })
   async getAccessToken(
@@ -133,7 +133,7 @@ export class AuthController {
   @Post('/kakao')
   @ApiOperation({ summary: '카카오 로그인' })
   @HttpCode(200)
-  @Exception(400, '유효하지않은 요청')
+  @Exception(400, '유효하지 않은 요청')
   @ApiResponse({ status: 200, type: LoginResponseDto })
   async kakaoLogin(@Body() dto: SocialLoginDto): Promise<LoginResponseDto> {
     return await this.authService.socialLogin('kakao', dto);
@@ -142,7 +142,7 @@ export class AuthController {
   @Post('/naver')
   @ApiOperation({ summary: '네이버 로그인' })
   @HttpCode(200)
-  @Exception(400, '유효하지않은 요청')
+  @Exception(400, '유효하지 않은 요청')
   @ApiResponse({ status: 200, type: LoginResponseDto })
   async naverLogin(@Body() dto: SocialLoginDto): Promise<LoginResponseDto> {
     return await this.authService.socialLogin('naver', dto);
@@ -151,7 +151,7 @@ export class AuthController {
   @Post('/google')
   @ApiOperation({ summary: '구글 로그인' })
   @HttpCode(200)
-  @Exception(400, '유효하지않은 요청')
+  @Exception(400, '유효하지 않은 요청')
   @ApiResponse({ status: 200, type: LoginResponseDto })
   async googleLogin(@Body() dto: SocialLoginDto): Promise<LoginResponseDto> {
     return await this.authService.socialLogin('google', dto);
@@ -159,7 +159,7 @@ export class AuthController {
 
   @Get('/:provider')
   @ApiOperation({ summary: '소셜로그인', deprecated: true })
-  @Exception(404, '지원하지않는 서비스')
+  @Exception(404, '지원하지 않는 서비스')
   @ApiResponse({ status: 200, type: LoginResponseDto })
   async socialAuth(
     @Req() req: Request,

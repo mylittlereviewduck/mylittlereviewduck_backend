@@ -77,7 +77,7 @@ export class UserController {
   @Post('/check-nickname')
   @HttpCode(200)
   @ApiOperation({ summary: '닉네임 중복검사' })
-  @Exception(400, '유효하지않은 요청')
+  @Exception(400, '유효하지 않은 요청')
   @Exception(409, '중복된 닉네임')
   @ApiResponse({
     status: 200,
@@ -101,7 +101,7 @@ export class UserController {
 
   @Post('/signup')
   @ApiOperation({ summary: '회원가입' })
-  @Exception(400, '유효하지않은 요청')
+  @Exception(400, '유효하지 않은 요청')
   @Exception(409, '유효하지않은 닉네임/이메일이거나 이미가입된 회원입니다')
   @ApiResponse({ status: 201, type: UserEntity })
   async signUp(@Body() createUserDto: CreateUserDto): Promise<UserEntity> {
@@ -114,7 +114,7 @@ export class UserController {
     description: '비밀번호 변경 성공시 상태코드 200반환',
   })
   @HttpCode(200)
-  @Exception(400, '유효하지않은 요청')
+  @Exception(400, '유효하지 않은 요청')
   @Exception(401, '권한 없음')
   @ApiResponse({ status: 200 })
   async resetPassword(@Body() dto: ResetPasswordDto): Promise<void> {
@@ -138,7 +138,7 @@ export class UserController {
     description: '최소 1개이상의 속성을 주셔야합니다. ',
   })
   @ApiBearerAuth()
-  @Exception(400, '유효하지않은 요청')
+  @Exception(400, '유효하지 않은 요청')
   @Exception(401, '권한 없음')
   @ApiResponse({ status: 200 })
   async updateMyInfo(
@@ -167,7 +167,7 @@ export class UserController {
       },
     },
   })
-  @Exception(400, '유효하지않은 요청')
+  @Exception(400, '유효하지 않은 요청')
   @Exception(401, '권한 없음')
   @ApiResponse({ status: 200 })
   async updateMyProfileImg(
@@ -200,7 +200,7 @@ export class UserController {
     type: 'string',
     example: '344e753e-9071-47b2-b651-bc32a0a92b1f',
   })
-  @Exception(400, '유효하지않은 요청')
+  @Exception(400, '유효하지 않은 요청')
   @ApiResponse({ status: 200, type: UserEntity })
   async getUserInfo(
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
@@ -229,7 +229,7 @@ export class UserController {
   @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '유저검색하기 이메일, 닉네임, 관심사' })
   @ApiQuery({ name: 'search', description: '검색 키워드, 검색어 2글자 이상' })
-  @Exception(400, '유효하지않은 요청')
+  @Exception(400, '유효하지 않은 요청')
   @Exception(404, 'Not Found Page')
   @ApiResponse({ status: 200, type: UserListResponseDto })
   async getUsersWithSearch(
@@ -281,7 +281,7 @@ export class UserController {
     description: '최신순으로 검색 키워드 최대 10개까지 불러옵니다.',
     deprecated: true,
   })
-  @Exception(400, '유효하지않은 요청')
+  @Exception(400, '유효하지 않은 요청')
   @ApiResponse({ status: 200, type: SearchHistoryResponseDto })
   async getMySearchHistory(
     @GetUser() loginUser: LoginUser,
@@ -317,7 +317,7 @@ export class UserController {
     type: 'string',
     example: '836d533b-3ee3-4616-8644-a1ddea65e1e0',
   })
-  @Exception(400, '유효하지않은 요청')
+  @Exception(400, '유효하지 않은 요청')
   @ApiResponse({ status: 200, type: UserPagerbleResponseDto })
   async getFollowingAll(
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
@@ -355,7 +355,7 @@ export class UserController {
     type: 'string',
     example: '836d533b-3ee3-4616-8644-a1ddea65e1e0',
   })
-  @Exception(400, '유효하지않은 요청')
+  @Exception(400, '유효하지 않은 요청')
   @ApiResponse({ status: 200, type: UserPagerbleResponseDto })
   async getFollowerAll(
     @Param('userIdx', ParseUUIDPipe) userIdx: string,
@@ -395,7 +395,7 @@ export class UserController {
     type: 'string',
     example: '836d533b-3ee3-4616-8644-a1ddea65e1e0',
   })
-  @Exception(400, '유효하지않은 요청')
+  @Exception(400, '유효하지 않은 요청')
   @Exception(401, '권한 없음')
   @ApiResponse({
     status: 200,
@@ -419,7 +419,7 @@ export class UserController {
     type: 'string',
     example: '836d533b-3ee3-4616-8644-a1ddea65e1e0',
   })
-  @Exception(400, '유효하지않은 요청')
+  @Exception(400, '유효하지 않은 요청')
   @Exception(401, '권한 없음')
   @ApiResponse({ status: 200, description: '언팔로우 성공 200 반환' })
   async UnfollowUser(
@@ -440,7 +440,7 @@ export class UserController {
     type: 'string',
     example: '836d533b-3ee3-4616-8644-a1ddea65e1e0',
   })
-  @Exception(400, '유효하지않은 요청')
+  @Exception(400, '유효하지 않은 요청')
   @Exception(401, '권한 없음')
   @ApiResponse({
     status: 200,
@@ -464,7 +464,7 @@ export class UserController {
     type: 'string',
     example: '836d533b-3ee3-4616-8644-a1ddea65e1e0',
   })
-  @Exception(400, '유효하지않은 요청')
+  @Exception(400, '유효하지 않은 요청')
   @Exception(401, '권한 없음')
   @ApiResponse({ status: 200, description: '차단해제 성공 200 반환' })
   async UnblockUser(

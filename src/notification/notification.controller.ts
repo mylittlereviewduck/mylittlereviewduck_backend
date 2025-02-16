@@ -37,7 +37,7 @@ export class NotificationController {
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '내 알림목록보기' })
-  @Exception(400, '유효하지않은 요청')
+  @Exception(400, '유효하지 않은 요청')
   @ApiResponse({ status: 200, type: NotificationPagerbleResponseDto })
   async getMyNotifications(
     @Query() dto: PagerbleDto,

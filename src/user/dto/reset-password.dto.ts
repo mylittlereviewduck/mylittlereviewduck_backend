@@ -12,7 +12,7 @@ export class ResetPasswordDto {
   email: string;
 
   @ApiProperty({
-    example: 'aA123!!',
+    example: 'aA123!!!',
     description: '6-30자의 비밀번호, 문자, 숫자, 특수문자 포함',
   })
   @Matches(/^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*()_+=-]).{6,30}$/, {
@@ -23,7 +23,7 @@ export class ResetPasswordDto {
   pw: string;
 
   @ApiProperty({
-    example: 'aA123!!',
+    example: 'aA123!!!',
     description: '비밀번호와 동일값',
   })
   @Match('pw', { message: '비밀번호와 일치하지 않습니다.' })

@@ -5,7 +5,7 @@ import { Match } from 'src/decorator/match.decorator';
 export class ResetPasswordDto {
   @ApiProperty({
     name: 'email',
-    example: 'example@abc.com',
+    example: 'test1@a.com',
     description: '비밀번호를 바꾸려는 메일 계정',
   })
   @IsEmail()
@@ -22,6 +22,10 @@ export class ResetPasswordDto {
   @Length(6, 30)
   pw: string;
 
+  @ApiProperty({
+    example: 'pw123!!',
+    description: '비밀번호와 동일값',
+  })
   @Match('pw', { message: '비밀번호와 일치하지 않습니다.' })
   confirmPw: string;
 }

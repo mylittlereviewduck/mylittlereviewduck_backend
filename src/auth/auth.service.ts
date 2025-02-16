@@ -1,12 +1,12 @@
 import { LoginDto } from './dto/login.dto';
 import {
+  ConflictException,
   Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
   forwardRef,
 } from '@nestjs/common';
-import { PrismaService } from '../../src/prisma/prisma.service';
 import { UserService } from '../../src/user/user.service';
 import { JwtService } from '@nestjs/jwt';
 import { Request, Response } from 'express';
@@ -15,7 +15,6 @@ import { SocialLoginProvider } from './model/social-login-provider.model';
 import { NaverStrategy } from './strategy/naver.strategy';
 import { KakaoStrategy } from './strategy/kakao.strategy';
 import { LoginResponseDto } from '../../src/auth/dto/response/login-response.dto';
-import { ConfigService } from '@nestjs/config';
 import { BcryptService } from './bcrypt.service';
 
 @Injectable()
@@ -26,8 +25,6 @@ export class AuthService {
     @Inject(forwardRef(() => UserService)) // forwardRef를 사용하여 순환 참조 해결
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
-    private readonly prismaService: PrismaService,
-    private readonly configService: ConfigService,
     private readonly bcryptService: BcryptService,
     private readonly googleStrategy: GoogleStrategy,
     private readonly naverStrategy: NaverStrategy,
@@ -51,7 +48,7 @@ export class AuthService {
     const isMatch = await this.bcryptService.compare(dto.pw, userPw);
 
     if (!isMatch) {
-      throw new UnauthorizedException('Invalid password');
+      throw new ConflictException('Invalid password');
     }
 
     //액세스 토큰 30분

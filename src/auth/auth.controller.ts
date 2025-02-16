@@ -99,7 +99,8 @@ export class AuthController {
   })
   @HttpCode(200)
   @Exception(400, '유효하지않은 요청')
-  @Exception(401, '권한 없음')
+  @Exception(401, '존재하지 않는 계정')
+  @Exception(409, '비밀번호 오류')
   @ApiResponse({ status: 200, type: LoginResponseDto })
   async authUser(@Body() loginDto: LoginDto): Promise<LoginResponseDto> {
     return await this.authService.login(loginDto);

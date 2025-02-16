@@ -45,8 +45,11 @@ export class AuthController {
   @Post('/email/inspect-duplicate')
   @HttpCode(200)
   @ApiOperation({
-    summary: '이메일 중복검사 / 이메일 인증번호 전송',
-    description: '중복되지 않은 정상 메일이라면 상태코드 200반환',
+    summary: '이메일 중복검사 / 이메일 인증번호 전송(회원가입용)',
+    description: `"가입되지 않은 이메일 이어야합니다."  
+       중복되지 않은 정상 메일이라면 상태코드 200반환  
+       test1@a.com - test10@a.com은 테스트용으로 가입된 메일입니다. 다른 메일 입력해주세요   
+      `,
   })
   @Exception(400, '유효하지않은 요청')
   @Exception(409, '이메일 중복')
@@ -60,9 +63,11 @@ export class AuthController {
   @Post('/email/inspect')
   @HttpCode(200)
   @ApiOperation({
-    summary: '가입 이메일 검사 / 이메일 인증번호 전송',
-    description: `비밀번호 초기화 전 이메일 인증으로 사용됩니다. \n
-       가입된 정상 이메일이면 상태코드 200반환 후 인증번호 메일 전송`,
+    summary: '가입 이메일 검사 / 이메일 인증번호 전송(비밀번호 초기화용)',
+    description: ` "가입된 이메일이어야 합니다." 
+    비밀번호 초기화 전 이메일 인증으로 사용됩니다.   
+       가입된 정상 이메일이면 상태코드 200반환 후 인증번호 메일 전송  
+       test1@a.com - test10@a.com은 테스트용으로 가입된 메일입니다.  `,
   })
   @Exception(400, '유효하지않은 요청')
   @Exception(404, '존재하지 않는 이메일')

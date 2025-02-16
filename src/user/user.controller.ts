@@ -279,6 +279,7 @@ export class UserController {
   @ApiOperation({
     summary: '유저 검색기록 불러오기',
     description: '최신순으로 검색 키워드 최대 10개까지 불러옵니다.',
+    deprecated: true,
   })
   @Exception(400, '유효하지않은 요청')
   @ApiResponse({ status: 200, type: SearchHistoryResponseDto })

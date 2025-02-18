@@ -319,25 +319,6 @@ export class ReviewService {
       }
     }
 
-    // const now = new Date();
-    // let startDate: Date;
-
-    // if (dto.timeframe == '1D') {
-    //   startDate = new Date(now.setHours(0, 0, 0, 0));
-    //   startDate.setHours(0, 0, 0);
-    // } else if (dto.timeframe == '7D') {
-    //   startDate = new Date(now.setDate(now.getDate() - 6));
-    //   startDate.setHours(0, 0, 0);
-    // } else if (dto.timeframe == '1M') {
-    //   startDate = new Date(now.setMonth(now.getMonth() - 1));
-    //   startDate.setHours(0, 0, 0);
-    // } else if (dto.timeframe == '1Y') {
-    //   startDate = new Date(now.setFullYear(now.getFullYear() - 1));
-    //   startDate.setHours(0, 0, 0);
-    // } else {
-    //   startDate = new Date(0);
-    // }
-
     const reviewCount = await this.prismaService.reviewTb.count({
       where: {
         ...(dto.userIdx && { accountIdx: dto.userIdx }),

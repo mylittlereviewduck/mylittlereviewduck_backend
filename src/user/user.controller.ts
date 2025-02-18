@@ -470,20 +470,10 @@ export class UserController {
     @GetUser() loginUser: LoginUser,
     @Query() dto: PagerbleDto,
   ): Promise<UserPagerbleResponseDto> {
-    const userPagerbleResponseDto =
-      await this.userBlockService.getBlockedUserAll(loginUser.idx, {
-        page: dto.page,
-        size: dto.size,
-      });
-
-    await this.userFollowService.isFollow(
-      loginUser.idx,
-      userPagerbleResponseDto.users,
-    );
-
-    //신고여부 신고기능 논의후 추가
-
-    return userPagerbleResponseDto;
+    return await this.userBlockService.getBlockedUserAll(loginUser.idx, {
+      page: dto.page,
+      size: dto.size,
+    });
   }
 
   @Post('/:userIdx/suspend')

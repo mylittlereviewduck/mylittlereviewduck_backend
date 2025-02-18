@@ -1,4 +1,4 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { ConsoleLogger, Module, forwardRef } from '@nestjs/common';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import { FollowService } from './follow.service';
@@ -27,6 +27,7 @@ import { ReviewModule } from 'src/review/review.module';
   ],
   controllers: [UserController],
   providers: [
+    ConsoleLogger,
     UserService,
     FollowService,
     UserBlockService,

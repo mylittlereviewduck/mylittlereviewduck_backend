@@ -1,6 +1,6 @@
 import { Redis } from 'ioredis';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { ConsoleLogger, Injectable } from '@nestjs/common';
 import { SearchHistoryResponseDto } from './dto/response/search-history.dto';
 import { OnEvent } from '@nestjs/event-emitter';
 import { GetSearchKeywordDto } from './dto/get-search-keyword.dto';
@@ -14,11 +14,17 @@ export class SearchKeywordService {
   private readonly redis: Redis | null;
 
   constructor(
+    private readonly logger: ConsoleLogger,
     private readonly prismaService: PrismaService,
     private readonly reviewService: ReviewService,
     private readonly redisService: RedisService,
   ) {
     this.redis = this.redisService.getOrThrow(DEFAULT_REDIS);
+  }
+
+  async onModuleInit(): Promise<void> {
+    this.logger.log('cache HotSearchKeyword');
+    await this.cacheHotSearchKeyword();
   }
 
   @OnEvent('search.*', { async: true })
@@ -94,7 +100,7 @@ export class SearchKeywordService {
     return searchKeywordData.map((elem) => elem.keyword);
   }
 
-  @Cron('* * * * *')
+  @Cron('0 0,12 * * *')
   async cacheHotSearchKeyword(): Promise<HotKeyword[]> {
     const firtstRecentNoon = this.reviewService.getMostRecentNoon();
     //prettier-ignore
@@ -151,12 +157,5 @@ export class SearchKeywordService {
 
   async getCachedHotSearchKeywod(): Promise<HotKeyword[]> {
     return JSON.parse(await this.redis.get(`search:hot:present`));
-  }
-
-  async onModuleInit() {
-    console.log('searchKeyword Service start');
-    await this.cacheHotSearchKeyword();
-
-    //캐싱
   }
 }

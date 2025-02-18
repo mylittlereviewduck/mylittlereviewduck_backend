@@ -22,7 +22,6 @@ import { UserPagerbleResponseDto } from './dto/response/user-pagerble-response.d
 import { GetUserSearchDto } from './dto/get-users-search.dto';
 import { UserInteractionService } from './user-interaction.service';
 import { LoginUser } from 'src/auth/model/login-user.model';
-import { EventEmitter } from 'stream';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()

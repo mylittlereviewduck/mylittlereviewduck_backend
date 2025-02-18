@@ -65,6 +65,14 @@ export class ReviewService {
     );
   }
 
+  async onModuleInit() {
+    this.logger.log('cache HotReviewsHighScore()');
+    this.logger.log('cache HotReviewsLowScore()');
+
+    await this.cacheHotReviewsHighScore();
+    await this.cacheHotReviewsLowScore();
+  }
+
   async createReview(dto: CreateReviewDto): Promise<ReviewEntity> {
     let reviewData;
 
@@ -920,7 +928,6 @@ export class ReviewService {
 
     //prettier-ignore
     const hotReviewsHighScore1Day = await this.getHotReviewsHighScore(start1Day,endDay,);
-    console.log('hotReviewsHighScore1Day: ', hotReviewsHighScore1Day);
     //prettier-ignore
     const hotReviewsHighScore7Day = await this.getHotReviewsHighScore(start7Day,endDay,);
     //prettier-ignore
@@ -1367,13 +1374,5 @@ export class ReviewService {
     }
 
     return noon;
-  }
-
-  async onModuleInit() {
-    this.logger.log('cacheHotReviewsHighScore() Method Start');
-    this.logger.log('cacheHotReviewsLowScore() Method Start');
-
-    await this.cacheHotReviewsHighScore();
-    await this.cacheHotReviewsLowScore();
   }
 }

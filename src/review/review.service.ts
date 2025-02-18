@@ -1110,12 +1110,12 @@ export class ReviewService {
 
     const totalCount = await this.prismaService.reviewTb.count({
       where: {
-        deletedAt: null,
         commentTb: {
           some: {
             accountIdx: dto.userIdx,
           },
         },
+        deletedAt: null,
       },
     });
 
@@ -1140,6 +1140,7 @@ export class ReviewService {
             deletedAt: null,
           },
         },
+        deletedAt: null,
       },
       orderBy: {
         createdAt: 'desc',
@@ -1230,6 +1231,7 @@ export class ReviewService {
             accountIdx: dto.userIdx,
           },
         },
+        deletedAt: null,
       },
     });
 
@@ -1252,6 +1254,7 @@ export class ReviewService {
         accountIdx: {
           in: dto.userIdxs,
         },
+        deletedAt: null,
       },
       skip: dto.page * dto.size,
       take: dto.size,

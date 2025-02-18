@@ -266,6 +266,7 @@ export class ReviewService {
         idx: {
           in: reviewIdxs,
         },
+        deletedAt: null,
       },
     });
 

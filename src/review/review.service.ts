@@ -235,6 +235,7 @@ export class ReviewService {
 
       where: {
         idx: reviewIdx,
+        deletedAt: null,
       },
     });
 

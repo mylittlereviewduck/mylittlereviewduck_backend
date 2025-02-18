@@ -472,8 +472,8 @@ export class UserController {
   ): Promise<UserPagerbleResponseDto> {
     const userPagerbleResponseDto =
       await this.userBlockService.getBlockedUserAll(loginUser.idx, {
-        page: dto.page || 1,
-        size: dto.size || 10,
+        page: dto.page,
+        size: dto.size,
       });
 
     await this.userFollowService.isFollow(

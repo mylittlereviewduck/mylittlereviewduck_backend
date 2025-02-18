@@ -928,6 +928,7 @@ export class ReviewService {
 
     //prettier-ignore
     const hotReviewsHighScore1Day = await this.getHotReviewsHighScore(start1Day,endDay,);
+    console.log('hotReviewsHighScore1Day: ', hotReviewsHighScore1Day);
     //prettier-ignore
     const hotReviewsHighScore7Day = await this.getHotReviewsHighScore(start7Day,endDay,);
     //prettier-ignore

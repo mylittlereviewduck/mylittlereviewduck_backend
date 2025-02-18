@@ -401,6 +401,7 @@ export class ReviewService {
             },
           },
         },
+        deletedAt: null,
       },
       orderBy: {
         idx: 'desc',
@@ -547,6 +548,7 @@ export class ReviewService {
             },
           },
         },
+        deletedAt: null,
       },
       take: dto.size,
       skip: (dto.page - 1) * dto.size,

@@ -620,47 +620,6 @@ export class ReviewService {
     return viewCount;
   }
 
-  async getLatestReviewsByUsers(
-    dto: GetReviewsDto,
-  ): Promise<ReviewPagerbleResponseDto> {
-    const totalCount = await this.prismaService.reviewTb.count({
-      where: {
-        accountIdx: {
-          in: dto.userIdxs,
-        },
-      },
-    });
-
-    const reviewData = await this.prismaService.reviewTb.findMany({
-      include: {
-        accountTb: true,
-        tagTb: true,
-        reviewImgTb: true,
-        _count: {
-          select: {
-            commentTb: true,
-            reviewLikeTb: true,
-            reviewDislikeTb: true,
-            reviewBookmarkTb: true,
-          },
-        },
-      },
-      where: {
-        accountIdx: {
-          in: dto.userIdxs,
-        },
-      },
-      skip: dto.page * dto.size,
-      take: dto.size,
-      orderBy: { createdAt: 'desc' },
-    });
-
-    return {
-      totalPage: Math.ceil(totalCount / dto.size),
-      reviews: reviewData.map((elem) => new ReviewEntity(elem)),
-    };
-  }
-
   async getReviewsWithSearch(
     dto: GetReviewsWithSearchDto,
   ): Promise<ReviewPagerbleResponseDto> {
@@ -848,6 +807,7 @@ export class ReviewService {
         score: {
           gte: 3,
         },
+        deletedAt: null,
       },
       orderBy: {
         reviewLikeTb: {
@@ -887,6 +847,7 @@ export class ReviewService {
         score: {
           lte: 2,
         },
+        deletedAt: null,
       },
       orderBy: {
         reviewLikeTb: {

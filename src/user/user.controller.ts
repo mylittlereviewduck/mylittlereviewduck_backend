@@ -58,6 +58,7 @@ import { SearchKeywordService } from './search-keyword.service';
 import { GetUserSearchDto } from './dto/get-users-search.dto';
 import { HotKeyword } from './dto/hot-keyword.type';
 import { PagerbleDto } from './dto/pagerble.dto';
+import { HotKeywordResponseDto } from './dto/response/hot-keyword-response.dto';
 
 @Controller('user')
 @ApiTags('user')
@@ -249,28 +250,12 @@ export class UserController {
   })
   @ApiResponse({
     status: 200,
-    type: HotKeyword,
-    isArray: true,
-    example: [
-      {
-        rank: 1,
-        keyword: '오리',
-        status: 'up',
-      },
-      {
-        rank: 2,
-        keyword: '호랑이',
-        status: 'down',
-      },
-      {
-        rank: 3,
-        keyword: '강아지',
-        status: 'equal',
-      },
-    ],
+    type: HotKeywordResponseDto,
   })
-  async getHotSearchKeyword(): Promise<HotKeyword[]> {
-    return await this.searchKeywordService.getCachedHotSearchKeywod();
+  async getHotSearchKeyword(): Promise<HotKeywordResponseDto> {
+    return {
+      keywords: await this.searchKeywordService.getCachedHotSearchKeywod(),
+    };
   }
 
   @Get('/search/history')

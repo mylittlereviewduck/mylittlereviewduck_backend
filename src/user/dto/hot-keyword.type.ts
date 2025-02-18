@@ -9,10 +9,10 @@ export class HotKeyword {
 
   @ApiProperty({
     description:
-      '인기 검색어 상태입니다. "up" | "down" | "equal" 중 하나로만 표기됩니다.',
+      '인기 검색어 상태입니다. "up" | "down" | "equal" | "new" 중 하나로만 표기됩니다.',
     example: 'up',
   })
-  status: HotKeywordType;
+  status: HotStatusType;
 }
 
-export type HotKeywordType = 'up' | 'down' | 'equal';
+export type HotStatusType = 'up' | 'down' | 'equal' | 'new';

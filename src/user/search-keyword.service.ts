@@ -7,7 +7,7 @@ import { GetSearchKeywordDto } from './dto/get-search-keyword.dto';
 import { Cron } from '@nestjs/schedule';
 import { ReviewService } from 'src/review/review.service';
 import { DEFAULT_REDIS, RedisService } from '@liaoliaots/nestjs-redis';
-import { HotKeyword, HotKeywordType } from './dto/hot-keyword.type';
+import { HotKeyword, HotStatusType } from './dto/hot-keyword.type';
 
 @Injectable()
 export class SearchKeywordService {
@@ -130,9 +130,9 @@ export class SearchKeywordService {
           return elem.keyword === currentKeyword.keyword;
         });
 
-        let status: HotKeywordType = 'equal';
+        let status: HotStatusType = 'equal';
 
-        if (!previousKeyword) status = 'up';
+        if (!previousKeyword) status = 'new';
         else if (currentKeyword.rank < previousKeyword.rank) status = 'up';
         else if (currentKeyword.rank > previousKeyword.rank) status = 'down';
 

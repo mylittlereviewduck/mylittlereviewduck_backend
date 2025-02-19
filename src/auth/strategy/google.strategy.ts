@@ -50,7 +50,7 @@ export class GoogleStrategy implements ISocialAuthStrategy {
       userInfoUrl,
       {
         headers: {
-          Authorization: `bearer ${dto.token}`,
+          Authorization: `bearer ${dto.accessToken}`,
         },
       },
     );

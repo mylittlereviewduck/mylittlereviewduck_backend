@@ -43,7 +43,7 @@ export class NaverStrategy implements ISocialAuthStrategy {
 
     const { data } = await this.httpService.axiosRef.get(getUserInfoUrl, {
       headers: {
-        Authorization: `bearer ${dto.token}`,
+        Authorization: `bearer ${dto.accessToken}`,
       },
     });
 

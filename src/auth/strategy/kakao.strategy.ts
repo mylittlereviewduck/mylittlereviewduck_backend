@@ -48,7 +48,7 @@ export class KakaoStrategy implements ISocialAuthStrategy {
       `https://kapi.kakao.com/v2/user/me`,
       {
         headers: {
-          Authorization: `bearer ${dto.token}`,
+          Authorization: `bearer ${dto.accessToken}`,
           'Content-Type': `application/x-www-form-urlencoded;charset=utf-8`,
         },
       },

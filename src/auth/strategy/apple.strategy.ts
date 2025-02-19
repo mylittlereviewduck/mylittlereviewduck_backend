@@ -53,7 +53,9 @@ export class AppleStrategy implements ISocialAuthStrategy {
 
     // 사용자 정보 요청
 
-    const userData = JSON.parse(Buffer.from(dto.token, 'base64').toString());
+    const userData = JSON.parse(
+      Buffer.from(dto.accessToken, 'base64').toString(),
+    );
 
     let user = await this.userService.getUser({
       email: userData.email,

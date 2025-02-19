@@ -15,7 +15,6 @@ export class KakaoStrategy implements ISocialAuthStrategy {
     private readonly httpService: HttpService,
     private readonly userService: UserService,
     private readonly configService: ConfigService,
-    private readonly jwtService: JwtService,
     @Inject(forwardRef(() => AuthService))
     private readonly authService: AuthService,
   ) {}

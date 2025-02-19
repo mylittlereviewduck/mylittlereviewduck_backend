@@ -12,7 +12,6 @@ import { AuthService } from '../auth.service';
 export class AppleStrategy implements ISocialAuthStrategy {
   constructor(
     private readonly userService: UserService,
-    private readonly jwtService: JwtService,
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
     @Inject(forwardRef(() => AuthService))

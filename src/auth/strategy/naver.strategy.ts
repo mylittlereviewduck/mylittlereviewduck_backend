@@ -29,21 +29,21 @@ export class NaverStrategy implements ISocialAuthStrategy {
   }
 
   async socialLogin(dto: SocialLoginDto): Promise<LoginResponseDto> {
-    let getTokenUrl = `https://nid.naver.com/oauth2.0/token`;
-    getTokenUrl += `?grant_type=authorization_code`;
-    getTokenUrl += `&client_id=${this.configService.get<string>('NAVER_CLIENT_ID')}`;
-    getTokenUrl += `&client_secret=${this.configService.get<string>('NAVER_CLIENT_SECRET')}`;
-    getTokenUrl += `&code=${dto.code}`;
-    getTokenUrl += `&state=test`;
+    // let getTokenUrl = `https://nid.naver.com/oauth2.0/token`;
+    // getTokenUrl += `?grant_type=authorization_code`;
+    // getTokenUrl += `&client_id=${this.configService.get<string>('NAVER_CLIENT_ID')}`;
+    // getTokenUrl += `&client_secret=${this.configService.get<string>('NAVER_CLIENT_SECRET')}`;
+    // getTokenUrl += `&code=${dto.code}`;
+    // getTokenUrl += `&state=test`;
 
-    const { data: tokenData } =
-      await this.httpService.axiosRef.get(getTokenUrl);
+    // const { data: tokenData } =
+    //   await this.httpService.axiosRef.get(getTokenUrl);
 
     let getUserInfoUrl = `https://openapi.naver.com/v1/nid/me`;
 
     const { data } = await this.httpService.axiosRef.get(getUserInfoUrl, {
       headers: {
-        Authorization: `${tokenData.token_type} ${tokenData.access_token}`,
+        Authorization: `bearer ${dto.token}`,
       },
     });
 

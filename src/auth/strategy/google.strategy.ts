@@ -29,20 +29,20 @@ export class GoogleStrategy implements ISocialAuthStrategy {
   }
 
   async socialLogin(dto: SocialLoginDto): Promise<LoginResponseDto> {
-    const tokenRequestBody = {
-      client_id: this.configService.get<string>('GOOGLE_CLIENT_ID'),
-      client_secret: this.configService.get<string>('GOOGLE_CLIENT_SECRET'),
-      code: dto.code,
-      redirect_uri: this.configService.get<string>('GOOGLE_REDIRECT_URI'),
-      grant_type: 'authorization_code',
-    };
+    // const tokenRequestBody = {
+    //   client_id: this.configService.get<string>('GOOGLE_CLIENT_ID'),
+    //   client_secret: this.configService.get<string>('GOOGLE_CLIENT_SECRET'),
+    //   code: dto.code,
+    //   redirect_uri: this.configService.get<string>('GOOGLE_REDIRECT_URI'),
+    //   grant_type: 'authorization_code',
+    // };
 
-    let tokenUrl = `https://oauth2.googleapis.com/token`;
+    // let tokenUrl = `https://oauth2.googleapis.com/token`;
 
-    const { data: tokenData } = await this.httpService.axiosRef.post(
-      tokenUrl,
-      tokenRequestBody,
-    );
+    // const { data: tokenData } = await this.httpService.axiosRef.post(
+    //   tokenUrl,
+    //   tokenRequestBody,
+    // );
 
     const userInfoUrl = `https://www.googleapis.com/oauth2/v2/userinfo`;
 
@@ -50,7 +50,7 @@ export class GoogleStrategy implements ISocialAuthStrategy {
       userInfoUrl,
       {
         headers: {
-          Authorization: `${tokenData.token_type} ${tokenData.access_token}`,
+          Authorization: `bearer ${dto.token}`,
         },
       },
     );

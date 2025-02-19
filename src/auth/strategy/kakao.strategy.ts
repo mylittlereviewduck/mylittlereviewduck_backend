@@ -29,26 +29,26 @@ export class KakaoStrategy implements ISocialAuthStrategy {
   }
 
   async socialLogin(dto: SocialLoginDto): Promise<LoginResponseDto> {
-    const { data: tokenData } = await this.httpService.axiosRef.post(
-      `https://kauth.kakao.com/oauth/token`,
-      {
-        grant_type: 'authorization_code',
-        client_id: this.configService.get<string>('KAKAO_CLIENT_ID'),
-        redirect_uri: this.configService.get<string>('KAKAO_REDIRECT_URI'),
-        code: dto.code,
-      },
-      {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-      },
-    );
+    // const { data: tokenData } = await this.httpService.axiosRef.post(
+    //   `https://kauth.kakao.com/oauth/token`,
+    //   {
+    //     grant_type: 'authorization_code',
+    //     client_id: this.configService.get<string>('KAKAO_CLIENT_ID'),
+    //     redirect_uri: this.configService.get<string>('KAKAO_REDIRECT_URI'),
+    //     code: dto.code,
+    //   },
+    //   {
+    //     headers: {
+    //       'Content-Type': 'application/x-www-form-urlencoded',
+    //     },
+    //   },
+    // );
 
     const { data: userData } = await this.httpService.axiosRef.get(
       `https://kapi.kakao.com/v2/user/me`,
       {
         headers: {
-          Authorization: `${tokenData.token_type} ${tokenData.access_token}`,
+          Authorization: `bearer ${dto.token}`,
           'Content-Type': `application/x-www-form-urlencoded;charset=utf-8`,
         },
       },

@@ -7,6 +7,7 @@ import { LoginResponseDto } from '../dto/response/login-response.dto';
 import { UserService } from 'src/user/user.service';
 import { JwtService } from '@nestjs/jwt';
 import { AuthService } from '../auth.service';
+import { SocialLoginDto } from '../dto/social-login.dto';
 
 @Injectable()
 export class AppleStrategy implements ISocialAuthStrategy {
@@ -30,29 +31,29 @@ export class AppleStrategy implements ISocialAuthStrategy {
     res.redirect(url);
   }
 
-  async socialLogin(query: any): Promise<LoginResponseDto> {
-    const { code } = query;
+  async socialLogin(dto: SocialLoginDto): Promise<LoginResponseDto> {
+    // const { code } = query;
 
     // Access Token 요청
-    const { data: tokenData } = await this.httpService.axiosRef.post(
-      `https://appleid.apple.com/auth/token`,
-      new URLSearchParams({
-        grant_type: 'authorization_code',
-        code,
-        client_id: this.configService.get<string>('APPLE_CLIENT_ID'),
-        client_secret: this.configService.get<string>('APPLE_CLIENT_SECRET'),
-        redirect_uri: this.configService.get<string>('APPLE_REDIRECT_URI'),
-      }).toString(),
-      {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-      },
-    );
+    // const { data: tokenData } = await this.httpService.axiosRef.post(
+    //   `https://appleid.apple.com/auth/token`,
+    //   new URLSearchParams({
+    //     grant_type: 'authorization_code',
+    //     code,
+    //     client_id: this.configService.get<string>('APPLE_CLIENT_ID'),
+    //     client_secret: this.configService.get<string>('APPLE_CLIENT_SECRET'),
+    //     redirect_uri: this.configService.get<string>('APPLE_REDIRECT_URI'),
+    //   }).toString(),
+    //   {
+    //     headers: {
+    //       'Content-Type': 'application/x-www-form-urlencoded',
+    //     },
+    //   },
+    // );
 
     // 사용자 정보 요청
-    const payload = tokenData.id_token.split('.')[1];
-    const userData = JSON.parse(Buffer.from(payload, 'base64').toString());
+
+    const userData = JSON.parse(Buffer.from(dto.token, 'base64').toString());
 
     let user = await this.userService.getUser({
       email: userData.email,

@@ -47,7 +47,6 @@ import { UserBlockEntity } from './entity/UserBlock.entity';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { AwsService } from 'src/aws/aws.service';
 import { FileValidationPipe } from 'src/common/fileValidation.pipe';
-import { UserListResponseDto } from './dto/response/user-list-response.dto';
 import { AdminGuard } from 'src/auth/guard/admin.guard';
 import { SuspendUserDto } from './dto/suspend-user.dto';
 import { UserFollowService } from './user-follow.service';
@@ -232,11 +231,11 @@ export class UserController {
   @ApiQuery({ name: 'search', description: '검색 키워드, 검색어 2글자 이상' })
   @Exception(400, '유효하지 않은 요청')
   @Exception(404, 'Not Found Page')
-  @ApiResponse({ status: 200, type: UserListResponseDto })
+  @ApiResponse({ status: 200, type: UserPagerbleResponseDto })
   async getUsersWithSearch(
     @GetUser() loginUser: LoginUser,
     @Query() dto: GetUserSearchDto,
-  ): Promise<UserListResponseDto> {
+  ): Promise<UserPagerbleResponseDto> {
     return await this.userService.getSearchedUsersWithInteraction(
       dto,
       loginUser,
@@ -536,7 +535,7 @@ export class UserController {
   async getUsersWithStatus(
     @Param('status') status: UserStatus,
     @Query() dto: PagerbleDto,
-  ): Promise<UserListResponseDto> {
+  ): Promise<UserPagerbleResponseDto> {
     return await this.userService.getUsersAll({
       status,
       page: dto.page || 1,

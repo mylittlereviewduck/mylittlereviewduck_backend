@@ -16,7 +16,6 @@ import { UpdateMyInfoDto } from './dto/update-my-info.dto';
 import { GetUserDto } from './dto/get-user.dto';
 import { GetUsersAllDto } from './dto/get-users-all.dto';
 import { AccountTb, Prisma, PrismaClient } from '@prisma/client';
-import { UserListResponseDto } from './dto/response/user-list-response.dto';
 import { BcryptService } from 'src/auth/bcrypt.service';
 import { UserPagerbleResponseDto } from './dto/response/user-pagerble-response.dto';
 import { GetUserSearchDto } from './dto/get-users-search.dto';
@@ -70,7 +69,7 @@ export class UserService {
     return new UserEntity(userData);
   }
 
-  async getUsersAll(dto: GetUsersAllDto): Promise<UserListResponseDto> {
+  async getUsersAll(dto: GetUsersAllDto): Promise<UserPagerbleResponseDto> {
     //or문이 빈배열이라면 쿼리에서 완전히 지워야한다.
     //prettier-ignore
     const totalCount = await this.prismaService.accountTb.count({

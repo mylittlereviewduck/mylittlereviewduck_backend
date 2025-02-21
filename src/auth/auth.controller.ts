@@ -95,6 +95,8 @@ export class AuthController {
   @ApiOperation({
     summary: '로그인',
     description: `test1@a.com - test10@a.com은 테스트용으로 가입된 메일입니다.  
+    액세스 토큰 만료시간: 30분,  
+    리프레쉬 토큰 만료시간: 2주    
     `,
   })
   @HttpCode(200)

@@ -42,10 +42,11 @@ export class CreateReviewDto {
 
   @ApiProperty({
     example: ['태그1', '태그2', '태그3'],
-    description: '태그, 리스트 형태, 0-10개, 16자 제한',
+    description: '태그, 리스트 형태, 0-10개, 각 16자 제한',
     required: false,
   })
-  @IsArray()
+  @IsArray({})
+  @ArrayMaxSize(10)
   @Length(1, 16, { each: true })
   @IsString({ each: true })
   tags: string[];

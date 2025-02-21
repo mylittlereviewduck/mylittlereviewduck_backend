@@ -36,8 +36,8 @@ export class CreateReviewDto {
 
   @ApiProperty({ example: '3', description: '별점 0-5점', required: true })
   @IsInt()
-  @Min(1)
-  @Max(6)
+  @Min(0)
+  @Max(5)
   score: number;
 
   @ApiProperty({

@@ -6,6 +6,7 @@ export class FileValidationPipe implements PipeTransform {
   private readonly maxSize = 10 * 1024 * 1024;
 
   transform(file: Express.Multer.File) {
+    console.log('file: ', file);
     if (!file) {
       throw new BadRequestException('No file');
     }

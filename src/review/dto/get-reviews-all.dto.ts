@@ -1,6 +1,6 @@
-import { ReviewPagerbleDto } from './request/review-pagerble.dto';
+import { PagerbleDto } from 'src/user/dto/pagerble.dto';
 
-export class GetReviewsAllDto extends ReviewPagerbleDto {
+export class GetReviewsAllDto extends PagerbleDto {
   userIdx?: string;
 
   userIdxs?: string[];

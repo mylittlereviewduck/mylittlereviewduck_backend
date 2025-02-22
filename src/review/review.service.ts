@@ -20,9 +20,9 @@ import { GetReviewsAllDto } from './dto/get-reviews-all.dto';
 import { ReviewBookmarkService } from './review-bookmark.service';
 import { GetReviewsWithSearchDto } from './dto/request/get-review-with-search.dto';
 import { GetReviewsDto } from './dto/get-reviews.dto';
-import { ReviewPagerbleDto } from './dto/request/review-pagerble.dto';
 import { GetScoreReviewsDto } from './dto/get-score-reviews.dto';
 import { WINSTON_MODULE_NEST_PROVIDER, WinstonLogger } from 'nest-winston';
+import { PagerbleDto } from 'src/user/dto/pagerble.dto';
 
 @Injectable()
 export class ReviewService {
@@ -918,7 +918,7 @@ export class ReviewService {
 
   //기간별조회기능 추가
   async getCachedHotReviewsHighScore(
-    dto: ReviewPagerbleDto,
+    dto: PagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
     const hotReviews = JSON.parse(
       await this.redis.get('hotReviewsHighScore1Day'),
@@ -941,7 +941,7 @@ export class ReviewService {
   }
 
   async getCachedHotReviewsLowScore(
-    dto: ReviewPagerbleDto,
+    dto: PagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
     const hotReviews = JSON.parse(
       await this.redis.get('hotReviewsLowScore'),

@@ -131,13 +131,15 @@ export class CommentService {
         accountIdx: loginUserIdx,
         content: dto.content,
         ...(dto.commentIdx && { commentIdx: dto.commentIdx }),
-        commentTagTb: {
-          createMany: {
-            data: dto.userIdxs.map((userIdx) => ({
-              accountIdx: userIdx,
-            })),
+        ...(dto.userIdxs && {
+          commentTagTb: {
+            createMany: {
+              data: dto.userIdxs.map((userIdx) => ({
+                accountIdx: userIdx,
+              })),
+            },
           },
-        },
+        }),
       },
     });
 

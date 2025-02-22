@@ -3,12 +3,13 @@ import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import * as dotenv from 'dotenv';
+import { winstonLogger } from './common/winston.config';
 
 dotenv.config();
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
-    logger: ['error', 'debug', 'warn'],
+    logger: winstonLogger,
   });
 
   // app.enableCors({

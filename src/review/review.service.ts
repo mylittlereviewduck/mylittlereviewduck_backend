@@ -36,8 +36,8 @@ export class ReviewService {
     private readonly reviewBookmarkService: ReviewBookmarkService,
     private readonly eventEmitter: EventEmitter2,
     private readonly reviewInteractionService: ReviewInteractionService,
-    @Inject(WINSTON_MODULE_NEST_PROVIDER)
-    private readonly winstonLogger: WinstonLogger,
+    // @Inject(WINSTON_MODULE_NEST_PROVIDER)
+    // private readonly winstonLogger: WinstonLogger,
   ) {
     this.redis = this.redisService.getOrThrow(DEFAULT_REDIS);
 
@@ -1007,12 +1007,6 @@ export class ReviewService {
         return review;
       },
     );
-
-    console.log(this.winstonLogger);
-    this.logger.error('error', dto);
-    this.logger.warn('warn', dto);
-    this.logger.verbose('verbose', dto);
-    this.logger.debug('debug', dto);
 
     return reviewPagerbleResponseDto;
   }

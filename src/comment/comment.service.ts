@@ -9,7 +9,7 @@ import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ReviewService } from 'src/review/review.service';
-import { CommentPagerbleDto } from './dto/comment-pagerble.dto';
+import { getCommentsDto } from './dto/comment-pagerble.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
@@ -48,7 +48,7 @@ export class CommentService {
   }
 
   async getCommentAll(
-    dto: CommentPagerbleDto,
+    dto: getCommentsDto,
   ): Promise<CommentPagerbleResponseDto> {
     const review = await this.reviewService.getReviewByIdx(dto.reviewIdx);
 

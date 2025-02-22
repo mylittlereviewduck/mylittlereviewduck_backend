@@ -331,7 +331,7 @@ export class UserController {
   }
 
   @Get('/:userIdx/follower/all')
-  @UseGuards(AuthGuard)
+  @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '팔로워 리스트보기' })
   @ApiParam({
     name: 'userIdx',
@@ -349,8 +349,8 @@ export class UserController {
     const { followerIdxs, totalCount } =
       await this.userFollowService.getFollowerUsersIdx({
         userIdx: userIdx,
-        page: dto.page || 1,
-        size: dto.size || 20,
+        page: dto.page,
+        size: dto.size,
       });
 
     const userPagerbleResponseDto = {

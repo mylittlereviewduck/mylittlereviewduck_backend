@@ -1,6 +1,7 @@
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   ConsoleLogger,
+  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -21,6 +22,7 @@ import { GetReviewsWithSearchDto } from './dto/request/get-review-with-search.dt
 import { GetReviewsDto } from './dto/get-reviews.dto';
 import { ReviewPagerbleDto } from './dto/request/review-pagerble.dto';
 import { GetScoreReviewsDto } from './dto/get-score-reviews.dto';
+import { WINSTON_MODULE_NEST_PROVIDER, WinstonLogger } from 'nest-winston';
 
 @Injectable()
 export class ReviewService {
@@ -34,6 +36,8 @@ export class ReviewService {
     private readonly reviewBookmarkService: ReviewBookmarkService,
     private readonly eventEmitter: EventEmitter2,
     private readonly reviewInteractionService: ReviewInteractionService,
+    @Inject(WINSTON_MODULE_NEST_PROVIDER)
+    private readonly winstonLogger: WinstonLogger,
   ) {
     this.redis = this.redisService.getOrThrow(DEFAULT_REDIS);
 
@@ -1001,6 +1005,12 @@ export class ReviewService {
         return review;
       },
     );
+
+    console.log(this.winstonLogger);
+    this.logger.error('error', dto);
+    this.logger.warn('warn', dto);
+    this.logger.verbose('verbose', dto);
+    this.logger.debug('debug', dto);
 
     return reviewPagerbleResponseDto;
   }

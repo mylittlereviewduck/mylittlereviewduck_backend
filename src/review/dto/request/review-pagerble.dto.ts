@@ -9,7 +9,6 @@ export class ReviewPagerbleDto {
     required: false,
   })
   @IsOptional()
-  @Type(() => Number)
   size: number = 10;
 
   @ApiProperty({
@@ -18,6 +17,5 @@ export class ReviewPagerbleDto {
     required: false,
   })
   @IsOptional()
-  @Type(() => Number)
   page: number = 1;
 }

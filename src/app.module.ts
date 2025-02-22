@@ -48,9 +48,13 @@ import winston from 'winston';
     WinstonModule.forRoot({
       transports: [
         new winston.transports.Console({
+          level: 'info',
           format: winston.format.combine(
             winston.format.timestamp(),
-            nestWinstonModuleUtilities.format.nestLike(),
+            nestWinstonModuleUtilities.format.nestLike('MyApp', {
+              prettyPrint: true,
+              colors: true,
+            }),
           ),
         }),
       ],

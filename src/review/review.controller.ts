@@ -336,6 +336,7 @@ export class ReviewController {
   ): Promise<void> {
     await this.reviewBlockService.unblockReview(loginUser.idx, reviewIdx);
   }
+
   @Get('/review/high-score')
   @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '평점 3-5점의 최신 리뷰목록보기' })
@@ -344,6 +345,7 @@ export class ReviewController {
     @GetUser() loginUser: LoginUser,
     @Query() dto: PagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
+    console.log('시작');
     return await this.reviewService.getScoreReviewsWithInteraction(
       {
         ...dto,

@@ -13,6 +13,11 @@ import { ReportModule } from './report/report.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { RedisModule } from '@liaoliaots/nestjs-redis';
 import { ScheduleModule } from '@nestjs/schedule';
+import {
+  WinstonModule,
+  utilities as nestWinstonModuleUtilities,
+} from 'nest-winston';
+import winston from 'winston';
 
 @Module({
   imports: [
@@ -39,6 +44,16 @@ import { ScheduleModule } from '@nestjs/schedule';
         },
       }),
       inject: [ConfigService],
+    }),
+    WinstonModule.forRoot({
+      transports: [
+        new winston.transports.Console({
+          format: winston.format.combine(
+            winston.format.timestamp(),
+            nestWinstonModuleUtilities.format.nestLike(),
+          ),
+        }),
+      ],
     }),
   ],
   controllers: [AppController],

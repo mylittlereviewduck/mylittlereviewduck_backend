@@ -32,7 +32,7 @@ import { GetUser } from '../decorator/get-user.decorator';
 import { LoginUser } from './model/login-user.model';
 import { RefreshGuard } from './guard/refresh.guard';
 import { SocialLoginDto } from './dto/social-login.dto';
-import { GetAccessTokenResponseDto } from './dto/response/get-access-token-response.dto';
+import { AccessTokenResponseDto } from './dto/response/access-token-response.dto';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -118,10 +118,10 @@ export class AuthController {
   @HttpCode(200)
   @Exception(400, '유효하지 않은 요청')
   @Exception(401, '권한 없음')
-  @ApiResponse({ status: 200, type: GetAccessTokenResponseDto })
+  @ApiResponse({ status: 200, type: AccessTokenResponseDto })
   async getAccessToken(
     @GetUser() loginUser: LoginUser,
-  ): Promise<GetAccessTokenResponseDto> {
+  ): Promise<AccessTokenResponseDto> {
     const accessToken = await this.authService.generateToken(
       'access',
       loginUser.idx,

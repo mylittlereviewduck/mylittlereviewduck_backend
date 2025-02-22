@@ -22,11 +22,14 @@ export class LoggerMiddleware implements NestMiddleware {
     const userAgent = req.get('user-agent');
 
     // 응답이 끝나는 이벤트가 발생하면 로그를 찍는다.
+
     res.on('finish', () => {
-      const { statusCode } = res;
-      this.logger.log(
-        `${method} ${originalUrl} ${statusCode} ${ip} ${userAgent}`,
-      );
+      const { statusCode, statusMessage } = res;
+      if (statusCode >= 400 && statusCode <= 500) {
+        this.logger.log(
+          `${method} ${originalUrl} ${statusCode} ${statusMessage} ${ip} ${userAgent}`,
+        );
+      }
     });
 
     next();

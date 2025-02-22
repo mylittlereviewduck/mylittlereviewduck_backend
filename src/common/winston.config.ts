@@ -7,7 +7,7 @@ const env = process.env.NODE_ENV;
 export const winstonLogger = WinstonModule.createLogger({
   transports: [
     new winston.transports.Console({
-      level: env === 'production' ? 'http' : 'silly',
+      level: env === 'production' ? 'http' : 'debug',
       format:
         env === 'production'
           ? winston.format.simple()

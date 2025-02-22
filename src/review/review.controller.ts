@@ -338,21 +338,21 @@ export class ReviewController {
   }
 
   @Get('/review/high-score')
-  @UseGuards(OptionalAuthGuard)
+  // @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '평점 3-5점의 최신 리뷰목록보기' })
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
-  async getLatestReviewsHighScore(
-    @GetUser() loginUser: LoginUser,
-    @Query() dto: PagerbleDto,
-  ): Promise<ReviewPagerbleResponseDto> {
+  async getLatestReviewsHighScore() // @GetUser() loginUser: LoginUser,
+  // @Query() dto: PagerbleDto,
+  : Promise<ReviewPagerbleResponseDto> {
     console.log('시작');
-    return await this.reviewService.getScoreReviewsWithInteraction(
-      {
-        ...dto,
-        scoreGte: 3,
-      },
-      loginUser && loginUser.idx,
-    );
+    // return await this.reviewService.getScoreReviewsWithInteraction(
+    //   {
+    //     ...dto,
+    //     scoreGte: 3,
+    //   },
+    //   loginUser && loginUser.idx,
+    // );
+    return;
   }
 
   @Get('/review/high-score/hot')
@@ -433,7 +433,12 @@ export class ReviewController {
   @Get('/user/:userIdx/review/all')
   @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '유저가 쓴 리뷰목록보기' })
-  @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
+  @ApiParam({
+    name: 'userIdx',
+    type: 'string',
+    description: '유저식별자',
+    example: '5b7459f9-1ec4-4529-b855-6146306a1973',
+  })
   @Exception(400, '유효하지 않은 요청')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
   async getReviewsAllByUserIdx(
@@ -453,7 +458,12 @@ export class ReviewController {
   @Get('/user/:userIdx/review/bookmark')
   @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '유저의 북마크한 리뷰목록보기' })
-  @ApiParam({ name: 'userIdx', type: 'number', description: '유저식별자' })
+  @ApiParam({
+    name: 'userIdx',
+    type: 'string',
+    description: '유저식별자',
+    example: '5b7459f9-1ec4-4529-b855-6146306a1973',
+  })
   @Exception(400, '유효하지 않은 요청')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
   async getBookmarkedReviews(
@@ -474,7 +484,12 @@ export class ReviewController {
   @Get('/user/:userIdx/review/commented')
   @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '유저의 댓글단 리뷰목록보기' })
-  @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
+  @ApiParam({
+    name: 'userIdx',
+    type: 'string',
+    description: '유저식별자',
+    example: '5b7459f9-1ec4-4529-b855-6146306a1973',
+  })
   @Exception(400, '유효하지 않은 요청')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
   async getCommentedReviews(
@@ -494,7 +509,12 @@ export class ReviewController {
   @Get('/user/:userIdx/review/like')
   @UseGuards(OptionalAuthGuard)
   @ApiOperation({ summary: '유저의 좋아요한 리뷰목록보기' })
-  @ApiParam({ name: 'userIdx', type: 'number', example: 1 })
+  @ApiParam({
+    name: 'userIdx',
+    type: 'string',
+    description: '유저식별자',
+    example: '5b7459f9-1ec4-4529-b855-6146306a1973',
+  })
   @Exception(400, '유효하지 않은 요청')
   @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
   async getLikedReviews(

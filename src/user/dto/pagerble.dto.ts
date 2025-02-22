@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import { IsOptional } from 'class-validator';
 
 export class PagerbleDto {
@@ -7,6 +8,7 @@ export class PagerbleDto {
     default: 10,
     required: false,
   })
+  @Type(() => Number)
   @IsOptional()
   size: number = 10;
 
@@ -15,6 +17,7 @@ export class PagerbleDto {
     default: 1,
     required: false,
   })
+  @Type(() => Number)
   @IsOptional()
   page: number = 1;
 }

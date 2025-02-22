@@ -59,127 +59,195 @@ export class ReviewController {
     private readonly awsService: AwsService,
   ) {}
 
-  @Post('/review')
-  @UseGuards(AuthGuard)
-  @ApiOperation({ summary: '리뷰 작성하기' })
-  @ApiBearerAuth()
-  @Exception(400, '유효하지 않은 요청')
-  @Exception(401, '권한 없음')
-  @ApiResponse({
-    status: 201,
-    type: ReviewEntity,
-    description: '리뷰작성 성공시 201 반환',
-  })
-  async createReview(
-    @GetUser() loginUser: LoginUser,
-    @Body() dto: CreateReviewDto,
-  ): Promise<ReviewEntity> {
-    dto.userIdx = loginUser.idx;
-    return await this.reviewService.createReview(dto);
-  }
-
-  @Post('/review/image')
-  @UseGuards(AuthGuard)
-  @ApiBearerAuth()
-  @UseInterceptors(FileInterceptor('image'))
-  @ApiOperation({ summary: '리뷰 이미지업로드' })
-  @ApiConsumes('multipart/form-data')
-  @ApiBody({
-    required: true,
-    schema: {
-      type: 'object',
-      properties: {
-        image: {
-          type: 'string',
-          format: 'binary',
-          description: '업로드할 이미지 파일(jpg, jpeg, png, gif)',
-        },
-      },
-    },
-  })
-  @Exception(
-    400,
-    '유효하지 않은 요청(파일 없는경우, 파일크기 초과한경우(10MB), 허용되는 확장자(jpg, jpeg, png, gif)가 아닌경우)',
-  )
-  @Exception(401, '권한없음')
-  @ApiResponse({
-    status: 201,
-    description: '리뷰 이미지 업로드 성공시 201반환',
-    type: UploadReviewImageResponseDto,
-  })
-  async uploadReviewImage(
-    @UploadedFile(FileValidationPipe) image: Express.Multer.File,
-  ): Promise<UploadReviewImageResponseDto> {
-    console.log(image);
-    return { imgPath: await this.awsService.uploadImageToS3(image) };
-  }
-
-  @Get('/review/:reviewIdx')
+  @Get('/user/:userIdx/review/all')
   @UseGuards(OptionalAuthGuard)
-  @ApiOperation({ summary: '리뷰 자세히보기' })
-  @ApiParam({ name: 'reviewIdx', type: 'number', example: 1 })
+  @ApiOperation({ summary: '유저가 쓴 리뷰목록보기' })
+  @ApiParam({
+    name: 'userIdx',
+    type: 'string',
+    description: '유저식별자',
+    example: '5b7459f9-1ec4-4529-b855-6146306a1973',
+  })
   @Exception(400, '유효하지 않은 요청')
-  @Exception(401, '권한 없음')
-  @ApiResponse({ status: 200, type: ReviewEntity })
-  async getReviewDetail(
+  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
+  async getReviewsAllByUserIdx(
     @GetUser() loginUser: LoginUser,
-    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
-  ): Promise<ReviewEntity> {
-    return await this.reviewService.getReviewDetail(
-      reviewIdx,
+    @Param('userIdx', ParseUUIDPipe) userIdx: string,
+    @Query() dto: PagerbleDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    return await this.reviewService.getReviewsByUserIdxWithInteraction(
+      {
+        ...dto,
+        userIdx,
+      },
       loginUser && loginUser.idx,
     );
   }
 
-  @Put('/review/:reviewIdx')
-  @UseGuards(AuthGuard)
-  @ApiOperation({ summary: '리뷰 수정하기' })
-  @ApiBearerAuth()
-  @ApiParam({ name: 'reviewIdx', type: 'number', example: 1 })
-  @Exception(400, '유효하지 않은 요청')
-  @Exception(401, '권한 없음')
-  @Exception(404, '해당 리소스 없음')
-  @ApiResponse({ status: 200, type: ReviewEntity })
-  async updateReview(
-    @GetUser() loginUser: LoginUser,
-    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
-    @Body() dto: UpdateReviewDto,
-  ): Promise<ReviewEntity> {
-    dto.reviewIdx = reviewIdx;
-    return await this.reviewService.updateReview(dto, loginUser.idx);
-  }
-
-  @Delete('/review/:reviewIdx')
-  @ApiOperation({ summary: '리뷰 삭제하기' })
-  @ApiBearerAuth()
-  @ApiParam({ name: 'reviewIdx', type: 'number', example: 3 })
-  @Exception(400, '유효하지 않은 요청')
-  @Exception(401, '권한 없음')
-  @Exception(404, '해당 리소스 없음')
-  @ApiResponse({ status: 200 })
-  async deleteReview(
-    @GetUser() loginUser: LoginUser,
-    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
-  ): Promise<void> {
-    await this.reviewService.deleteReview(loginUser.idx, reviewIdx);
-  }
-
-  @Get('/review')
+  @Get('/user/:userIdx/review/bookmark')
   @UseGuards(OptionalAuthGuard)
-  @ApiOperation({
-    summary: '리뷰검색하기 ',
-    description: '작성자 닉네임, 태그, 제목, 내용으로 검색됩니다',
+  @ApiOperation({ summary: '유저의 북마크한 리뷰목록보기' })
+  @ApiParam({
+    name: 'userIdx',
+    type: 'string',
+    description: '유저식별자',
+    example: '5b7459f9-1ec4-4529-b855-6146306a1973',
   })
-  @ApiQuery({ name: 'search', description: '검색 키워드, 검색어 2글자 이상' })
   @Exception(400, '유효하지 않은 요청')
-  @Exception(404, 'Not Found Page')
-  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
-  async getSearchedReviewWithUserStatus(
+  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
+  async getBookmarkedReviews(
     @GetUser() loginUser: LoginUser,
-    @Query() dto: GetReviewsWithSearchDto,
+    @Param('userIdx', ParseUUIDPipe) userIdx: string,
+    @Query() dto: PagerbleDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    return await this.reviewService.getSearchedReviewsWithUserStatus(
-      dto,
+    return await this.reviewService.getBookmarkedReviewsWithInteraction(
+      {
+        size: dto.size,
+        page: dto.page,
+        userIdx,
+      },
+      loginUser && loginUser.idx,
+    );
+  }
+
+  @Get('/user/:userIdx/review/commented')
+  @UseGuards(OptionalAuthGuard)
+  @ApiOperation({ summary: '유저의 댓글단 리뷰목록보기' })
+  @ApiParam({
+    name: 'userIdx',
+    type: 'string',
+    description: '유저식별자',
+    example: '5b7459f9-1ec4-4529-b855-6146306a1973',
+  })
+  @Exception(400, '유효하지 않은 요청')
+  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
+  async getCommentedReviews(
+    @GetUser() loginUser: LoginUser,
+    @Param('userIdx', ParseUUIDPipe) userIdx: string,
+    @Query() dto: PagerbleDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    return await this.reviewService.getCommentedReviewsWithInteraction(
+      {
+        ...dto,
+        userIdx: userIdx,
+      },
+      loginUser && loginUser.idx,
+    );
+  }
+
+  @Get('/user/:userIdx/review/like')
+  @UseGuards(OptionalAuthGuard)
+  @ApiOperation({ summary: '유저의 좋아요한 리뷰목록보기' })
+  @ApiParam({
+    name: 'userIdx',
+    type: 'string',
+    description: '유저식별자',
+    example: '5b7459f9-1ec4-4529-b855-6146306a1973',
+  })
+  @Exception(400, '유효하지 않은 요청')
+  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
+  async getLikedReviews(
+    @GetUser() loginUser: LoginUser,
+    @Param('userIdx', ParseUUIDPipe) userIdx: string,
+    @Query() dto: PagerbleDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    return await this.reviewService.getLikedReviewsWithInteraction(
+      {
+        ...dto,
+        userIdx: userIdx,
+      },
+      loginUser && loginUser.idx,
+    );
+  }
+
+  @Get('/review/high-score/following')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: ' 평점 3-5점의 덕질중인 리뷰 목록 보기' })
+  @Exception(401, '권한없음')
+  @ApiResponse({ status: 200 })
+  async getHighScoreByFollowingUsers(
+    @GetUser() loginUser: LoginUser,
+    @Query() dto: PagerbleDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    return await this.reviewService.getFollowingReviewsWithInteraction(
+      {
+        size: dto.size,
+        page: dto.page,
+        scoreGte: 3,
+      },
+      loginUser.idx,
+    );
+  }
+
+  @Get('/review/high-score/hot')
+  @ApiOperation({ summary: '평점 3-5점의 인기리뷰 보기' })
+  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
+  async getHotReviewsHighScoreWithInteraction(
+    @Query() dto: HotReviewPagerbleDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    return await this.reviewService.getCachedHotReviewsHighScore(dto);
+  }
+
+  @Get('/review/high-score')
+  @UseGuards(OptionalAuthGuard)
+  @ApiOperation({ summary: '평점 3-5점의 최신 리뷰목록보기' })
+  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
+  async getLatestReviewsHighScore(
+    @GetUser() loginUser: LoginUser,
+    @Query() dto: PagerbleDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    return await this.reviewService.getScoreReviewsWithInteraction(
+      {
+        ...dto,
+        scoreGte: 3,
+      },
+      loginUser && loginUser.idx,
+    );
+  }
+
+  @Get('/review/low-score/following')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: ' 평점 0-2점의 덕질중인 리뷰 목록 보기' })
+  @Exception(401, '권한없음')
+  @ApiResponse({ status: 200 })
+  async getLowScoreReviewsByFollowingUsers(
+    @GetUser() loginUser: LoginUser,
+    @Query() dto: PagerbleDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    return await this.reviewService.getFollowingReviewsWithInteraction(
+      {
+        size: dto.size,
+        page: dto.page,
+        scoreLte: 2,
+      },
+      loginUser.idx,
+    );
+  }
+
+  @Get('/review/low-score/hot')
+  @ApiOperation({ summary: '평점 0-2점의 인기리뷰 보기' })
+  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
+  async getHotReviewsLowScoreWithInteraction(
+    @Query() dto: HotReviewPagerbleDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    return await this.reviewService.getCachedHotReviewsLowScore(dto);
+  }
+
+  @Get('/review/low-score')
+  @UseGuards(OptionalAuthGuard)
+  @ApiOperation({ summary: '평점 0-2점의 최신 리뷰목록보기' })
+  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
+  async getLatestReviewsLowScore(
+    @GetUser() loginUser: LoginUser,
+    @Query() dto: PagerbleDto,
+  ): Promise<ReviewPagerbleResponseDto> {
+    return await this.reviewService.getScoreReviewsWithInteraction(
+      {
+        ...dto,
+        scoreLte: 2,
+      },
       loginUser && loginUser.idx,
     );
   }
@@ -337,196 +405,127 @@ export class ReviewController {
     await this.reviewBlockService.unblockReview(loginUser.idx, reviewIdx);
   }
 
-  @Get('/review/high-score')
-  // @UseGuards(OptionalAuthGuard)
-  @ApiOperation({ summary: '평점 3-5점의 최신 리뷰목록보기' })
-  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
-  async getLatestReviewsHighScore() // @GetUser() loginUser: LoginUser,
-  // @Query() dto: PagerbleDto,
-  : Promise<ReviewPagerbleResponseDto> {
-    console.log('시작');
-    // return await this.reviewService.getScoreReviewsWithInteraction(
-    //   {
-    //     ...dto,
-    //     scoreGte: 3,
-    //   },
-    //   loginUser && loginUser.idx,
-    // );
-    return;
+  @Get('/review/:reviewIdx')
+  @UseGuards(OptionalAuthGuard)
+  @ApiOperation({ summary: '리뷰 자세히보기' })
+  @ApiParam({ name: 'reviewIdx', type: 'number', example: 1 })
+  @Exception(400, '유효하지 않은 요청')
+  @Exception(401, '권한 없음')
+  @ApiResponse({ status: 200, type: ReviewEntity })
+  async getReviewDetail(
+    @GetUser() loginUser: LoginUser,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
+  ): Promise<ReviewEntity> {
+    return await this.reviewService.getReviewDetail(
+      reviewIdx,
+      loginUser && loginUser.idx,
+    );
   }
 
-  @Get('/review/high-score/hot')
-  @ApiOperation({ summary: '평점 3-5점의 인기리뷰 보기' })
-  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
-  async getHotReviewsHighScoreWithInteraction(
-    @Query() dto: HotReviewPagerbleDto,
-  ): Promise<ReviewPagerbleResponseDto> {
-    return await this.reviewService.getCachedHotReviewsHighScore(dto);
+  @Put('/review/:reviewIdx')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: '리뷰 수정하기' })
+  @ApiBearerAuth()
+  @ApiParam({ name: 'reviewIdx', type: 'number', example: 1 })
+  @Exception(400, '유효하지 않은 요청')
+  @Exception(401, '권한 없음')
+  @Exception(404, '해당 리소스 없음')
+  @ApiResponse({ status: 200, type: ReviewEntity })
+  async updateReview(
+    @GetUser() loginUser: LoginUser,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
+    @Body() dto: UpdateReviewDto,
+  ): Promise<ReviewEntity> {
+    dto.reviewIdx = reviewIdx;
+    return await this.reviewService.updateReview(dto, loginUser.idx);
   }
 
-  @Get('/review/high-score/following')
+  @Delete('/review/:reviewIdx')
+  @ApiOperation({ summary: '리뷰 삭제하기' })
+  @ApiBearerAuth()
+  @ApiParam({ name: 'reviewIdx', type: 'number', example: 3 })
+  @Exception(400, '유효하지 않은 요청')
+  @Exception(401, '권한 없음')
+  @Exception(404, '해당 리소스 없음')
+  @ApiResponse({ status: 200 })
+  async deleteReview(
+    @GetUser() loginUser: LoginUser,
+    @Param('reviewIdx', ParseIntPipe) reviewIdx: number,
+  ): Promise<void> {
+    await this.reviewService.deleteReview(loginUser.idx, reviewIdx);
+  }
+
+  @Post('/review/image')
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: ' 평점 3-5점의 덕질중인 리뷰 목록 보기' })
+  @UseInterceptors(FileInterceptor('image'))
+  @ApiOperation({ summary: '리뷰 이미지업로드' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    required: true,
+    schema: {
+      type: 'object',
+      properties: {
+        image: {
+          type: 'string',
+          format: 'binary',
+          description: '업로드할 이미지 파일(jpg, jpeg, png, gif)',
+        },
+      },
+    },
+  })
+  @Exception(
+    400,
+    '유효하지 않은 요청(파일 없는경우, 파일크기 초과한경우(10MB), 허용되는 확장자(jpg, jpeg, png, gif)가 아닌경우)',
+  )
   @Exception(401, '권한없음')
-  @ApiResponse({ status: 200 })
-  async getHighScoreByFollowingUsers(
-    @GetUser() loginUser: LoginUser,
-    @Query() dto: PagerbleDto,
-  ): Promise<ReviewPagerbleResponseDto> {
-    return await this.reviewService.getFollowingReviewsWithInteraction(
-      {
-        size: dto.size,
-        page: dto.page,
-        scoreGte: 3,
-      },
-      loginUser.idx,
-    );
+  @ApiResponse({
+    status: 201,
+    description: '리뷰 이미지 업로드 성공시 201반환',
+    type: UploadReviewImageResponseDto,
+  })
+  async uploadReviewImage(
+    @UploadedFile(FileValidationPipe) image: Express.Multer.File,
+  ): Promise<UploadReviewImageResponseDto> {
+    console.log(image);
+    return { imgPath: await this.awsService.uploadImageToS3(image) };
   }
 
-  @Get('/review/low-score')
-  @UseGuards(OptionalAuthGuard)
-  @ApiOperation({ summary: '평점 0-2점의 최신 리뷰목록보기' })
-  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
-  async getLatestReviewsLowScore(
-    @GetUser() loginUser: LoginUser,
-    @Query() dto: PagerbleDto,
-  ): Promise<ReviewPagerbleResponseDto> {
-    return await this.reviewService.getScoreReviewsWithInteraction(
-      {
-        ...dto,
-        scoreLte: 2,
-      },
-      loginUser && loginUser.idx,
-    );
-  }
-
-  @Get('/review/low-score/hot')
-  @ApiOperation({ summary: '평점 0-2점의 인기리뷰 보기' })
-  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
-  async getHotReviewsLowScoreWithInteraction(
-    @Query() dto: HotReviewPagerbleDto,
-  ): Promise<ReviewPagerbleResponseDto> {
-    return await this.reviewService.getCachedHotReviewsLowScore(dto);
-  }
-
-  @Get('/review/low-score/following')
+  @Post('/review')
   @UseGuards(AuthGuard)
+  @ApiOperation({ summary: '리뷰 작성하기' })
   @ApiBearerAuth()
-  @ApiOperation({ summary: ' 평점 0-2점의 덕질중인 리뷰 목록 보기' })
-  @Exception(401, '권한없음')
-  @ApiResponse({ status: 200 })
-  async getLowScoreReviewsByFollowingUsers(
+  @Exception(400, '유효하지 않은 요청')
+  @Exception(401, '권한 없음')
+  @ApiResponse({
+    status: 201,
+    type: ReviewEntity,
+    description: '리뷰작성 성공시 201 반환',
+  })
+  async createReview(
     @GetUser() loginUser: LoginUser,
-    @Query() dto: PagerbleDto,
-  ): Promise<ReviewPagerbleResponseDto> {
-    return await this.reviewService.getFollowingReviewsWithInteraction(
-      {
-        size: dto.size,
-        page: dto.page,
-        scoreLte: 2,
-      },
-      loginUser.idx,
-    );
+    @Body() dto: CreateReviewDto,
+  ): Promise<ReviewEntity> {
+    dto.userIdx = loginUser.idx;
+    return await this.reviewService.createReview(dto);
   }
 
-  @Get('/user/:userIdx/review/all')
+  @Get('/review')
   @UseGuards(OptionalAuthGuard)
-  @ApiOperation({ summary: '유저가 쓴 리뷰목록보기' })
-  @ApiParam({
-    name: 'userIdx',
-    type: 'string',
-    description: '유저식별자',
-    example: '5b7459f9-1ec4-4529-b855-6146306a1973',
+  @ApiOperation({
+    summary: '리뷰검색하기 ',
+    description: '작성자 닉네임, 태그, 제목, 내용으로 검색됩니다',
   })
+  @ApiQuery({ name: 'search', description: '검색 키워드, 검색어 2글자 이상' })
   @Exception(400, '유효하지 않은 요청')
-  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
-  async getReviewsAllByUserIdx(
+  @Exception(404, 'Not Found Page')
+  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto })
+  async getSearchedReviewWithUserStatus(
     @GetUser() loginUser: LoginUser,
-    @Param('userIdx', ParseUUIDPipe) userIdx: string,
-    @Query() dto: PagerbleDto,
+    @Query() dto: GetReviewsWithSearchDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    return await this.reviewService.getReviewsByUserIdxWithInteraction(
-      {
-        ...dto,
-        userIdx,
-      },
-      loginUser && loginUser.idx,
-    );
-  }
-
-  @Get('/user/:userIdx/review/bookmark')
-  @UseGuards(OptionalAuthGuard)
-  @ApiOperation({ summary: '유저의 북마크한 리뷰목록보기' })
-  @ApiParam({
-    name: 'userIdx',
-    type: 'string',
-    description: '유저식별자',
-    example: '5b7459f9-1ec4-4529-b855-6146306a1973',
-  })
-  @Exception(400, '유효하지 않은 요청')
-  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
-  async getBookmarkedReviews(
-    @GetUser() loginUser: LoginUser,
-    @Param('userIdx', ParseUUIDPipe) userIdx: string,
-    @Query() dto: PagerbleDto,
-  ): Promise<ReviewPagerbleResponseDto> {
-    return await this.reviewService.getBookmarkedReviewsWithInteraction(
-      {
-        size: dto.size,
-        page: dto.page,
-        userIdx,
-      },
-      loginUser && loginUser.idx,
-    );
-  }
-
-  @Get('/user/:userIdx/review/commented')
-  @UseGuards(OptionalAuthGuard)
-  @ApiOperation({ summary: '유저의 댓글단 리뷰목록보기' })
-  @ApiParam({
-    name: 'userIdx',
-    type: 'string',
-    description: '유저식별자',
-    example: '5b7459f9-1ec4-4529-b855-6146306a1973',
-  })
-  @Exception(400, '유효하지 않은 요청')
-  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
-  async getCommentedReviews(
-    @GetUser() loginUser: LoginUser,
-    @Param('userIdx', ParseUUIDPipe) userIdx: string,
-    @Query() dto: PagerbleDto,
-  ): Promise<ReviewPagerbleResponseDto> {
-    return await this.reviewService.getCommentedReviewsWithInteraction(
-      {
-        ...dto,
-        userIdx: userIdx,
-      },
-      loginUser && loginUser.idx,
-    );
-  }
-
-  @Get('/user/:userIdx/review/like')
-  @UseGuards(OptionalAuthGuard)
-  @ApiOperation({ summary: '유저의 좋아요한 리뷰목록보기' })
-  @ApiParam({
-    name: 'userIdx',
-    type: 'string',
-    description: '유저식별자',
-    example: '5b7459f9-1ec4-4529-b855-6146306a1973',
-  })
-  @Exception(400, '유효하지 않은 요청')
-  @ApiResponse({ status: 200, type: ReviewPagerbleResponseDto, isArray: true })
-  async getLikedReviews(
-    @GetUser() loginUser: LoginUser,
-    @Param('userIdx', ParseUUIDPipe) userIdx: string,
-    @Query() dto: PagerbleDto,
-  ): Promise<ReviewPagerbleResponseDto> {
-    return await this.reviewService.getLikedReviewsWithInteraction(
-      {
-        ...dto,
-        userIdx: userIdx,
-      },
+    return await this.reviewService.getSearchedReviewsWithUserStatus(
+      dto,
       loginUser && loginUser.idx,
     );
   }

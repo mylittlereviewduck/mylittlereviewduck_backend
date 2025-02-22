@@ -45,8 +45,8 @@ import { ReviewBlockEntity } from './entity/ReviewBlock.entity';
 import { ReviewBookmarkEntity } from './entity/Reviewbookmark.entity';
 import { BookmarkService } from './bookmark.service';
 import { GetReviewsWithSearchDto } from './dto/request/get-review-with-search.dto';
-import { HotReviewPagerbleDto } from './dto/request/hot-review-pagerble.dto';
 import { PagerbleDto } from 'src/user/dto/pagerble.dto';
+import { HotReviewPagerbleDto } from './dto/request/hot-review-pagerble.dto';
 
 @Controller('')
 @ApiTags('review')

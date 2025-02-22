@@ -15,6 +15,7 @@ export const winstonLogger = WinstonModule.createLogger({
               winston.format.timestamp(),
               utilities.format.nestLike('NestJS', {
                 prettyPrint: true, // 로그 가독성을 높여줌
+                colors: true,
               }),
             ),
     }),

@@ -302,3 +302,16 @@ model SearchKeywordTb {
 
   @@map("search_keyword_tb")
 }
+
+model LogsTb {
+  idx           Int      @id(map: "logs_pk") @default(autoincrement())
+  method        String   @db.VarChar(10)
+  url           String
+  statusMessage String?  @map("status_message")
+  statusCode    Int      @map("status_code")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  ip            String   @db.VarChar
+  userAgent     String   @map("user_agent") @db.VarChar
+
+  @@map("logs_tb")
+}

@@ -287,6 +287,8 @@ export class ReviewService {
   ): Promise<ReviewEntity> {
     const reviewEntity = await this.getReviewByIdx(reviewIdx);
 
+    if (!reviewEntity) throw new NotFoundException('Not Found Review');
+
     const viewCount = await this.getViewCount(reviewEntity.idx);
 
     reviewEntity.viewCount = viewCount + 1;

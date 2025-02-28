@@ -19,6 +19,10 @@ import {
 } from 'nest-winston';
 import winston from 'winston';
 import { LoggerMiddleware } from './common/logger.middleware';
+import {
+  PrometheusModule,
+  makeCounterProvider,
+} from '@willsoto/nestjs-prometheus';
 
 @Module({
   imports: [
@@ -60,9 +64,20 @@ import { LoggerMiddleware } from './common/logger.middleware';
         }),
       ],
     }),
+    PrometheusModule.register({
+      defaultLabels: {
+        app: 'TodayReview',
+      },
+    }),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    makeCounterProvider({
+      name: 'metric_name',
+      help: 'metric_help',
+    }),
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

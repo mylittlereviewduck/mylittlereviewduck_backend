@@ -37,8 +37,8 @@ export class LoggerMiddleware implements NestMiddleware {
             url: originalUrl,
             statusCode: statusCode,
             ...(statusMessage && { statusMessage: statusMessage }),
-            ip: ip,
-            userAgent: userAgent,
+            ...(ip && { ip: ip }),
+            ...(userAgent && { userAgent: userAgent }),
           },
         });
       }

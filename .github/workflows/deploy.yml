@@ -36,7 +36,7 @@ jobs:
         run: |
           echo '${{ secrets.FIREBASE_CONFIG }}' > /home/kiju/dev/study/mylittlereviewduck_backend/src/notification/firebase.config.json
 
-      - name: Prisma Client 생성
+      - name: Prisma client 생성
         run: |
           cd /home/kiju/dev/study/mylittlereviewduck_backend
           npx prisma db pull

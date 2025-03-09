@@ -2,7 +2,6 @@ import { EmailAuthService } from './email-auth.service';
 import {
   Body,
   Controller,
-  Delete,
   Get,
   HttpCode,
   Param,
@@ -34,6 +33,7 @@ import { LoginUser } from './model/login-user.model';
 import { RefreshGuard } from './guard/refresh.guard';
 import { SocialLoginDto } from './dto/social-login.dto';
 import { AccessTokenResponseDto } from './dto/response/access-token-response.dto';
+import { AuthGuard } from './guard/auth.guard';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -134,6 +134,8 @@ export class AuthController {
   }
 
   @Post('/logout')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({
     summary: '로그아웃',
     description: '리프레쉬 토큰 db에서 삭제',

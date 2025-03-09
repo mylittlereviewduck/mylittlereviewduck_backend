@@ -310,8 +310,8 @@ model LogsTb {
   statusMessage String?  @map("status_message")
   statusCode    Int      @map("status_code")
   createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  ip            String   @db.VarChar
-  userAgent     String   @map("user_agent") @db.VarChar
+  ip            String?  @db.VarChar
+  userAgent     String?  @map("user_agent") @db.VarChar
 
   @@map("logs_tb")
 }

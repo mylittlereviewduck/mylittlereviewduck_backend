@@ -2,6 +2,7 @@ import { EmailAuthService } from './email-auth.service';
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   Param,
@@ -131,6 +132,16 @@ export class AuthController {
 
     return { accessToken };
   }
+
+  @Post('/logout')
+  @ApiOperation({
+    summary: '로그아웃',
+    description: '리프레쉬 토큰 db에서 삭제',
+  })
+  @HttpCode(200)
+  @Exception(400, '유효하지 않은 요청')
+  @ApiResponse({ status: 200 })
+  async logout(): Promise<void> {}
 
   @Post('/kakao')
   @ApiOperation({ summary: '카카오 로그인' })

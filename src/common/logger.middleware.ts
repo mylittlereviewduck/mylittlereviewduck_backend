@@ -25,25 +25,29 @@ export class LoggerMiddleware implements NestMiddleware {
 
     // 응답이 끝나는 이벤트가 발생하면 로그를 찍는다.
 
-    res.on('finish', async () => {
-      const { statusCode, statusMessage } = res;
-      if (statusCode >= 400 && statusCode <= 500) {
-        this.logger.warn(
-          `${method} ${originalUrl} ${statusCode} ${statusMessage} ${ip} ${userAgent}`,
-        );
-        await this.prismaService.logsTb.create({
-          data: {
-            method: method,
-            url: originalUrl,
-            statusCode: statusCode,
-            ...(statusMessage && { statusMessage: statusMessage }),
-            ...(ip && { ip: ip }),
-            ...(userAgent && { userAgent: userAgent }),
-          },
-        });
-      }
-    });
-
-    next();
+    try {
+      res.on('finish', async () => {
+        const { statusCode, statusMessage } = res;
+        if (statusCode >= 400 && statusCode <= 500) {
+          this.logger.warn(
+            `${method} ${originalUrl} ${statusCode} ${statusMessage} ${ip} ${userAgent}`,
+          );
+          await this.prismaService.logsTb.create({
+            data: {
+              method: method,
+              url: originalUrl,
+              statusCode: statusCode,
+              ...(statusMessage && { statusMessage: statusMessage }),
+              ...(ip && { ip: ip }),
+              ...(userAgent && { userAgent: userAgent }),
+            },
+          });
+        }
+      });
+      next();
+    } catch (err) {
+      console.log(`error : ${err}`);
+      next();
+    }
   }
 }

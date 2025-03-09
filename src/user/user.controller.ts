@@ -23,6 +23,7 @@ import {
 import {
   ApiBearerAuth,
   ApiBody,
+  ApiConsumes,
   ApiOperation,
   ApiParam,
   ApiQuery,
@@ -150,9 +151,10 @@ export class UserController {
 
   @Put('profile-img')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @UseInterceptors(FileInterceptor('image'))
   @ApiOperation({ summary: '프로필 이미지 수정' })
-  @ApiBearerAuth()
+  @ApiConsumes('multipart/form-data')
   @ApiBody({
     required: true,
     description: '프로필 이미지',

@@ -325,3 +325,24 @@ model LogTb {
 
   @@map("log_tb")
 }
+
+model OpinionTb {
+  idx           Int             @id(map: "opinion_pkey") @default(autoincrement())
+  accountIdx    String          @map("account_idx") @db.VarChar
+  status        Int
+  title         String          @db.VarChar
+  content       String
+  createdAt     DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt     DateTime?       @map("deleted_at") @db.Timestamptz(6)
+  opinionStatus OpinionStatusTb @relation(fields: [status], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_status")
+
+  @@map("opinion_tb")
+}
+
+model OpinionStatusTb {
+  idx        Int         @id(map: "opinion_status_pkey")
+  statusName String      @map("status_name") @db.VarChar
+  opinionTb  OpinionTb[]
+
+  @@map("opinion_status_tb")
+}

@@ -30,6 +30,10 @@ export class UserEntity {
   profile: string | null;
 
   //prettier-ignore
+  @ApiProperty({example: 'kakao', description: '가입경로(local, kakao, naver)'})
+  provider: string;
+
+  //prettier-ignore
   @ApiProperty({ example: 'example.png', description: '프로필 이미지 경로', nullable: true })
   profileImg: string | null;
 
@@ -92,6 +96,7 @@ export class UserEntity {
     this.idx = data.idx;
     this.email = data.email;
     this.profile = data.profile;
+    this.provider = data.provider;
     //prettier-ignore
     this.profileImg = data.profileImg;
     this.nickname = data.nickname;

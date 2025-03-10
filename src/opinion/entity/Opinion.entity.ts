@@ -27,7 +27,7 @@ export class OpinionEntity {
 
   @ApiProperty({
     example: '의견 상태.',
-    description: `'pending' | 'accepted' 중 하나`,
+    description: `'pending' | 'accepted' 중 하나의 값으로 전달됩니다.`,
   })
   status: string;
 
@@ -48,7 +48,7 @@ export class OpinionEntity {
     this.user = new ReviewUserEntity(data.accountTb);
     this.title = data.title;
     this.content = data.content;
-    this.status = data.status;
+    this.status = data.opinionStatusTb.statusName;
     this.createdAt = data.createdAt;
     this.deletedAt = data.deletedAt;
   }

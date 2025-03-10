@@ -1,5 +1,6 @@
 import { JwtService } from '@nestjs/jwt';
 import {
+  BadRequestException,
   CanActivate,
   ExecutionContext,
   Injectable,
@@ -7,12 +8,14 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class RefreshGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly prismaService: PrismaService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -24,12 +27,27 @@ export class RefreshGuard implements CanActivate {
     }
 
     try {
-      const payload = await this.jwtService.verifyAsync(token, {
-        secret: this.configService.get<string>('JWT_SECRET'),
-      });
+      const payload: authorizationToken = await this.jwtService.verifyAsync(
+        token,
+        {
+          secret: this.configService.get<string>('JWT_SECRET'),
+        },
+      );
 
       if (payload.type != 'refresh') {
-        throw new UnauthorizedException();
+        throw new BadRequestException('Need refresh Token');
+      }
+
+      const searchedLoginUser = await this.prismaService.loginUserTb.findUnique(
+        {
+          where: {
+            accountIdx: payload.idx,
+          },
+        },
+      );
+
+      if (token !== searchedLoginUser.refreshToken) {
+        throw new UnauthorizedException('UnauthorizedException');
       }
 
       request.user = payload;

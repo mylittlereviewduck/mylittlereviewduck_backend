@@ -304,7 +304,16 @@ model SearchKeywordTb {
   @@map("search_keyword_tb")
 }
 
-model LogsTb {
+model LoginUserTb {
+  accountIdx   String    @id @map("account_idx") @db.VarChar
+  refreshToken String    @map("refresh_token") @db.VarChar
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  accountTb    AccountTb @relation(fields: [accountIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("login_user_tb")
+}
+
+model LogTb {
   idx           Int      @id(map: "logs_pk") @default(autoincrement())
   method        String   @db.VarChar(10)
   url           String
@@ -314,14 +323,5 @@ model LogsTb {
   ip            String?  @db.VarChar
   userAgent     String?  @map("user_agent") @db.VarChar
 
-  @@map("logs_tb")
-}
-
-model LoginUserTb {
-  accountIdx   String    @id @map("account_idx") @db.VarChar
-  refreshToken String    @map("refresh_token") @db.VarChar
-  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  accountTb    AccountTb @relation(fields: [accountIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction)
-
-  @@map("login_user_tb")
+  @@map("log_tb")
 }

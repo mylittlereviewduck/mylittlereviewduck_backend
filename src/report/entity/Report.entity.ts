@@ -1,7 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Prisma } from '@prisma/client';
+import { ReviewUserEntity } from 'src/review/entity/ReviewUser.entity';
+import { reportType } from '../type/report.type';
 
-const report = Prisma.validator<Prisma.ReportTbDefaultArgs>()({});
+const report = Prisma.validator<Prisma.ReportTbDefaultArgs>()({
+  include: {
+    accountTb: true,
+    reportTypeTb: true,
+  },
+});
 
 export type report = Prisma.ReportTbGetPayload<typeof report>;
 
@@ -10,13 +17,28 @@ export class ReportEntity {
   idx: number;
 
   @ApiProperty({
-    example: 'de1704a4-bdd4-4df5-8fe8-053338cbac44',
-    description: '유저 idx',
+    example: {
+      idx: '344e753e-9071-47b2-b651-bc32a0a92b1f',
+      email: 'test1@a.com',
+      nickname: '23번째 오리',
+      profileImg:
+        'https://s3.ap-northeast-2.amazonaws.com/todayreview/1724893124840.png',
+      interest1: '여행',
+      interest2: null,
+    },
+    description: '작성자',
   })
-  reporterIdx: string;
+  user: ReviewUserEntity;
 
-  @ApiProperty({ example: 1, description: '신고 타입' })
-  type: number;
+  @ApiProperty({ example: '신고 내용입니다' })
+  content: string;
+
+  @ApiProperty({
+    example: 'spam',
+    description: `신고 타입  
+    'spam' | 'ilegal_product' | 'harmful_to_children' | 'sexsual' | 'hate_or_discrimination' | 'offensive' | 'other' 중 하나로 반환됩니다.`,
+  })
+  type: string;
 
   @ApiProperty({ example: 1, description: '리뷰 idx' })
   reviewIdx?: number;
@@ -32,8 +54,9 @@ export class ReportEntity {
 
   constructor(data: report) {
     this.idx = data.idx;
-    this.reporterIdx = data.reporterIdx;
-    this.type = data.type;
+    this.user = new ReviewUserEntity(data.accountTb);
+    this.content = data.content;
+    this.type = data.reportTypeTb.typeName;
     this.reviewIdx = data.reviewIdx;
     this.commentIdx = data.commentIdx;
     this.createdAt = data.createdAt;

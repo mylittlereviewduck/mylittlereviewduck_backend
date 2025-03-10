@@ -7,6 +7,6 @@ import { OpinionController } from './opinion.controller';
   imports: [PrismaModule],
   controllers: [OpinionController],
   providers: [OpinionService],
-  exports: [],
+  exports: [OpinionService],
 })
 export class OpinionModule {}

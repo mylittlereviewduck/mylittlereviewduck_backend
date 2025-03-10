@@ -68,9 +68,15 @@ export class AuthService {
       14 * 24 * 3600,
     );
 
-    await this.prismaService.loginUserTb.create({
-      data: {
+    await this.prismaService.loginUserTb.upsert({
+      where: {
         accountIdx: user.idx,
+      },
+      create: {
+        accountIdx: user.idx,
+        refreshToken: refreshToken,
+      },
+      update: {
         refreshToken: refreshToken,
       },
     });

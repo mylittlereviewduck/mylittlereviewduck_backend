@@ -4,7 +4,7 @@ import { IsOptional } from 'class-validator';
 
 export class PagerbleDto {
   @ApiProperty({
-    description: '한페이지에 가져올 사이즈',
+    description: '한 페이지에 가져올 사이즈',
     default: 10,
     required: false,
   })

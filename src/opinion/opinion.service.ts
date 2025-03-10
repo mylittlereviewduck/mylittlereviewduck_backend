@@ -5,8 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { OpinionEntity } from './entity/Opinion.entity';
-import { createOpinionDto } from './dto/create-opinion.dto';
-import { updateOpinionDto } from './dto/update-opinion.dto';
+import { UpsertOpinionDto } from './dto/upsert-opinion.dto';
 
 @Injectable()
 export class OpinionService {
@@ -14,11 +13,12 @@ export class OpinionService {
 
   async createOpinion(
     userIdx: string,
-    dto: createOpinionDto,
+    dto: UpsertOpinionDto,
   ): Promise<OpinionEntity> {
     const newOpinionData = await this.prismaService.opinionTb.create({
       include: {
         accountTb: true,
+        opinionStatusTb: true,
       },
       data: {
         accountIdx: userIdx,
@@ -37,8 +37,10 @@ export class OpinionService {
       },
       include: {
         accountTb: true,
+        opinionStatusTb: true,
       },
     });
+    console.log('opinionData: ', opinionData);
 
     if (!opinionData) return null;
 
@@ -47,9 +49,10 @@ export class OpinionService {
 
   async updateMyOpinion(
     userIdx: string,
-    dto: updateOpinionDto,
+    opinionIdx: number,
+    dto: UpsertOpinionDto,
   ): Promise<OpinionEntity> {
-    const myOpinion = await this.getOpinion(dto.idx);
+    const myOpinion = await this.getOpinion(opinionIdx);
 
     if (!myOpinion) throw new NotFoundException('Not Found Opinion');
 
@@ -58,7 +61,7 @@ export class OpinionService {
 
     const opinionData = await this.prismaService.opinionTb.update({
       where: {
-        idx: dto.idx,
+        idx: opinionIdx,
       },
       data: {
         title: dto.title,
@@ -66,6 +69,7 @@ export class OpinionService {
       },
       include: {
         accountTb: true,
+        opinionStatusTb: true,
       },
     });
 

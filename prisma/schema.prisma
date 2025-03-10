@@ -329,7 +329,7 @@ model LogTb {
 model OpinionTb {
   idx           Int             @id(map: "opinion_pkey") @default(autoincrement())
   accountIdx    String          @map("account_idx") @db.VarChar
-  status        Int
+  status        Int             @default(1)
   title         String          @db.VarChar
   content       String
   createdAt     DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)

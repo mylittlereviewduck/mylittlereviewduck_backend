@@ -24,6 +24,7 @@ import {
   makeCounterProvider,
 } from '@willsoto/nestjs-prometheus';
 import { OpinionModule } from './opinion/opinion.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { OpinionModule } from './opinion/opinion.module';
     NotificationModule,
     ReportModule,
     OpinionModule,
+    AdminModule,
     ScheduleModule.forRoot(),
     EventEmitterModule.forRoot({
       maxListeners: 10,

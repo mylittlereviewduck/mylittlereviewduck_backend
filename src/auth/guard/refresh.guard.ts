@@ -1,4 +1,4 @@
-import { JwtService } from '@nestjs/jwt';
+import { JwtService, TokenExpiredError } from '@nestjs/jwt';
 import {
   BadRequestException,
   CanActivate,
@@ -38,21 +38,29 @@ export class RefreshGuard implements CanActivate {
         throw new BadRequestException('Need refresh Token');
       }
 
-      const searchedLoginUser = await this.prismaService.loginUserTb.findUnique(
-        {
-          where: {
-            accountIdx: payload.idx,
-          },
+      const searchedLoginUser = await this.prismaService.loginUserTb.findFirst({
+        where: {
+          accountIdx: payload.idx,
         },
-      );
+      });
+
+      if (!searchedLoginUser)
+        throw new UnauthorizedException('Already Not Login User');
 
       if (token !== searchedLoginUser.refreshToken) {
         throw new UnauthorizedException('UnauthorizedException');
       }
 
       request.user = payload;
-    } catch {
-      throw new UnauthorizedException();
+    } catch (err) {
+      if (err instanceof TokenExpiredError)
+        throw new UnauthorizedException('Authentication TimeOut');
+
+      if (err instanceof UnauthorizedException)
+        throw new UnauthorizedException(err.message);
+
+      if (err instanceof BadRequestException)
+        throw new BadRequestException(err.message);
     }
 
     return true;

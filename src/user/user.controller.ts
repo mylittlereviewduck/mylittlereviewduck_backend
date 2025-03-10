@@ -1,5 +1,5 @@
 import { UserStatus } from './type/user-status.type';
-import { UserSuspensionService } from './user-suspension.service';
+import { UserSuspensionService } from '../admin/user-suspension.service';
 import { UserBlockCheckService } from './user-block-check.service';
 import { UserBlockService } from './user-block.service';
 import {
@@ -48,8 +48,6 @@ import { UserBlockEntity } from './entity/UserBlock.entity';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { AwsService } from 'src/aws/aws.service';
 import { FileValidationPipe } from 'src/common/fileValidation.pipe';
-import { AdminGuard } from 'src/auth/guard/admin.guard';
-import { SuspendUserDto } from './dto/suspend-user.dto';
 import { UserFollowService } from './user-follow.service';
 import { CreateFcmTokenDto } from './dto/save-fcm-token.dto';
 import { FcmTokenService } from './fcm-token.service';
@@ -69,7 +67,6 @@ export class UserController {
     private readonly userBlockService: UserBlockService,
     private readonly userBlockCheckService: UserBlockCheckService,
     private readonly awsService: AwsService,
-    private readonly userSuspensionService: UserSuspensionService,
     private readonly fcmTokenService: FcmTokenService,
     private readonly searchKeywordService: SearchKeywordService,
   ) {}
@@ -254,74 +251,6 @@ export class UserController {
     return await this.userBlockService.getBlockedUserAll(loginUser.idx, {
       page: dto.page,
       size: dto.size,
-    });
-  }
-
-  @Post('/:userIdx/suspend')
-  @UseGuards(AdminGuard)
-  @ApiOperation({
-    summary: '유저 정지하기',
-    description: '관리자 권한 계정만 가능합니다',
-  })
-  @ApiBearerAuth()
-  @HttpCode(200)
-  @ApiParam({
-    name: 'userIdx',
-    description: '유저idx',
-    type: 'string',
-    example: '836d533b-3ee3-4616-8644-a1ddea65e1e0',
-  })
-  @Exception(401, '권한 없음')
-  @Exception(403, '관리자 권한 필요')
-  @ApiResponse({ status: 200 })
-  async suspendUser(
-    @Param('userIdx', ParseUUIDPipe) userIdx: string,
-    @Body() dto: SuspendUserDto,
-  ) {
-    return await this.userSuspensionService.suspendUser(userIdx, dto.timeframe);
-  }
-
-  @Delete('/:userIdx/suspend')
-  @UseGuards(AdminGuard)
-  @ApiOperation({
-    summary: '유저 정지 해제하기',
-    description: '관리자 권한 계정만 가능합니다',
-  })
-  @ApiBearerAuth()
-  @ApiParam({
-    name: 'userIdx',
-    description: '유저idx',
-    type: 'string',
-    example: '836d533b-3ee3-4616-8644-a1ddea65e1e0',
-  })
-  @Exception(401, '권한 없음')
-  @Exception(403, '관리자 권한 필요')
-  @ApiResponse({ status: 200 })
-  async deleteUserSuspension(
-    @Param('userIdx', ParseUUIDPipe) userIdx: string,
-  ): Promise<void> {
-    await this.userSuspensionService.deleteUserSuspension(userIdx);
-  }
-
-  @Get('/status/:status')
-  @UseGuards(AdminGuard)
-  @ApiOperation({ summary: '특정 상태 유저목록 보기' })
-  @ApiBearerAuth()
-  @ApiParam({
-    name: 'status',
-    description: '유저상태: active | suspended | blacklist',
-  })
-  @Exception(401, '권한 없음')
-  @Exception(403, '관리자 권한 필요')
-  @ApiResponse({ status: 200 })
-  async getUsersWithStatus(
-    @Param('status') status: UserStatus,
-    @Query() dto: PagerbleDto,
-  ): Promise<UserPagerbleResponseDto> {
-    return await this.userService.getUsersAll({
-      status,
-      page: dto.page || 1,
-      size: dto.size || 10,
     });
   }
 

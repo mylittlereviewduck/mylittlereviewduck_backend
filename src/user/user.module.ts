@@ -9,7 +9,7 @@ import { UserBlockCheckService } from './user-block-check.service';
 import { AwsModule } from '../aws/aws.module';
 import { NotificationModule } from 'src/notification/notification.module';
 import { EmailModule } from '../email/email.module';
-import { UserSuspensionService } from './user-suspension.service';
+import { UserSuspensionService } from '../admin/user-suspension.service';
 import { UserFollowService } from './user-follow.service';
 import { FcmTokenService } from './fcm-token.service';
 import { SearchKeywordService } from 'src/user/search-keyword.service';
@@ -33,7 +33,6 @@ import { ReviewModule } from 'src/review/review.module';
     UserBlockService,
     UserFollowService,
     UserBlockCheckService,
-    UserSuspensionService,
     SearchKeywordService,
     FcmTokenService,
     UserInteractionService,

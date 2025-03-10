@@ -25,7 +25,6 @@ import { LoginUser } from 'src/auth/model/login-user.model';
 import { GetUser } from 'src/common/decorator/get-user.decorator';
 import { UpsertOpinionDto } from './dto/upsert-opinion.dto';
 import { PagerbleDto } from 'src/user/dto/pagerble.dto';
-import { AdminGuard } from 'src/auth/guard/admin.guard';
 
 @Controller('')
 @ApiTags('opinion')

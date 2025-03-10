@@ -16,6 +16,7 @@ import { NaverStrategy } from './strategy/naver.strategy';
 import { KakaoStrategy } from './strategy/kakao.strategy';
 import { LoginResponseDto } from '../../src/auth/dto/response/login-response.dto';
 import { BcryptService } from './bcrypt.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class AuthService {
@@ -26,6 +27,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly bcryptService: BcryptService,
+    private readonly prismaService: PrismaService,
     private readonly googleStrategy: GoogleStrategy,
     private readonly naverStrategy: NaverStrategy,
     private readonly kakaoStrategy: KakaoStrategy,
@@ -66,6 +68,14 @@ export class AuthService {
       14 * 24 * 3600,
     );
     return { accessToken, refreshToken };
+  }
+
+  async logout(loginUserIdx: string): Promise<void> {
+    await this.prismaService.loginUserTb.delete({
+      where: {
+        accountIdx: loginUserIdx,
+      },
+    });
   }
 
   async generateToken(

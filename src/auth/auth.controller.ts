@@ -143,7 +143,9 @@ export class AuthController {
   @HttpCode(200)
   @Exception(400, '유효하지 않은 요청')
   @ApiResponse({ status: 200 })
-  async logout(): Promise<void> {}
+  async logout(@GetUser() loginUser: LoginUser): Promise<void> {
+    await this.authService.logout(loginUser.idx);
+  }
 
   @Post('/kakao')
   @ApiOperation({ summary: '카카오 로그인' })

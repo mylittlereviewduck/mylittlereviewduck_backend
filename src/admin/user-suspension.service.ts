@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { UserService } from './user.service';
-import { UserEntity } from './entity/User.entity';
-import { SuspendUserDto, userSuspendPeriod } from './dto/suspend-user.dto';
+import { UserService } from '../user/user.service';
+import { UserEntity } from '../user/entity/User.entity';
+import { userSuspendPeriod } from '../user/dto/suspend-user.dto';
 
 @Injectable()
 export class UserSuspensionService {

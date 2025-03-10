@@ -109,6 +109,20 @@ export class AuthController {
     return await this.authService.login(loginDto);
   }
 
+  @Post('/logout')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: '로그아웃',
+    description: '리프레쉬 토큰 db에서 삭제',
+  })
+  @HttpCode(200)
+  @Exception(400, '유효하지 않은 요청')
+  @ApiResponse({ status: 200 })
+  async logout(@GetUser() loginUser: LoginUser): Promise<void> {
+    await this.authService.logout(loginUser.idx);
+  }
+
   @Post('/access-token')
   @UseGuards(RefreshGuard)
   @ApiBearerAuth()
@@ -131,20 +145,6 @@ export class AuthController {
     );
 
     return { accessToken };
-  }
-
-  @Post('/logout')
-  @UseGuards(AuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({
-    summary: '로그아웃',
-    description: '리프레쉬 토큰 db에서 삭제',
-  })
-  @HttpCode(200)
-  @Exception(400, '유효하지 않은 요청')
-  @ApiResponse({ status: 200 })
-  async logout(@GetUser() loginUser: LoginUser): Promise<void> {
-    await this.authService.logout(loginUser.idx);
   }
 
   @Post('/kakao')

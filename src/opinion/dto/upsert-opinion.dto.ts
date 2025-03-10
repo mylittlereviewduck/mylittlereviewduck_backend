@@ -1,6 +1,6 @@
 import { IsString, Length } from 'class-validator';
 
-export class createOpinionDto {
+export class UpsertOpinionDto {
   @IsString()
   @Length(1, 150)
   title: string;

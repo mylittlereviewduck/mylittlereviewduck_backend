@@ -32,7 +32,7 @@ export class LoggerMiddleware implements NestMiddleware {
           this.logger.warn(
             `${method} ${originalUrl} ${statusCode} ${statusMessage} ${ip} ${userAgent}`,
           );
-          await this.prismaService.logsTb.create({
+          await this.prismaService.logTb.create({
             data: {
               method: method,
               url: originalUrl,

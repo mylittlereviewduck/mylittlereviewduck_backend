@@ -33,7 +33,6 @@ import { LoginUser } from './model/login-user.model';
 import { RefreshGuard } from './guard/refresh.guard';
 import { SocialLoginDto } from './dto/social-login.dto';
 import { AccessTokenResponseDto } from './dto/response/access-token-response.dto';
-import { AuthGuard } from './guard/auth.guard';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -110,7 +109,7 @@ export class AuthController {
   }
 
   @Post('/logout')
-  @UseGuards(AuthGuard)
+  @UseGuards(RefreshGuard)
   @ApiBearerAuth()
   @ApiOperation({
     summary: '로그아웃',

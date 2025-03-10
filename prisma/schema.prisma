@@ -47,6 +47,7 @@ model AccountTb {
   loginUserTb                                         LoginUserTb?
   notificationTbNotificationTbSenderIdxToaccountTb    NotificationTb[]   @relation("notification_tb_sender_idxToaccount_tb")
   notificationTbNotificationTbRecipientIdxToaccountTb NotificationTb[]   @relation("notification_tb_recipient_idxToaccount_tb")
+  opinionTb                                           OpinionTb[]
   reportTb                                            ReportTb[]
   reviewBlockTb                                       ReviewBlockTb[]
   reviewBookmarkTb                                    ReviewBookmarkTb[]
@@ -334,6 +335,7 @@ model OpinionTb {
   content       String
   createdAt     DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
   deletedAt     DateTime?       @map("deleted_at") @db.Timestamptz(6)
+  accountTb     AccountTb       @relation(fields: [accountIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "account_fk")
   opinionStatus OpinionStatusTb @relation(fields: [status], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "fk_status")
 
   @@map("opinion_tb")

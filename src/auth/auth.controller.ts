@@ -94,7 +94,10 @@ export class AuthController {
   @Post('/login')
   @ApiOperation({
     summary: '로그인',
-    description: `test1@a.com - test10@a.com은 테스트용으로 가입된 메일입니다.  
+    description: ` <테스트용 가입된 계정>  
+    테스트용 일반 계정 이메일: test1@a.com - test10@a.com  
+    테스트용 관리자 계정 이메일: admin1@a.com - admin3@a.com  
+    (비밀번호 전부 동일)  
     액세스 토큰 만료시간: 30분,  
     리프레쉬 토큰 만료시간: 2주    
     `,

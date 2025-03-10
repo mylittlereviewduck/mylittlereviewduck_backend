@@ -26,14 +26,14 @@ import {
   ApiConsumes,
   ApiBody,
 } from '@nestjs/swagger';
-import { Exception } from 'src/decorator/exception.decorator';
+import { Exception } from 'src/common/decorator/exception.decorator';
 import { CreateReviewDto } from './dto/request/create-review.dto';
 import { ReviewEntity } from './entity/Review.entity';
 import { UploadReviewImageResponseDto } from './dto/response/upload-review-image-response.dto';
 import { UpdateReviewDto } from './dto/request/update-review.dto';
 import { ReviewService } from './review.service';
 import { LoginUser } from 'src/auth/model/login-user.model';
-import { GetUser } from 'src/decorator/get-user.decorator';
+import { GetUser } from 'src/common/decorator/get-user.decorator';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { OptionalAuthGuard } from 'src/auth/guard/optional-auth.guard';
 import { ReviewPagerbleResponseDto } from './dto/response/review-pagerble-response.dto';

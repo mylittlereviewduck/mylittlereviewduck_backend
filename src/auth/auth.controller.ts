@@ -17,7 +17,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { Exception } from '../../src/decorator/exception.decorator';
+import { Exception } from '../common/decorator/exception.decorator';
 import { LoginDto } from './dto/login.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { SendEmailVerificationDto } from './dto/send-email-verification.dto';
@@ -28,7 +28,7 @@ import { GoogleCallbackDto } from './dto/google-callback.dto';
 import { LoginResponseDto } from './dto/response/login-response.dto';
 import { NaverCallbackDto } from './dto/naver-callback.dto';
 import { KakaoCallbackDto } from './dto/kakao-callback.dto';
-import { GetUser } from '../decorator/get-user.decorator';
+import { GetUser } from '../common/decorator/get-user.decorator';
 import { LoginUser } from './model/login-user.model';
 import { RefreshGuard } from './guard/refresh.guard';
 import { SocialLoginDto } from './dto/social-login.dto';

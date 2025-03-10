@@ -13,9 +13,9 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { GetUser } from 'src/decorator/get-user.decorator';
+import { GetUser } from 'src/common/decorator/get-user.decorator';
 import { LoginUser } from 'src/auth/model/login-user.model';
-import { Exception } from 'src/decorator/exception.decorator';
+import { Exception } from 'src/common/decorator/exception.decorator';
 import { NotificationPagerbleResponseDto } from './dto/response/notification-pagerble-response.dto';
 import { NotificationService } from './notification.service';
 import { Observable, filter, interval, map } from 'rxjs';

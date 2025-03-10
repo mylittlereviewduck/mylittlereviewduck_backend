@@ -31,13 +31,13 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { UserService } from './user.service';
-import { Exception } from '../../src/decorator/exception.decorator';
+import { Exception } from '../common/decorator/exception.decorator';
 import { CheckNicknameDuplicateDto } from './dto/check-nickname-duplicate.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserEntity } from './entity/User.entity';
 import { UpdateMyInfoDto } from './dto/update-my-info.dto';
 import { AuthGuard } from '../auth/guard/auth.guard';
-import { GetUser } from '../decorator/get-user.decorator';
+import { GetUser } from '../common/decorator/get-user.decorator';
 import { LoginUser } from '../../src/auth/model/login-user.model';
 import { FollowService } from './follow.service';
 import { FollowEntity } from './entity/Follow.entity';

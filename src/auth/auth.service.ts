@@ -67,6 +67,14 @@ export class AuthService {
       user.isAdmin,
       14 * 24 * 3600,
     );
+
+    await this.prismaService.loginUserTb.create({
+      data: {
+        accountIdx: user.idx,
+        refreshToken: refreshToken,
+      },
+    });
+
     return { accessToken, refreshToken };
   }
 

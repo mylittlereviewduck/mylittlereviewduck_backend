@@ -44,6 +44,7 @@ model AccountTb {
   fcmTokenTb                                          FcmTokenTb[]
   followings                                          FollowTb[]         @relation("follow_tb_follower_idxToaccount_tb")
   followers                                           FollowTb[]         @relation("follow_tb_following_idxToaccount_tb")
+  loginUserTb                                         LoginUserTb?
   notificationTbNotificationTbSenderIdxToaccountTb    NotificationTb[]   @relation("notification_tb_sender_idxToaccount_tb")
   notificationTbNotificationTbRecipientIdxToaccountTb NotificationTb[]   @relation("notification_tb_recipient_idxToaccount_tb")
   reportTb                                            ReportTb[]
@@ -314,4 +315,13 @@ model LogsTb {
   userAgent     String?  @map("user_agent") @db.VarChar
 
   @@map("logs_tb")
+}
+
+model LoginUserTb {
+  accountIdx   String    @id @map("account_idx") @db.VarChar
+  refreshToken String    @map("refresh_token") @db.VarChar
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  accountTb    AccountTb @relation(fields: [accountIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("login_user_tb")
 }

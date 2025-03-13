@@ -12,12 +12,12 @@ async function bootstrap() {
     logger: winstonLogger,
   });
 
-  // app.enableCors({
-  //   origin: 'http://localhost', // 요청을 보내는 클라이언트의 도메인
-  //   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-  //   allowedHeaders: 'Content-Type, Authorization',
-  //   credentials: true, // 인증 관련 헤더를 포함한 요청 허용
-  // });
+  app.enableCors({
+    origin: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: 'Content-Type, Authorization',
+    credentials: true,
+  });
 
   const config = new DocumentBuilder()
     .addBearerAuth()
@@ -46,6 +46,6 @@ async function bootstrap() {
     }),
   );
 
-  await app.listen(process.env.PORT);
+  await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();

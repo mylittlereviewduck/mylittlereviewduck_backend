@@ -78,6 +78,7 @@ export class AuthService {
       },
       update: {
         refreshToken: refreshToken,
+        createdAt: new Date(),
       },
     });
 

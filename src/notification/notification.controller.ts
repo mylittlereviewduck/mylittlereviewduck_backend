@@ -64,6 +64,7 @@ export class NotificationController {
 
   @Sse('/notification/sse')
   @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'SSE 연결요청' })
   sendClientNotification(
     @GetUser() loginUser: LoginUser,
   ): Observable<MessageEvent> {

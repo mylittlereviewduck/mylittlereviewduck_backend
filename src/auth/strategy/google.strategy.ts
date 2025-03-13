@@ -84,6 +84,8 @@ export class GoogleStrategy implements ISocialAuthStrategy {
       14 * 24 * 3600,
     );
 
+    await this.authService.createOrUpdateLoginUser(refreshToken, user.idx);
+
     return { accessToken, refreshToken };
   }
 

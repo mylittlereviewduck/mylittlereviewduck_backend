@@ -68,19 +68,7 @@ export class AuthService {
       14 * 24 * 3600,
     );
 
-    await this.prismaService.loginUserTb.upsert({
-      where: {
-        accountIdx: user.idx,
-      },
-      create: {
-        accountIdx: user.idx,
-        refreshToken: refreshToken,
-      },
-      update: {
-        refreshToken: refreshToken,
-        createdAt: new Date(),
-      },
-    });
+    await this.createOrUpdateLoginUser(refreshToken, user.idx);
 
     return { accessToken, refreshToken };
   }
@@ -89,6 +77,25 @@ export class AuthService {
     await this.prismaService.loginUserTb.delete({
       where: {
         accountIdx: loginUserIdx,
+      },
+    });
+  }
+
+  async createOrUpdateLoginUser(
+    refreshToken: string,
+    userIdx: string,
+  ): Promise<void> {
+    await this.prismaService.loginUserTb.upsert({
+      where: {
+        accountIdx: userIdx,
+      },
+      create: {
+        accountIdx: userIdx,
+        refreshToken: refreshToken,
+      },
+      update: {
+        refreshToken: refreshToken,
+        createdAt: new Date(),
       },
     });
   }

@@ -12,8 +12,17 @@ async function bootstrap() {
     logger: winstonLogger,
   });
 
+  const isDev = process.env.NODE_ENV === 'dev';
+
+  const isAllowedOrigins = isDev
+    ? ['http/localhost:3000']
+    : [
+        'https://today-review-duck.vercel.app/',
+        'http://mylittlereviewduck.site/',
+      ];
+
   app.enableCors({
-    origin: true,
+    origin: isAllowedOrigins,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: 'Content-Type, Authorization',
     credentials: true,

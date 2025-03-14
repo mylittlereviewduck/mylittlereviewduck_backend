@@ -9,4 +9,8 @@ export class LoginResponseDto {
   @ApiProperty()
   @IsString()
   refreshToken: string;
+
+  @ApiProperty()
+  @IsString()
+  nickname: string;
 }

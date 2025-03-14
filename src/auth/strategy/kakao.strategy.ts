@@ -87,7 +87,7 @@ export class KakaoStrategy implements ISocialAuthStrategy {
 
     await this.authService.createOrUpdateLoginUser(refreshToken, user.idx);
 
-    return { accessToken, refreshToken };
+    return { accessToken, refreshToken, nickname: user.nickname };
   }
 
   // async socialAuth(code: string): Promise<LoginResponseDto> {

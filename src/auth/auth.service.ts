@@ -70,7 +70,7 @@ export class AuthService {
 
     await this.createOrUpdateLoginUser(refreshToken, user.idx);
 
-    return { accessToken, refreshToken };
+    return { accessToken, refreshToken, nickname: user.nickname };
   }
 
   async logout(loginUserIdx: string): Promise<void> {

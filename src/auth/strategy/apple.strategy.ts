@@ -88,7 +88,7 @@ export class AppleStrategy implements ISocialAuthStrategy {
       14 * 24 * 3600,
     );
 
-    return { accessToken, refreshToken };
+    return { accessToken, refreshToken, nickname: user.nickname };
   }
 
   // async socialAuth(code: string): Promise<LoginResponseDto> {

@@ -29,8 +29,9 @@ export class LoggerMiddleware implements NestMiddleware {
       res.on('finish', async () => {
         const { statusCode, statusMessage } = res;
         if (statusCode >= 400 && statusCode <= 500) {
+          this.logger.log(body);
           this.logger.warn(
-            `${method} ${originalUrl} ${body} ${statusCode} ${statusMessage} ${ip} ${userAgent}`,
+            `${method} ${originalUrl}  ${statusCode} ${statusMessage} ${ip} ${userAgent}`,
           );
           await this.prismaService.logTb.create({
             data: {

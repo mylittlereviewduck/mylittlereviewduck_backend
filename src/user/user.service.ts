@@ -301,7 +301,9 @@ export class UserService {
       throw new BadRequestException('minimum 1 property');
 
     if (dto.nickname && dto.nickname.includes('번째 오리'))
-      throw new BadRequestException("Nickname can't include '번째 오리'");
+      throw new BadRequestException(
+        "'번째 오리'는 닉네임에 사용할 수 없습니다.",
+      );
 
     const updatedUser = await this.prismaService.$transaction(async (tx) => {
       const user = await this.getUser(

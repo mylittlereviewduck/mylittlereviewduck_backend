@@ -76,7 +76,7 @@ export class CommentEntity {
         followerCount: 6,
       },
     ],
-    description: '유저 리스트',
+    description: '태그유저 리스트, 태그유저가 없다면 빈 리스트로 반환됩니다.',
   })
   tagUsers: ReviewUserEntity[];
 

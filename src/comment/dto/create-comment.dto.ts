@@ -21,6 +21,10 @@ export class CreateCommentDto {
   commentIdx: number | null;
 
   @ApiProperty({
+    example: [
+      'a3a066c8-845a-41d5-9862-54ea1a918a29',
+      '14e8f257-27fa-4999-a723-84a3927e3d5b',
+    ],
     description: '유저태그 시 존재, 유저idx list',
     required: false,
     nullable: true,

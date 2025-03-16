@@ -25,7 +25,27 @@ export class CommentPagerbleResponseDto {
         reviewIdx: 10102,
         commentIdx: null,
         content: '대댓글 내용입니다내용입니다33333',
+        tagUsers: [
+          {
+            idx: 'a3a066c8-845a-41d5-9862-54ea1a918a29',
+            email: 'test2@a.com',
+            nickname: 'nickname1',
+            profileImg: null,
+            interest1: '스포츠',
+            interest2: '여행',
+          },
+          {
+            idx: '14e8f257-27fa-4999-a723-84a3927e3d5b',
+            email: 'test3@a.com',
+            nickname: '25번째 오리',
+            profileImg: null,
+            interest1: null,
+            interest2: null,
+          },
+        ],
         createdAt: '2024-08-25T05:24:33.531Z',
+        updatedAt: null,
+        deletedAt: null,
       },
       {
         isMyBlock: false,
@@ -43,6 +63,8 @@ export class CommentPagerbleResponseDto {
         commentIdx: null,
         content: '수정된내용입니다',
         createdAt: '2024-08-25T05:28:43.200Z',
+        updatedAt: null,
+        deletedAt: null,
       },
     ],
   })

@@ -113,7 +113,7 @@ export class CommentEntity {
     this.commentIdx = data.commentIdx;
     this.content = data.content;
     //prettier-ignore
-    this.tagUsers = data.commentTagTb[0] && data.commentTagTb.map(tag => new ReviewUserEntity(tag.accountTb));
+    this.tagUsers = data.commentTagTb[0] ? data.commentTagTb.map(tag => new ReviewUserEntity(tag.accountTb)) : [];
     this.likeCount = data._count.commentLikeTb;
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;

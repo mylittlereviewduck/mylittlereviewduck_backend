@@ -115,7 +115,7 @@ export class ReviewService {
           createMany: {
             data: dto.images.map((image) => ({
               imgPath: image.image,
-              content: image.content,
+              ...(image.content && { content: image.content }),
             })),
           },
         },

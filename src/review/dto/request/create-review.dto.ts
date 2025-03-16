@@ -74,12 +74,12 @@ export class CreateReviewDto {
   @ApiProperty({
     example: [
       {
-        image:
+        imgPath:
           'https://s3.ap-northeast-2.amazonaws.com/todayreview/1723963141509',
         content: '이미지 설명1',
       },
       {
-        image:
+        imgPath:
           'https://s3.ap-northeast-2.amazonaws.com/todayreview/1723963141509',
         content: '이미지 설명2',
       },

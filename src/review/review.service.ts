@@ -114,7 +114,7 @@ export class ReviewService {
         reviewImgTb: {
           createMany: {
             data: dto.images.map((image) => ({
-              imgPath: image.image,
+              imgPath: image.imgPath,
               ...(image.content && { content: image.content }),
             })),
           },
@@ -184,7 +184,7 @@ export class ReviewService {
             },
             createMany: {
               data: dto.images.map((image) => ({
-                imgPath: image.image,
+                imgPath: image.imgPath,
                 content: image.content,
               })),
             },

@@ -32,3 +32,26 @@ services:
       test: ['CMD', 'redis-cli', 'ping']
       interval: 5s
       retries: 10
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - 9090:9090
+    depends_on:
+      - today-review-backend-server
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - 3001:3000
+    volumes:
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+
+volumes:
+  grafana_data:

@@ -14,7 +14,7 @@ services:
   today-review-postgres-db:
     image: k1ju/postgres-db:1.0.4
     environment:
-      POSTGRES_PASSWORD: 123
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - /Users/kiju/dev/study_data/docker-volume/postgres_data:/var/lib/postgresql/data
     ports:
@@ -41,6 +41,7 @@ services:
       - 9090:9090
     depends_on:
       - today-review-backend-server
+      - node-exporter
 
   grafana:
     image: grafana/grafana:latest
@@ -49,9 +50,22 @@ services:
     volumes:
       - grafana_data:/var/lib/grafana
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
     depends_on:
       - prometheus
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    ports:
+      - 9100:9100
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/rootfs'
 
 volumes:
   grafana_data:

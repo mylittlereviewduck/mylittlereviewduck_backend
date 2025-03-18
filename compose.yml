@@ -79,8 +79,8 @@ services:
     networks:
       - today-review-network
 
-  nginX:
-    image: nginX:latest
+  nginx:
+    image: nginx:latest
     ports:
       - 80:80
     volumes:

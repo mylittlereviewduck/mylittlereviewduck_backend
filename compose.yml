@@ -79,18 +79,20 @@ services:
     networks:
       - today-review-network
 
-  nginx:
-    image: nginx:latest
-    ports:
-      - 80:80
-    volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
-      - certbot-etc:/etc/letsencrypt # 인증서 저장
-      - certbot-var:/var/lib/letsencrypt # Certbot 작업 디렉토리
-    depends_on:
-      - today-review-backend-server
-    networks:
-      - today-review-network
+nginx:
+  image: nginx:latest
+  ports:
+    - 80:80
+    - 443:443 # HTTPS 포트 추가
+  volumes:
+    - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    - /etc/letsencrypt:/etc/letsencrypt # 호스트의 인증서 경로 직접 마운트
+    # - certbot-etc:/etc/letsencrypt  # 이건 제거
+    # - certbot-var:/var/lib/letsencrypt  # 필요 없으면 제거
+  depends_on:
+    - today-review-backend-server
+  networks:
+    - today-review-network
 
 volumes:
   grafana_data:

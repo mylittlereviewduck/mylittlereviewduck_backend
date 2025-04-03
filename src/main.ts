@@ -17,8 +17,8 @@ async function bootstrap() {
   const isAllowedOrigins = isDev
     ? ['http/localhost:3000']
     : [
-        'https://today-review-duck.vercel.app/',
-        'http://mylittlereviewduck.site/',
+        'https://today-review-duck.vercel.app',
+        'http://mylittlereviewduck.site',
       ];
 
   app.enableCors({

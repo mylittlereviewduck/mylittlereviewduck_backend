@@ -15,7 +15,7 @@ async function bootstrap() {
   const isDev = process.env.NODE_ENV === 'dev';
 
   const isAllowedOrigins = isDev
-    ? ['http/localhost:3000']
+    ? ['http://localhost:3000']
     : [
         'https://today-review-duck.vercel.app',
         'https://mylittlereviewduck.site',

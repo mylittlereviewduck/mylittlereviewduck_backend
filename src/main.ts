@@ -18,7 +18,7 @@ async function bootstrap() {
     ? ['http/localhost:3000']
     : [
         'https://today-review-duck.vercel.app',
-        'http://mylittlereviewduck.site',
+        'https://mylittlereviewduck.site',
       ];
 
   app.enableCors({

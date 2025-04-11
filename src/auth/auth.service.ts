@@ -134,7 +134,7 @@ export class AuthService {
     return strategy.getTokenRequest(req, res);
   }
 
-  async socialLogin(provider: string, query: any): Promise<LoginResponseDto> {
+  async handleOauth(provider: string, query: any): Promise<LoginResponseDto> {
     let strategy = this.strategy[provider];
 
     if (!strategy) {

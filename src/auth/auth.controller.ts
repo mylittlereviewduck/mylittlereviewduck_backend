@@ -158,7 +158,7 @@ export class AuthController {
   @Exception(400, '유효하지 않은 요청')
   @ApiResponse({ status: 200, type: LoginResponseDto })
   async kakaoLogin(@Body() dto: SocialLoginDto): Promise<LoginResponseDto> {
-    return await this.authService.socialLogin('kakao', dto);
+    return await this.authService.handleOauth('kakao', dto);
   }
 
   @Post('/naver')
@@ -167,7 +167,7 @@ export class AuthController {
   @Exception(400, '유효하지 않은 요청')
   @ApiResponse({ status: 200, type: LoginResponseDto })
   async naverLogin(@Body() dto: SocialLoginDto): Promise<LoginResponseDto> {
-    return await this.authService.socialLogin('naver', dto);
+    return await this.authService.handleOauth('naver', dto);
   }
 
   @Post('/google')
@@ -176,7 +176,7 @@ export class AuthController {
   @Exception(400, '유효하지 않은 요청')
   @ApiResponse({ status: 200, type: LoginResponseDto })
   async googleLogin(@Body() dto: SocialLoginDto): Promise<LoginResponseDto> {
-    return await this.authService.socialLogin('google', dto);
+    return await this.authService.handleOauth('google', dto);
   }
 
   @Post('/apple')
@@ -198,7 +198,7 @@ export class AuthController {
 
     //4. 유저 정보 처리
     // 추출한 유저 정보를 통해 기존 사용자 로그인 또는 새로운 사용자 회원가입을 처리합니다.
-    return await this.authService.socialLogin('apple', dto);
+    return await this.authService.handleOauth('apple', dto);
   }
 
   @Get('/:provider')
@@ -216,13 +216,13 @@ export class AuthController {
   @Get('/kakao/callback')
   @ApiOperation({ summary: '카카오 로그인 콜백uri', deprecated: true })
   async kakaoAuth(@Query() query: KakaoCallbackDto): Promise<LoginResponseDto> {
-    return await this.authService.socialLogin('kakao', query);
+    return await this.authService.handleOauth('kakao', query);
   }
 
   @Get('/naver/callback')
   @ApiOperation({ summary: '네이버 로그인 콜백uri', deprecated: true })
   async naverAuth(@Query() query: NaverCallbackDto): Promise<LoginResponseDto> {
-    return await this.authService.socialLogin('naver', query);
+    return await this.authService.handleOauth('naver', query);
   }
 
   @Get('/google/callback')
@@ -230,6 +230,6 @@ export class AuthController {
   async googleAuth(
     @Query() query: GoogleCallbackDto,
   ): Promise<LoginResponseDto> {
-    return await this.authService.socialLogin('google', query);
+    return await this.authService.handleOauth('google', query);
   }
 }

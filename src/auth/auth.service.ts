@@ -17,6 +17,7 @@ import { KakaoStrategy } from './strategy/kakao.strategy';
 import { LoginResponseDto } from '../../src/auth/dto/response/login-response.dto';
 import { BcryptService } from './bcrypt.service';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { AppleStrategy } from './strategy/apple.strategy';
 
 @Injectable()
 export class AuthService {
@@ -31,10 +32,12 @@ export class AuthService {
     private readonly googleStrategy: GoogleStrategy,
     private readonly naverStrategy: NaverStrategy,
     private readonly kakaoStrategy: KakaoStrategy,
+    private readonly appleStrategy: AppleStrategy,
   ) {
     this.strategy[SocialLoginProvider.GOOGLE] = googleStrategy;
     this.strategy[SocialLoginProvider.NAVER] = naverStrategy;
     this.strategy[SocialLoginProvider.KAKAO] = kakaoStrategy;
+    this.strategy[SocialLoginProvider.APPLE] = appleStrategy;
   }
 
   async login(dto: LoginDto): Promise<LoginResponseDto> {

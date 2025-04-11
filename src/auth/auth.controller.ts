@@ -33,6 +33,8 @@ import { LoginUser } from './model/login-user.model';
 import { RefreshGuard } from './guard/refresh.guard';
 import { SocialLoginDto } from './dto/social-login.dto';
 import { AccessTokenResponseDto } from './dto/response/access-token-response.dto';
+import { ConfigService } from '@nestjs/config';
+import { AppleOauthDto } from './dto/apple-oauth.dto';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -40,6 +42,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly emailAuthService: EmailAuthService,
+    private readonly configService: ConfigService,
   ) {}
 
   @Post('/email/inspect-duplicate')
@@ -174,6 +177,28 @@ export class AuthController {
   @ApiResponse({ status: 200, type: LoginResponseDto })
   async googleLogin(@Body() dto: SocialLoginDto): Promise<LoginResponseDto> {
     return await this.authService.socialLogin('google', dto);
+  }
+
+  @Post('/apple')
+  @ApiOperation({ summary: '애플 로그인' })
+  @HttpCode(200)
+  @Exception(400, '유효하지 않은 요청')
+  @ApiResponse({ status: 200, type: LoginResponseDto })
+  async socialLogin(
+    @Body() dto: AppleOauthDto,
+  ): Promise<LoginResponseDto | void> {
+    //1. 프론트엔드에서 인증 코드 받기
+    // 웹/앱에서 애플 로그인 UI를 통해 인증 코드를 받습니다.
+
+    //2. 인증 코드로 id_token 발급 받기
+    // 백엔드 서버에서 애플의 토큰 엔드포인트에 authorization code를 전달하여 id_token과 access_token을 받습니다.
+
+    //3. id_token 디코딩
+    // 백엔드에서 받은 id_token을 디코딩하여 이메일, 이름, 식별자 등의 정보를 추출합니다.
+
+    //4. 유저 정보 처리
+    // 추출한 유저 정보를 통해 기존 사용자 로그인 또는 새로운 사용자 회원가입을 처리합니다.
+    return await this.authService.socialLogin('apple', dto);
   }
 
   @Get('/:provider')

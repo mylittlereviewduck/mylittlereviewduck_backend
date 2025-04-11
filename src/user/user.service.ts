@@ -297,7 +297,7 @@ export class UserService {
     userIdx: string,
     dto: UpdateMyInfoDto,
   ): Promise<UserEntity> {
-    if (!dto.interest && !dto.interest && !dto.profile)
+    if (!dto.interest && !dto.nickname && !dto.profile)
       throw new BadRequestException('minimum 1 property');
 
     if (dto.nickname && dto.nickname.includes('번째 오리'))

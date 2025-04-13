@@ -5,9 +5,9 @@ import { ConfigService } from '@nestjs/config';
 import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { LoginResponseDto } from '../dto/response/login-response.dto';
 import { UserService } from 'src/user/user.service';
-import { JwtService } from '@nestjs/jwt';
 import { AuthService } from '../auth.service';
-import { SocialLoginDto } from '../dto/social-login.dto';
+import { AppleOauthDto } from '../dto/apple-oauth.dto';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AppleStrategy implements ISocialAuthStrategy {
@@ -15,6 +15,7 @@ export class AppleStrategy implements ISocialAuthStrategy {
     private readonly userService: UserService,
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
+    private readonly jwtService: JwtService,
     @Inject(forwardRef(() => AuthService))
     private readonly authService: AuthService,
   ) {}
@@ -31,42 +32,41 @@ export class AppleStrategy implements ISocialAuthStrategy {
     res.redirect(url);
   }
 
-  async socialLogin(dto: SocialLoginDto): Promise<LoginResponseDto> {
-    // const { code } = query;
-
-    // Access Token 요청
-    // const { data: tokenData } = await this.httpService.axiosRef.post(
-    //   `https://appleid.apple.com/auth/token`,
-    //   new URLSearchParams({
-    //     grant_type: 'authorization_code',
-    //     code,
-    //     client_id: this.configService.get<string>('APPLE_CLIENT_ID'),
-    //     client_secret: this.configService.get<string>('APPLE_CLIENT_SECRET'),
-    //     redirect_uri: this.configService.get<string>('APPLE_REDIRECT_URI'),
-    //   }).toString(),
-    //   {
-    //     headers: {
-    //       'Content-Type': 'application/x-www-form-urlencoded',
-    //     },
-    //   },
-    // );
-
-    // 사용자 정보 요청
-
-    const userData = JSON.parse(
-      Buffer.from(dto.accessToken, 'base64').toString(),
+  async socialLogin(dto: AppleOauthDto): Promise<LoginResponseDto> {
+    const { data: tokenData } = await this.httpService.axiosRef.post(
+      `https://appleid.apple.com/auth/token`,
+      new URLSearchParams({
+        grant_type: 'authorization_code',
+        code: dto.authortizationCode,
+        client_id: this.configService.get<string>('APPLE_CLIENT_ID'),
+        client_secret: this.configService.get<string>('APPLE_CLIENT_SECRET'),
+        redirect_uri: this.configService.get<string>('APPLE_REDIRECT_URI'),
+      }).toString(),
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      },
     );
 
+    // id_token을 디코딩하여 유저 정보를 추출
+    const decodedToken = this.jwtService.decode(tokenData.id_token);
+    const email = decodedToken?.email;
+    const sub = decodedToken?.sub;
+
+    if (!email || !sub) {
+      throw new Error('Invalid id_token received from Apple');
+    }
+
     let user = await this.userService.getUser({
-      email: userData.email,
+      email: email,
     });
 
     if (!user) {
-      // 기존 회원이 아닌 경우 애플 회원가입
       const newUser = await this.userService.createUserWithOAuth({
-        email: userData.email,
+        email: email,
         provider: 'apple',
-        providerKey: String(userData.sub), // Apple에서 제공하는 고유 사용자 ID
+        providerKey: String(sub), // Apple 사용자 식별자
       });
 
       user = await this.userService.updateMyinfo(newUser.idx, {

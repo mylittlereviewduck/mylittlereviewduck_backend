@@ -1,6 +1,11 @@
 import { Request, Response } from 'express';
 import { ISocialAuthStrategy } from '../interface/social-auth-strategy.interface';
-import { Inject, Injectable, forwardRef } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  forwardRef,
+} from '@nestjs/common';
 import { UserService } from '../../../src/user/user.service';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
@@ -43,6 +48,8 @@ export class GoogleStrategy implements ISocialAuthStrategy {
     //   tokenUrl,
     //   tokenRequestBody,
     // );
+
+    if (!dto.accessToken) throw new BadRequestException('need accessToken');
 
     const userInfoUrl = `https://www.googleapis.com/oauth2/v2/userinfo`;
 

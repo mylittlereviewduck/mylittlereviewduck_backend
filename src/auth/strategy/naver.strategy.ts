@@ -2,7 +2,12 @@ import { UserService } from './../../user/user.service';
 import { Request, Response } from 'express';
 import { ISocialAuthStrategy } from '../interface/social-auth-strategy.interface';
 import { ConfigService } from '@nestjs/config';
-import { Inject, Injectable, forwardRef } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  forwardRef,
+} from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { AuthService } from '../auth.service';
 import { LoginResponseDto } from '../dto/response/login-response.dto';
@@ -38,6 +43,8 @@ export class NaverStrategy implements ISocialAuthStrategy {
 
     // const { data: tokenData } =
     //   await this.httpService.axiosRef.get(getTokenUrl);
+
+    if (!dto.accessToken) throw new BadRequestException('need accessToken');
 
     let getUserInfoUrl = `https://openapi.naver.com/v1/nid/me`;
 

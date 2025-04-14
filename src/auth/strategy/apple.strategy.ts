@@ -2,7 +2,12 @@ import { HttpService } from '@nestjs/axios';
 import { Request, Response } from 'express';
 import { ISocialAuthStrategy } from '../interface/social-auth-strategy.interface';
 import { ConfigService } from '@nestjs/config';
-import { Inject, Injectable, forwardRef } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  forwardRef,
+} from '@nestjs/common';
 import { LoginResponseDto } from '../dto/response/login-response.dto';
 import { UserService } from 'src/user/user.service';
 import { AuthService } from '../auth.service';
@@ -33,6 +38,9 @@ export class AppleStrategy implements ISocialAuthStrategy {
   }
 
   async socialLogin(dto: AppleOauthDto): Promise<LoginResponseDto> {
+    if (!dto.authortizationCode)
+      throw new BadRequestException('need accessToken');
+
     const { data: tokenData } = await this.httpService.axiosRef.post(
       `https://appleid.apple.com/auth/token`,
       new URLSearchParams({

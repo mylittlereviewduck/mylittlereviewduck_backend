@@ -298,7 +298,7 @@ export class UserService {
     dto: UpdateMyInfoDto,
   ): Promise<UserEntity> {
     if (!dto.interest && !dto.nickname && !dto.profile)
-      throw new BadRequestException('minimum 1 property');
+      throw new BadRequestException('최소 1개의 데이터를 입력해야 합니다.');
 
     if (dto.nickname && dto.nickname.includes('번째 오리'))
       throw new BadRequestException(
@@ -328,7 +328,7 @@ export class UserService {
       }
 
       if (duplicatedUser && duplicatedUser.nickname == dto.nickname) {
-        throw new ConflictException('Duplicated Nickname');
+        throw new ConflictException('중복된 닉네임 입니다.');
       }
 
       const updatedUser = await tx.accountTb.update({

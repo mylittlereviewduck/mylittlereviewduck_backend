@@ -1,7 +1,7 @@
+import { ReviewLikeCheckService } from './review-like-check.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   ConsoleLogger,
-  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -35,6 +35,7 @@ export class ReviewService {
     private readonly reviewBookmarkService: ReviewBookmarkService,
     private readonly eventEmitter: EventEmitter2,
     private readonly reviewInteractionService: ReviewInteractionService,
+    private readonly reviewLikeCheckService: ReviewLikeCheckService,
     // @Inject(WINSTON_MODULE_NEST_PROVIDER)
     // private readonly winstonLogger: WinstonLogger,
   ) {
@@ -1228,19 +1229,16 @@ export class ReviewService {
   async getLikedReviews(
     dto: GetReviewsDto,
   ): Promise<ReviewPagerbleResponseDto> {
-    //총숫자
+    const reviewIdxs =
+      await this.reviewLikeCheckService.getLikedReviewsIdx(dto);
+
     const totalCount = await this.prismaService.reviewTb.count({
       where: {
-        reviewLikeTb: {
-          every: {
-            accountIdx: dto.userIdx,
-          },
-        },
+        idx: { in: reviewIdxs },
         deletedAt: null,
       },
     });
 
-    //리뷰페이지네이션 반환
     const reviewData = await this.prismaService.reviewTb.findMany({
       include: {
         accountTb: true,
@@ -1256,13 +1254,11 @@ export class ReviewService {
         },
       },
       where: {
-        accountIdx: {
-          in: dto.userIdxs,
-        },
+        idx: { in: reviewIdxs },
         deletedAt: null,
       },
-      skip: dto.page * dto.size,
       take: dto.size,
+      skip: (dto.page - 1) * dto.size,
       orderBy: { createdAt: 'desc' },
     });
 
@@ -1314,6 +1310,8 @@ export class ReviewService {
       }
       return review;
     });
+
+    return reviewPagerbleResponseDto;
   }
 
   getMostRecentNoon(): Date {

@@ -209,6 +209,7 @@ export class UserService {
 
     userSearchResponseDto.users.map((user) => {
       const interaction = interactionMap.get(user.idx);
+      console.log('interaction: ', interaction);
       if (interaction) {
         user.isMyFollowing = interaction.isMyFollowing;
         user.isMyBlock = interaction.isMyBlock;

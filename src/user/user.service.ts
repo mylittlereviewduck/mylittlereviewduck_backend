@@ -182,7 +182,9 @@ export class UserService {
       size: dto.size,
       page: dto.page,
     });
+    console.log('함수실행');
     if (!loginUser) {
+      console.log('로그인이되지않았음');
       return userSearchResponseDto;
     }
 

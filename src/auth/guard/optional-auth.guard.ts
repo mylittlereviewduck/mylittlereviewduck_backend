@@ -37,6 +37,11 @@ export class OptionalAuthGuard implements CanActivate {
   }
 
   private extractTokenFromHeader(request: Request): string | undefined {
+    console.log(
+      'request.headers.authorization: ',
+      request.headers.authorization,
+    );
+
     if (!request.headers.authorization) {
       return;
     }

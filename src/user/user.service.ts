@@ -190,12 +190,14 @@ export class UserService {
       return { totalPage: 0, users: [] };
 
     const userIdxs = userSearchResponseDto.users.map((user) => user.idx);
+    console.log('userIdxs: ', userIdxs);
 
     const userInteraction =
       await this.userInteractionService.getUserInteraction(
         loginUser.idx,
         userIdxs,
       );
+    console.log('userInteraction: ', userInteraction);
 
     const interactionMap = new Map(
       userInteraction.map((interaction) => [
@@ -203,6 +205,7 @@ export class UserService {
         interaction,
       ]),
     );
+    console.log('interactionMap: ', interactionMap);
 
     userSearchResponseDto.users.map((user) => {
       const interaction = interactionMap.get(user.idx);

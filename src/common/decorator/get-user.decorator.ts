@@ -1,4 +1,5 @@
 import { ExecutionContext, createParamDecorator } from '@nestjs/common';
+import { LoginUser } from 'src/auth/model/login-user.model';
 
 export const GetUser = createParamDecorator(
   (data: unknown, ctx: ExecutionContext) => {
@@ -8,6 +9,6 @@ export const GetUser = createParamDecorator(
       return;
     }
 
-    return request.user;
+    return request.user as LoginUser;
   },
 );

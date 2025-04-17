@@ -454,7 +454,7 @@ export class UserController {
   @Exception(404, 'Not Found Page')
   @ApiResponse({ status: 200, type: UserPagerbleResponseDto })
   async getUsersWithSearch(
-    @GetUser() loginUser: LoginUser,
+    @GetUser() loginUser: LoginUser | null,
     @Query() dto: GetUserSearchDto,
   ): Promise<UserPagerbleResponseDto> {
     console.log('실행');

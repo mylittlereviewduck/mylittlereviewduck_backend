@@ -46,7 +46,7 @@ export class OptionalAuthGuard implements CanActivate {
       return;
     }
 
-    const [type, token] = request.headers.authorization.split(' ') ?? [];
+    const [type, token] = request.headers.authorization?.split(' ') ?? [];
     return type == 'Bearer' ? token : undefined;
   }
 }

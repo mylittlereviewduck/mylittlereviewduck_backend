@@ -77,7 +77,10 @@ export class ReviewService {
     await this.cacheHotReviewsLowScore();
   }
 
-  async createReview(dto: CreateReviewDto): Promise<ReviewEntity> {
+  async createReview(
+    dto: CreateReviewDto,
+    loginUserIdx: string,
+  ): Promise<ReviewEntity> {
     let reviewData;
 
     reviewData = await this.prismaService.reviewTb.create({
@@ -96,7 +99,7 @@ export class ReviewService {
       },
 
       data: {
-        accountIdx: dto.userIdx,
+        accountIdx: loginUserIdx,
         title: dto.title,
         content: dto.content,
         score: dto.score,

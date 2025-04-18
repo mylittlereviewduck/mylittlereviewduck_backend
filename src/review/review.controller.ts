@@ -507,8 +507,7 @@ export class ReviewController {
     @GetUser() loginUser: LoginUser,
     @Body() dto: CreateReviewDto,
   ): Promise<ReviewEntity> {
-    dto.userIdx = loginUser.idx;
-    return await this.reviewService.createReview(dto);
+    return await this.reviewService.createReview(dto, loginUser.idx);
   }
 
   @Get('/review')

@@ -14,8 +14,6 @@ import { ReviewImage } from '../../type/review-image';
 import { Type } from 'class-transformer';
 
 export class CreateReviewDto {
-  userIdx?: string;
-
   @ApiProperty({
     example: '제목입니다',
     description: '리뷰 제목',

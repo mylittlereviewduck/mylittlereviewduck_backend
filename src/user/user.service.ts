@@ -172,7 +172,7 @@ export class UserService {
 
   async getSearchedUsersWithInteraction(
     dto: GetUserSearchDto,
-    loginUser: LoginUser | null,
+    loginUserIdx: string | null,
   ): Promise<UserPagerbleResponseDto> {
     const userSearchResponseDto = await this.getUsersAll({
       email: dto.search,
@@ -182,11 +182,8 @@ export class UserService {
       size: dto.size,
       page: dto.page,
     });
-    console.log('함수실행');
-    console.log('loginUser: ', loginUser);
 
-    if (!loginUser) {
-      console.log('로그인이되지않았음');
+    if (!loginUserIdx) {
       return userSearchResponseDto;
     }
 
@@ -194,14 +191,12 @@ export class UserService {
       return { totalPage: 0, users: [] };
 
     const userIdxs = userSearchResponseDto.users.map((user) => user.idx);
-    console.log('userIdxs: ', userIdxs);
 
     const userInteraction =
       await this.userInteractionService.getUserInteraction(
-        loginUser.idx,
+        loginUserIdx,
         userIdxs,
       );
-    console.log('userInteraction: ', userInteraction);
 
     const interactionMap = new Map(
       userInteraction.map((interaction) => [
@@ -209,11 +204,9 @@ export class UserService {
         interaction,
       ]),
     );
-    console.log('interactionMap: ', interactionMap);
 
     userSearchResponseDto.users.map((user) => {
       const interaction = interactionMap.get(user.idx);
-      console.log('interaction: ', interaction);
       if (interaction) {
         user.isMyFollowing = interaction.isMyFollowing;
         user.isMyBlock = interaction.isMyBlock;

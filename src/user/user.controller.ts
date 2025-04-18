@@ -458,11 +458,10 @@ export class UserController {
     @Query() dto: GetUserSearchDto,
   ): Promise<UserPagerbleResponseDto> {
     console.log('실행');
-    console.log('loginUser.idx : ', loginUser.idx);
     console.log('loginUser,: ', loginUser);
     return await this.userService.getSearchedUsersWithInteraction(
       dto,
-      loginUser,
+      loginUser && loginUser.idx,
     );
   }
 

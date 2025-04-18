@@ -6,7 +6,7 @@ export const GetUser = createParamDecorator(
     const request = ctx.switchToHttp().getRequest();
 
     if (!request.user) {
-      return;
+      return null;
     }
 
     return request.user as LoginUser;

@@ -441,6 +441,7 @@ export class ReviewController {
   }
 
   @Delete('/review/:reviewIdx')
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: '리뷰 삭제하기' })
   @ApiBearerAuth()
   @ApiParam({ name: 'reviewIdx', type: 'number', example: 3 })

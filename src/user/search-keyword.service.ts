@@ -136,9 +136,9 @@ export class SearchKeywordService {
           return elem.keyword === currentKeyword.keyword;
         });
 
-        let status: HotStatusType = 'equal';
+        let status: HotStatusType = 'new';
 
-        if (!previousKeyword) status = 'new';
+        if (currentKeyword.rank == previousKeyword.rank) status = 'equal';
         else if (currentKeyword.rank < previousKeyword.rank) status = 'up';
         else if (currentKeyword.rank > previousKeyword.rank) status = 'down';
 

@@ -187,6 +187,8 @@ export class UserService {
       return userSearchResponseDto;
     }
 
+    this.eventEmitter.emit('search.user', dto.search, loginUserIdx);
+
     if (userSearchResponseDto.users.length === 0)
       return { totalPage: 0, users: [] };
 

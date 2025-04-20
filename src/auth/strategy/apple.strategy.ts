@@ -42,7 +42,7 @@ export class AppleStrategy implements ISocialAuthStrategy {
       if (!dto.authorizationCode)
         throw new BadRequestException('need authorizationCode');
 
-      //JWT 기반 client_secret  생성
+      //JWT 기반 client_secret 생성
       const clientSecret = this.jwtService.sign(
         {
           iss: this.configService.get<string>('APPLE_TEAM_ID'),

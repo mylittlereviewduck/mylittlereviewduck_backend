@@ -49,6 +49,8 @@ export class GoogleStrategy implements ISocialAuthStrategy {
     //   tokenRequestBody,
     // );
 
+    console.log('구글oauth실행');
+    console.log('dto:', dto);
     if (!dto.accessToken) throw new BadRequestException('need accessToken');
 
     const userInfoUrl = `https://www.googleapis.com/oauth2/v2/userinfo`;
@@ -61,6 +63,7 @@ export class GoogleStrategy implements ISocialAuthStrategy {
         },
       },
     );
+    console.log('userData:', userData);
 
     let user = await this.userService.getUser({ email: userData.email });
 

@@ -43,6 +43,11 @@ export class AppleStrategy implements ISocialAuthStrategy {
       if (!dto.authorizationCode)
         throw new BadRequestException('need authorizationCode');
 
+      const clientId =
+        dto.platform === 'web'
+          ? this.configService.get<string>('APPLE_CLIENT_ID_WEB')
+          : this.configService.get<string>('APPLE_CLIENT_ID_APP');
+
       const privateKey = this.configService
         .get<string>('APPLE_PRIVATE_KEY')
         .replace(/\\n/g, '\n');
@@ -56,7 +61,7 @@ export class AppleStrategy implements ISocialAuthStrategy {
           iat: Math.floor(Date.now() / 1000),
           exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 180,
           aud: 'https://appleid.apple.com',
-          sub: this.configService.get<string>('APPLE_CLIENT_ID_APP'),
+          sub: clientId,
         },
         privateKey,
         {
@@ -71,7 +76,7 @@ export class AppleStrategy implements ISocialAuthStrategy {
         new URLSearchParams({
           grant_type: 'authorization_code',
           code: dto.authorizationCode,
-          client_id: this.configService.get<string>('APPLE_CLIENT_ID_APP'),
+          client_id: clientId,
           client_secret: clientSecret,
           redirect_uri: this.configService.get<string>('APPLE_REDIRECT_URI'),
         }).toString(),

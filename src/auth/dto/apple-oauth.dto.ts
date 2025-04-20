@@ -2,8 +2,8 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class AppleOauthDto {
   @ApiProperty({
-    example: 'authortizationCode',
+    example: 'authorizationCode',
     description: 'OAuth Authortization Code',
   })
-  authortizationCode: string;
+  authorizationCode: string;
 }

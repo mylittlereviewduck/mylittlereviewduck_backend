@@ -23,8 +23,8 @@ export class SearchKeywordService {
   }
 
   async onModuleInit(): Promise<void> {
-    // this.logger.log('cache HotSearchKeyword');
-    // await this.cacheHotSearchKeyword();
+    this.logger.log('cache HotSearchKeyword');
+    await this.cacheHotSearchKeyword();
   }
 
   @OnEvent('search.*', { async: true })
@@ -103,17 +103,21 @@ export class SearchKeywordService {
 
   @Cron('0 0,12 * * *')
   async cacheHotSearchKeyword(): Promise<HotKeyword[]> {
-    const firtstRecentNoon = this.reviewService.getMostRecentNoon();
+    const firstRecentNoon = this.reviewService.getMostRecentNoon();
     //prettier-ignore
-    const secondRecentNoon = new Date(firtstRecentNoon.getTime() - 12* 60 *60 * 1000);
+    const secondRecentNoon = new Date(firstRecentNoon.getTime() - 12* 60 *60 * 1000);
 
-    const hotSearchKeywords = await this.aggregateHotKeywords({
-      createdAtLte: firtstRecentNoon,
+    let hotSearchKeywords = await this.aggregateHotKeywords({
+      createdAtLte: firstRecentNoon,
       createdAtGte: secondRecentNoon,
     });
 
+    if (hotSearchKeywords.length === 0) {
+      hotSearchKeywords = await this.aggregateHotKeywords({});
+    }
+
     let rank = 1;
-    const presentRanekdKeyword: HotKeyword[] = hotSearchKeywords.map((elem) => {
+    const presentRankdKeyword: HotKeyword[] = hotSearchKeywords.map((elem) => {
       return {
         rank: rank++,
         keyword: elem,
@@ -127,21 +131,22 @@ export class SearchKeywordService {
 
     if (!beforeRankedKeywords) {
       //prettier-ignore
-      await this.redis.set(`search:hot:present`, JSON.stringify(presentRanekdKeyword))
-      return presentRanekdKeyword;
+      await this.redis.set(`search:hot:present`, JSON.stringify(presentRankdKeyword))
+      return presentRankdKeyword;
     }
 
-    const comparedKeywords: HotKeyword[] = presentRanekdKeyword.map(
+    const comparedKeywords: HotKeyword[] = presentRankdKeyword.map(
       (currentKeyword) => {
         const previousKeyword = beforeRankedKeywords.find((elem) => {
           return elem.keyword === currentKeyword.keyword;
         });
 
         let status: HotStatusType = 'new';
-
-        if (currentKeyword.rank == previousKeyword.rank) status = 'equal';
-        else if (currentKeyword.rank < previousKeyword.rank) status = 'up';
-        else if (currentKeyword.rank > previousKeyword.rank) status = 'down';
+        if (previousKeyword) {
+          if (currentKeyword.rank === previousKeyword.rank) status = 'equal';
+          else if (currentKeyword.rank < previousKeyword.rank) status = 'up';
+          else status = 'down';
+        }
 
         return {
           ...currentKeyword,

@@ -49,54 +49,59 @@ export class GoogleStrategy implements ISocialAuthStrategy {
     //   tokenRequestBody,
     // );
 
-    console.log('구글oauth실행');
-    console.log('dto:', dto);
-    if (!dto.accessToken) throw new BadRequestException('need accessToken');
+    try {
+      console.log('구글oauth실행');
+      console.log('dto:', dto);
+      if (!dto.accessToken) throw new BadRequestException('need accessToken');
 
-    const userInfoUrl = `https://www.googleapis.com/oauth2/v2/userinfo`;
+      const userInfoUrl = `https://www.googleapis.com/oauth2/v2/userinfo`;
 
-    const { data: userData } = await this.httpService.axiosRef.get(
-      userInfoUrl,
-      {
-        headers: {
-          Authorization: `bearer ${dto.accessToken}`,
+      const { data: userData } = await this.httpService.axiosRef.get(
+        userInfoUrl,
+        {
+          headers: {
+            Authorization: `Bearer ${dto.accessToken}`,
+          },
         },
-      },
-    );
-    console.log('userData:', userData);
+      );
+      console.log('userData:', userData);
 
-    let user = await this.userService.getUser({ email: userData.email });
+      let user = await this.userService.getUser({ email: userData.email });
 
-    if (!user) {
-      // 기존회원 아닌경우 구글 회원가입
-      const newUser = await this.userService.createUserWithOAuth({
-        email: userData.email,
-        provider: 'google',
-        providerKey: String(userData.id),
-      });
+      if (!user) {
+        // 기존회원 아닌경우 구글 회원가입
+        const newUser = await this.userService.createUserWithOAuth({
+          email: userData.email,
+          provider: 'google',
+          providerKey: String(userData.id),
+        });
 
-      user = await this.userService.updateMyinfo(newUser.idx, {
-        nickname: `${newUser.serialNumber}번째 오리`,
-      });
+        user = await this.userService.updateMyinfo(newUser.idx, {
+          nickname: `${newUser.serialNumber}번째 오리`,
+        });
+      }
+
+      const accessToken = await this.authService.generateToken(
+        'access',
+        user.idx,
+        user.isAdmin,
+        30 * 60,
+      );
+
+      const refreshToken = await this.authService.generateToken(
+        'refresh',
+        user.idx,
+        user.isAdmin,
+        14 * 24 * 3600,
+      );
+
+      await this.authService.createOrUpdateLoginUser(refreshToken, user.idx);
+
+      return { accessToken, refreshToken, nickname: user.nickname };
+    } catch (error) {
+      console.error('Google API Error:', error.response?.data);
+      throw error;
     }
-
-    const accessToken = await this.authService.generateToken(
-      'access',
-      user.idx,
-      user.isAdmin,
-      30 * 60,
-    );
-
-    const refreshToken = await this.authService.generateToken(
-      'refresh',
-      user.idx,
-      user.isAdmin,
-      14 * 24 * 3600,
-    );
-
-    await this.authService.createOrUpdateLoginUser(refreshToken, user.idx);
-
-    return { accessToken, refreshToken, nickname: user.nickname };
   }
 
   // async socialAuth(code: string): Promise<LoginResponseDto> {

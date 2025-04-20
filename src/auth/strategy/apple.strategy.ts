@@ -56,7 +56,7 @@ export class AppleStrategy implements ISocialAuthStrategy {
           iat: Math.floor(Date.now() / 1000),
           exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 180,
           aud: 'https://appleid.apple.com',
-          sub: this.configService.get<string>('APPLE_CLIENT_ID'),
+          sub: this.configService.get<string>('APPLE_CLIENT_ID_APP'),
         },
         privateKey,
         {
@@ -71,7 +71,7 @@ export class AppleStrategy implements ISocialAuthStrategy {
         new URLSearchParams({
           grant_type: 'authorization_code',
           code: dto.authorizationCode,
-          client_id: this.configService.get<string>('APPLE_CLIENT_ID'),
+          client_id: this.configService.get<string>('APPLE_CLIENT_ID_APP'),
           client_secret: clientSecret,
           redirect_uri: this.configService.get<string>('APPLE_REDIRECT_URI'),
         }).toString(),

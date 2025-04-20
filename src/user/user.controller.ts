@@ -448,7 +448,7 @@ export class UserController {
 
   @Get('')
   @UseGuards(OptionalAuthGuard)
-  @ApiOperation({ summary: '유저검색하기 이메일, 닉네임, 관심사' })
+  @ApiOperation({ summary: '유저검색하기 이메일, 닉네임, 관심사 ' })
   @ApiQuery({ name: 'search', description: '검색 키워드, 검색어 2글자 이상' })
   @Exception(400, '유효하지 않은 요청')
   @Exception(404, 'Not Found Page')

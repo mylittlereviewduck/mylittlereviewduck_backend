@@ -1,5 +1,3 @@
-import { UserStatus } from './type/user-status.type';
-import { UserSuspensionService } from '../admin/user-suspension.service';
 import { UserBlockCheckService } from './user-block-check.service';
 import { UserBlockService } from './user-block.service';
 import {
@@ -297,9 +295,9 @@ export class UserController {
     status: 200,
     type: HotKeywordResponseDto,
   })
-  async getHotSearchKeyword(): Promise<HotKeywordResponseDto> {
+  async getHotKeywords(): Promise<HotKeywordResponseDto> {
     return {
-      keywords: await this.searchKeywordService.fetchHotSearchKeywod(),
+      keywords: await this.searchKeywordService.fetchHotSearchKeywords(),
     };
   }
 

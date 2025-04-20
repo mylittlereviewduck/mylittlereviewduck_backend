@@ -23,8 +23,8 @@ export class SearchKeywordService {
   }
 
   async onModuleInit(): Promise<void> {
-    this.logger.log('cache HotSearchKeyword');
-    await this.cacheHotSearchKeyword();
+    // this.logger.log('cache HotSearchKeyword');
+    // await this.cacheHotSearchKeyword();
   }
 
   @OnEvent('search.*', { async: true })
@@ -78,7 +78,7 @@ export class SearchKeywordService {
     };
   }
 
-  async getSearchKeyowrd(dto: GetSearchKeywordDto): Promise<string[]> {
+  async aggregateHotKeywords(dto: GetSearchKeywordDto): Promise<string[]> {
     const searchKeywordData = await this.prismaService.searchKeywordTb.groupBy({
       _count: {
         keyword: true,
@@ -107,7 +107,7 @@ export class SearchKeywordService {
     //prettier-ignore
     const secondRecentNoon = new Date(firtstRecentNoon.getTime() - 12* 60 *60 * 1000);
 
-    const hotSearchKeywords = await this.getSearchKeyowrd({
+    const hotSearchKeywords = await this.aggregateHotKeywords({
       createdAtLte: firtstRecentNoon,
       createdAtGte: secondRecentNoon,
     });
@@ -117,7 +117,7 @@ export class SearchKeywordService {
       return {
         rank: rank++,
         keyword: elem,
-        status: 'equal',
+        status: 'new',
       };
     });
 
@@ -156,15 +156,14 @@ export class SearchKeywordService {
     return comparedKeywords;
   }
 
-  async fetchHotSearchKeywod(): Promise<HotKeyword[]> {
+  async fetchHotSearchKeywords(): Promise<HotKeyword[]> {
     const cacheKey = `search:hot:present`;
     const cachedHotKeywords = await this.redis.get(cacheKey);
     if (cachedHotKeywords) {
       return JSON.parse(cachedHotKeywords) as HotKeyword[];
     }
 
-    const keywords = await this.getSearchKeyowrd({});
-    console.log('keywords: ', keywords);
+    const keywords = await this.aggregateHotKeywords({});
 
     const hotKeywords: HotKeyword[] = keywords.map((keyword, index) => ({
       rank: index + 1,

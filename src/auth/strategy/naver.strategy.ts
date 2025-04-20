@@ -43,53 +43,57 @@ export class NaverStrategy implements ISocialAuthStrategy {
 
     // const { data: tokenData } =
     //   await this.httpService.axiosRef.get(getTokenUrl);
+    try {
+      if (!dto.accessToken) throw new BadRequestException('need accessToken');
 
-    if (!dto.accessToken) throw new BadRequestException('need accessToken');
+      let getUserInfoUrl = `https://openapi.naver.com/v1/nid/me`;
 
-    let getUserInfoUrl = `https://openapi.naver.com/v1/nid/me`;
+      const { data } = await this.httpService.axiosRef.get(getUserInfoUrl, {
+        headers: {
+          Authorization: `bearer ${dto.accessToken}`,
+        },
+      });
 
-    const { data } = await this.httpService.axiosRef.get(getUserInfoUrl, {
-      headers: {
-        Authorization: `bearer ${dto.accessToken}`,
-      },
-    });
+      const userInfo = data.response;
 
-    const userInfo = data.response;
-
-    let user = await this.userService.getUser({
-      email: userInfo.email,
-    });
-
-    if (!user) {
-      // 기존회원 아닌경우 네이버 회원가입
-      const newUser = await this.userService.createUserWithOAuth({
+      let user = await this.userService.getUser({
         email: userInfo.email,
-        provider: 'naver',
-        providerKey: userInfo.id,
       });
 
-      user = await this.userService.updateMyinfo(newUser.idx, {
-        nickname: `${newUser.serialNumber}번째 오리`,
-      });
+      if (!user) {
+        // 기존회원 아닌경우 네이버 회원가입
+        const newUser = await this.userService.createUserWithOAuth({
+          email: userInfo.email,
+          provider: 'naver',
+          providerKey: userInfo.id,
+        });
+
+        user = await this.userService.updateMyinfo(newUser.idx, {
+          nickname: `${newUser.serialNumber}번째 오리`,
+        });
+      }
+
+      const accessToken = await this.authService.generateToken(
+        'access',
+        user.idx,
+        user.isAdmin,
+        30 * 60,
+      );
+
+      const refreshToken = await this.authService.generateToken(
+        'refresh',
+        user.idx,
+        user.isAdmin,
+        14 * 24 * 3600,
+      );
+
+      await this.authService.createOrUpdateLoginUser(refreshToken, user.idx);
+
+      return { accessToken, refreshToken, nickname: user.nickname };
+    } catch (error) {
+      console.error('KAKAO OAUTH API Error:', error.response?.data);
+      throw error;
     }
-
-    const accessToken = await this.authService.generateToken(
-      'access',
-      user.idx,
-      user.isAdmin,
-      30 * 60,
-    );
-
-    const refreshToken = await this.authService.generateToken(
-      'refresh',
-      user.idx,
-      user.isAdmin,
-      14 * 24 * 3600,
-    );
-
-    await this.authService.createOrUpdateLoginUser(refreshToken, user.idx);
-
-    return { accessToken, refreshToken, nickname: user.nickname };
   }
 
   // async socialAuth(code: string): Promise<LoginResponseDto> {

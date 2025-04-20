@@ -38,65 +38,70 @@ export class AppleStrategy implements ISocialAuthStrategy {
   }
 
   async socialLogin(dto: AppleOauthDto): Promise<LoginResponseDto> {
-    if (!dto.authortizationCode)
-      throw new BadRequestException('need accessToken');
+    try {
+      if (!dto.authortizationCode)
+        throw new BadRequestException('need accessToken');
 
-    const { data: tokenData } = await this.httpService.axiosRef.post(
-      `https://appleid.apple.com/auth/token`,
-      new URLSearchParams({
-        grant_type: 'authorization_code',
-        code: dto.authortizationCode,
-        client_id: this.configService.get<string>('APPLE_CLIENT_ID'),
-        client_secret: this.configService.get<string>('APPLE_CLIENT_SECRET'),
-        redirect_uri: this.configService.get<string>('APPLE_REDIRECT_URI'),
-      }).toString(),
-      {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+      const { data: tokenData } = await this.httpService.axiosRef.post(
+        `https://appleid.apple.com/auth/token`,
+        new URLSearchParams({
+          grant_type: 'authorization_code',
+          code: dto.authortizationCode,
+          client_id: this.configService.get<string>('APPLE_CLIENT_ID'),
+          client_secret: this.configService.get<string>('APPLE_CLIENT_SECRET'),
+          redirect_uri: this.configService.get<string>('APPLE_REDIRECT_URI'),
+        }).toString(),
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
         },
-      },
-    );
+      );
 
-    // id_token을 디코딩하여 유저 정보를 추출
-    const decodedToken = this.jwtService.decode(tokenData.id_token);
-    const email = decodedToken?.email;
-    const sub = decodedToken?.sub;
+      // id_token을 디코딩하여 유저 정보를 추출
+      const decodedToken = this.jwtService.decode(tokenData.id_token);
+      const email = decodedToken?.email;
+      const sub = decodedToken?.sub;
 
-    if (!email || !sub) {
-      throw new Error('Invalid id_token received from Apple');
-    }
+      if (!email || !sub) {
+        throw new Error('Invalid id_token received from Apple');
+      }
 
-    let user = await this.userService.getUser({
-      email: email,
-    });
-
-    if (!user) {
-      const newUser = await this.userService.createUserWithOAuth({
+      let user = await this.userService.getUser({
         email: email,
-        provider: 'apple',
-        providerKey: String(sub), // Apple 사용자 식별자
       });
 
-      user = await this.userService.updateMyinfo(newUser.idx, {
-        nickname: `${newUser.serialNumber}번째 유저`,
-      });
+      if (!user) {
+        const newUser = await this.userService.createUserWithOAuth({
+          email: email,
+          provider: 'apple',
+          providerKey: String(sub), // Apple 사용자 식별자
+        });
+
+        user = await this.userService.updateMyinfo(newUser.idx, {
+          nickname: `${newUser.serialNumber}번째 유저`,
+        });
+      }
+
+      const accessToken = await this.authService.generateToken(
+        'access',
+        user.idx,
+        user.isAdmin,
+        30 * 60,
+      );
+
+      const refreshToken = await this.authService.generateToken(
+        'refresh',
+        user.idx,
+        user.isAdmin,
+        14 * 24 * 3600,
+      );
+
+      return { accessToken, refreshToken, nickname: user.nickname };
+    } catch (error) {
+      console.error('Apple API Error:', error.response?.data);
+      throw error;
     }
-
-    const accessToken = await this.authService.generateToken(
-      'access',
-      user.idx,
-      user.isAdmin,
-      30 * 60,
-    );
-
-    const refreshToken = await this.authService.generateToken(
-      'refresh',
-      user.idx,
-      user.isAdmin,
-      14 * 24 * 3600,
-    );
-
-    return { accessToken, refreshToken, nickname: user.nickname };
   }
 
   // async socialAuth(code: string): Promise<LoginResponseDto> {

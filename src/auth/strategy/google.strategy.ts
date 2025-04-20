@@ -50,7 +50,6 @@ export class GoogleStrategy implements ISocialAuthStrategy {
     // );
 
     try {
-      console.log('구글oauth실행');
       console.log('dto:', dto);
       if (!dto.accessToken) throw new BadRequestException('need accessToken');
 
@@ -60,6 +59,7 @@ export class GoogleStrategy implements ISocialAuthStrategy {
         userInfoUrl,
         {
           headers: {
+            //구글은 Bearer라고 보내야한다.
             Authorization: `Bearer ${dto.accessToken}`,
           },
         },

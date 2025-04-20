@@ -48,52 +48,57 @@ export class KakaoStrategy implements ISocialAuthStrategy {
     //     },
     //   },
     // );
-    if (!dto.accessToken) throw new BadRequestException('need accessToken');
+    try {
+      if (!dto.accessToken) throw new BadRequestException('need accessToken');
 
-    const { data: userData } = await this.httpService.axiosRef.get(
-      `https://kapi.kakao.com/v2/user/me`,
-      {
-        headers: {
-          Authorization: `bearer ${dto.accessToken}`,
-          'Content-Type': `application/x-www-form-urlencoded;charset=utf-8`,
+      const { data: userData } = await this.httpService.axiosRef.get(
+        `https://kapi.kakao.com/v2/user/me`,
+        {
+          headers: {
+            Authorization: `bearer ${dto.accessToken}`,
+            'Content-Type': `application/x-www-form-urlencoded;charset=utf-8`,
+          },
         },
-      },
-    );
+      );
 
-    let user = await this.userService.getUser({
-      email: userData.kakao_account.email,
-    });
-
-    if (!user) {
-      // 기존회원 아닌경우 카카오 회원가입
-      const newUser = await this.userService.createUserWithOAuth({
+      let user = await this.userService.getUser({
         email: userData.kakao_account.email,
-        provider: 'kakao',
-        providerKey: String(userData.id),
       });
 
-      user = await this.userService.updateMyinfo(newUser.idx, {
-        nickname: `${newUser.serialNumber}번째 오리`,
-      });
+      if (!user) {
+        // 기존회원 아닌경우 카카오 회원가입
+        const newUser = await this.userService.createUserWithOAuth({
+          email: userData.kakao_account.email,
+          provider: 'kakao',
+          providerKey: String(userData.id),
+        });
+
+        user = await this.userService.updateMyinfo(newUser.idx, {
+          nickname: `${newUser.serialNumber}번째 오리`,
+        });
+      }
+
+      const accessToken = await this.authService.generateToken(
+        'access',
+        user.idx,
+        user.isAdmin,
+        30 * 60,
+      );
+
+      const refreshToken = await this.authService.generateToken(
+        'refresh',
+        user.idx,
+        user.isAdmin,
+        14 * 24 * 3600,
+      );
+
+      await this.authService.createOrUpdateLoginUser(refreshToken, user.idx);
+
+      return { accessToken, refreshToken, nickname: user.nickname };
+    } catch (error) {
+      console.error('KAKAO OAUTH API Error:', error.response?.data);
+      throw error;
     }
-
-    const accessToken = await this.authService.generateToken(
-      'access',
-      user.idx,
-      user.isAdmin,
-      30 * 60,
-    );
-
-    const refreshToken = await this.authService.generateToken(
-      'refresh',
-      user.idx,
-      user.isAdmin,
-      14 * 24 * 3600,
-    );
-
-    await this.authService.createOrUpdateLoginUser(refreshToken, user.idx);
-
-    return { accessToken, refreshToken, nickname: user.nickname };
   }
 
   // async socialAuth(code: string): Promise<LoginResponseDto> {

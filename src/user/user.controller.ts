@@ -299,7 +299,7 @@ export class UserController {
   })
   async getHotSearchKeyword(): Promise<HotKeywordResponseDto> {
     return {
-      keywords: await this.searchKeywordService.getCachedHotSearchKeywod(),
+      keywords: await this.searchKeywordService.fetchHotSearchKeywod(),
     };
   }
 

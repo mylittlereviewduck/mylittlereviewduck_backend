@@ -95,6 +95,7 @@ export class SearchKeywordService {
           keyword: 'desc',
         },
       },
+      take: 10,
     });
 
     return searchKeywordData.map((elem) => elem.keyword);
@@ -155,7 +156,29 @@ export class SearchKeywordService {
     return comparedKeywords;
   }
 
-  async getCachedHotSearchKeywod(): Promise<HotKeyword[]> {
-    return JSON.parse(await this.redis.get(`search:hot:present`));
+  async fetchHotSearchKeywod(): Promise<HotKeyword[]> {
+    const cacheKey = `search:hot:present`;
+    const cachedHotKeywords = await this.redis.get(cacheKey);
+    if (cachedHotKeywords) {
+      return JSON.parse(cachedHotKeywords) as HotKeyword[];
+    }
+
+    const keywords = await this.getSearchKeyowrd({});
+    console.log('keywords: ', keywords);
+
+    const hotKeywords: HotKeyword[] = keywords.map((keyword, index) => ({
+      rank: index + 1,
+      keyword,
+      status: 'new',
+    }));
+
+    await this.redis.set(
+      cacheKey,
+      JSON.stringify(hotKeywords),
+      'EX',
+      60 * 60 * 24,
+    );
+
+    return hotKeywords;
   }
 }

@@ -1,4 +1,4 @@
 export class GetSearchKeywordDto {
-  createdAtLte: Date;
-  createdAtGte: Date;
+  createdAtLte?: Date;
+  createdAtGte?: Date;
 }

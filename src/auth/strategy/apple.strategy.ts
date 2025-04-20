@@ -13,6 +13,7 @@ import { UserService } from 'src/user/user.service';
 import { AuthService } from '../auth.service';
 import { AppleOauthDto } from '../dto/apple-oauth.dto';
 import { JwtService } from '@nestjs/jwt';
+import * as jwt from 'jsonwebtoken';
 
 @Injectable()
 export class AppleStrategy implements ISocialAuthStrategy {
@@ -42,8 +43,14 @@ export class AppleStrategy implements ISocialAuthStrategy {
       if (!dto.authorizationCode)
         throw new BadRequestException('need authorizationCode');
 
+      const privateKey = this.configService
+        .get<string>('APPLE_PRIVATE_KEY')
+        .replace(/\\n/g, '\n');
+      console.log('privateKey: ', privateKey);
+      console.log(this.configService.get<string>('APPLE_PRIVATE_KEY'));
+
       //JWT 기반 client_secret 생성
-      const clientSecret = this.jwtService.sign(
+      const clientSecret = jwt.sign(
         {
           iss: this.configService.get<string>('APPLE_TEAM_ID'),
           iat: Math.floor(Date.now() / 1000),
@@ -51,16 +58,10 @@ export class AppleStrategy implements ISocialAuthStrategy {
           aud: 'https://appleid.apple.com',
           sub: this.configService.get<string>('APPLE_CLIENT_ID'),
         },
+        privateKey,
         {
           algorithm: 'ES256',
           keyid: this.configService.get<string>('APPLE_KEY_ID'),
-          header: {
-            alg: 'ES256',
-            kid: this.configService.get<string>('APPLE_KEY_ID'),
-          },
-          privateKey: this.configService
-            .get<string>('APPLE_PRIVATE_KEY')
-            .replace(/\\n/g, '\n'),
         },
       );
 

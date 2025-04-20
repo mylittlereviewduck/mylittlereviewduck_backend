@@ -29,7 +29,7 @@ export class LoggerMiddleware implements NestMiddleware {
       res.on('finish', async () => {
         const { statusCode, statusMessage } = res;
         if (statusCode >= 400 && statusCode <= 500) {
-          this.logger.log(body);
+          this.logger.log('request.body : ', body);
           this.logger.warn(
             `${method} ${originalUrl}  ${statusCode} ${statusMessage} ${ip} ${userAgent}`,
           );

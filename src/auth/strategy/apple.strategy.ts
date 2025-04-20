@@ -40,15 +40,38 @@ export class AppleStrategy implements ISocialAuthStrategy {
   async socialLogin(dto: AppleOauthDto): Promise<LoginResponseDto> {
     try {
       if (!dto.authorizationCode)
-        throw new BadRequestException('need accessToken');
+        throw new BadRequestException('need authorizationCode');
 
+      //JWT 기반 client_secret 생성
+      const clientSecret = this.jwtService.sign(
+        {
+          iss: this.configService.get<string>('APPLE_TEAM_ID'),
+          iat: Math.floor(Date.now() / 1000),
+          exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 180,
+          aud: 'https://appleid.apple.com',
+          sub: this.configService.get<string>('APPLE_CLIENT_ID'),
+        },
+        {
+          algorithm: 'ES256',
+          keyid: this.configService.get<string>('APPLE_KEY_ID'),
+          header: {
+            alg: 'ES256',
+            kid: this.configService.get<string>('APPLE_KEY_ID'),
+          },
+          privateKey: this.configService
+            .get<string>('APPLE_PRIVATE_KEY')
+            .replace(/\\n/g, '\n'),
+        },
+      );
+
+      //토큰요청
       const { data: tokenData } = await this.httpService.axiosRef.post(
         `https://appleid.apple.com/auth/token`,
         new URLSearchParams({
           grant_type: 'authorization_code',
           code: dto.authorizationCode,
           client_id: this.configService.get<string>('APPLE_CLIENT_ID'),
-          client_secret: this.configService.get<string>('APPLE_CLIENT_SECRET'),
+          client_secret: clientSecret,
           redirect_uri: this.configService.get<string>('APPLE_REDIRECT_URI'),
         }).toString(),
         {
@@ -58,7 +81,7 @@ export class AppleStrategy implements ISocialAuthStrategy {
         },
       );
 
-      // id_token을 디코딩하여 유저 정보를 추출
+      // id_token 디코딩 후 사용자 확인
       const decodedToken = this.jwtService.decode(tokenData.id_token);
       const email = decodedToken?.email;
       const sub = decodedToken?.sub;
@@ -79,7 +102,7 @@ export class AppleStrategy implements ISocialAuthStrategy {
         });
 
         user = await this.userService.updateMyinfo(newUser.idx, {
-          nickname: `${newUser.serialNumber}번째 유저`,
+          nickname: `${newUser.serialNumber}번째 오리`,
         });
       }
 

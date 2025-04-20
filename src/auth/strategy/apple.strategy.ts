@@ -82,7 +82,7 @@ export class AppleStrategy implements ISocialAuthStrategy {
         },
       );
 
-      // id_token 디코딩 후 사용자 확인
+      // id_token 디코딩 후  사용자 확인
       const decodedToken = this.jwtService.decode(tokenData.id_token);
       const email = decodedToken?.email;
       const sub = decodedToken?.sub;

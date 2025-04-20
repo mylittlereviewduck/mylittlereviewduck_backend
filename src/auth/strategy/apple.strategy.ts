@@ -39,14 +39,14 @@ export class AppleStrategy implements ISocialAuthStrategy {
 
   async socialLogin(dto: AppleOauthDto): Promise<LoginResponseDto> {
     try {
-      if (!dto.authortizationCode)
+      if (!dto.authorizationCode)
         throw new BadRequestException('need accessToken');
 
       const { data: tokenData } = await this.httpService.axiosRef.post(
         `https://appleid.apple.com/auth/token`,
         new URLSearchParams({
           grant_type: 'authorization_code',
-          code: dto.authortizationCode,
+          code: dto.authorizationCode,
           client_id: this.configService.get<string>('APPLE_CLIENT_ID'),
           client_secret: this.configService.get<string>('APPLE_CLIENT_SECRET'),
           redirect_uri: this.configService.get<string>('APPLE_REDIRECT_URI'),

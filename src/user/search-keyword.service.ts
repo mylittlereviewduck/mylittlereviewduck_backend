@@ -32,6 +32,15 @@ export class SearchKeywordService {
     console.log('실행');
     const normalizedKeyword = keyword.trim().toLowerCase();
 
+    const accountExists = await this.prismaService.accountTb.findUnique({
+      where: { idx: userIdx },
+    });
+    if (!accountExists) {
+      throw new Error(
+        `Account with idx ${userIdx} does not exist in account_tb`,
+      );
+    }
+
     await this.prismaService.searchHistoryTb.upsert({
       create: { keyword: normalizedKeyword, accountIdx: userIdx },
       where: {

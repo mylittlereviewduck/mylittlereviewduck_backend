@@ -29,6 +29,7 @@ export class SearchKeywordService {
 
   @OnEvent('search.*', { async: true })
   async createSearchKeyword(keyword: string, userIdx: string): Promise<void> {
+    console.log('실행');
     const normalizedKeyword = keyword.trim().toLowerCase();
 
     await this.prismaService.searchHistoryTb.upsert({

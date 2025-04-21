@@ -29,7 +29,14 @@ async function bootstrap() {
   });
 
   const config = new DocumentBuilder()
-    .addBearerAuth()
+    .addBearerAuth({
+      type: 'http',
+      scheme: 'bearer',
+      bearerFormat: 'JWT',
+      name: 'Authorization', // 헤더 이름 명시
+      description: 'Enter JWT token',
+      in: 'header',
+    })
     .setTitle('today-review')
     .setDescription(
       `

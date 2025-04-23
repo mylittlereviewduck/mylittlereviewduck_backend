@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, Length } from 'class-validator';
+import { IsInt, IsString, Length, Max, Min } from 'class-validator';
 
 export class CreateReportDto {
   @ApiProperty({
@@ -8,6 +8,9 @@ export class CreateReportDto {
     example: 1,
     required: true,
   })
+  @IsInt({ message: 'type은 정수여야 합니다.' })
+  @Min(1, { message: 'type은 최소 1이어야 합니다.' })
+  @Max(7, { message: 'type은 최대 7이어야 합니다.' })
   type: number = 7;
 
   @ApiProperty({

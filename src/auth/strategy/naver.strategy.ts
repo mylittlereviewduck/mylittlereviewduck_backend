@@ -12,6 +12,7 @@ import { HttpService } from '@nestjs/axios';
 import { AuthService } from '../auth.service';
 import { LoginResponseDto } from '../dto/response/login-response.dto';
 import { SocialLoginDto } from '../dto/social-login.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class NaverStrategy implements ISocialAuthStrategy {
@@ -21,6 +22,7 @@ export class NaverStrategy implements ISocialAuthStrategy {
     private readonly userService: UserService,
     @Inject(forwardRef(() => AuthService))
     private readonly authService: AuthService,
+    private readonly prismaService: PrismaService,
   ) {}
 
   async getTokenRequest(req: Request, res: Response): Promise<void> {
@@ -62,14 +64,21 @@ export class NaverStrategy implements ISocialAuthStrategy {
 
       if (!user) {
         // 기존회원 아닌경우 네이버 회원가입
-        const newUser = await this.userService.createUserWithOAuth({
-          email: userInfo.email,
-          provider: 'naver',
-          providerKey: userInfo.id,
-        });
+        await this.prismaService.$transaction(async (tx) => {
+          const newUser = await this.userService.createUserWithOAuth(
+            {
+              email: userInfo.email,
+              provider: 'naver',
+              providerKey: userInfo.id,
+            },
+            tx,
+          );
 
-        user = await this.userService.updateMyinfo(newUser.idx, {
-          nickname: `${newUser.serialNumber}번째 오리`,
+          user = await this.userService.forceUpdateNickname(
+            newUser.idx,
+            `${newUser.serialNumber}번째 오리`,
+            tx,
+          );
         });
       }
 

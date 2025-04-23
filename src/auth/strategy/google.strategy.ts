@@ -1,3 +1,4 @@
+import { PrismaService } from './../../prisma/prisma.service';
 import { Request, Response } from 'express';
 import { ISocialAuthStrategy } from '../interface/social-auth-strategy.interface';
 import {
@@ -21,6 +22,7 @@ export class GoogleStrategy implements ISocialAuthStrategy {
     private readonly configService: ConfigService,
     @Inject(forwardRef(() => AuthService))
     private readonly authService: AuthService,
+    private readonly prismaService: PrismaService,
   ) {}
 
   async getTokenRequest(req: Request, res: Response): Promise<void> {
@@ -69,15 +71,22 @@ export class GoogleStrategy implements ISocialAuthStrategy {
       let user = await this.userService.getUser({ email: userData.email });
 
       if (!user) {
-        // 기존회원 아닌경우 구글 회원가입
-        const newUser = await this.userService.createUserWithOAuth({
-          email: userData.email,
-          provider: 'google',
-          providerKey: String(userData.id),
-        });
+        await this.prismaService.$transaction(async (tx) => {
+          // 기존회원 아닌경우 구글 회원가입
+          const newUser = await this.userService.createUserWithOAuth(
+            {
+              email: userData.email,
+              provider: 'google',
+              providerKey: String(userData.id),
+            },
+            tx,
+          );
 
-        user = await this.userService.updateMyinfo(newUser.idx, {
-          nickname: `${newUser.serialNumber}번째 오리`,
+          user = await this.userService.forceUpdateNickname(
+            newUser.idx,
+            `${newUser.serialNumber}번째 오리`,
+            tx,
+          );
         });
       }
 

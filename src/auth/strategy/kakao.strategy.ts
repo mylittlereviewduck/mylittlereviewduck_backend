@@ -13,6 +13,7 @@ import { JwtService } from '@nestjs/jwt';
 import { AuthService } from '../auth.service';
 import { LoginResponseDto } from '../dto/response/login-response.dto';
 import { SocialLoginDto } from '../dto/social-login.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class KakaoStrategy implements ISocialAuthStrategy {
@@ -22,6 +23,7 @@ export class KakaoStrategy implements ISocialAuthStrategy {
     private readonly configService: ConfigService,
     @Inject(forwardRef(() => AuthService))
     private readonly authService: AuthService,
+    private readonly prismaService: PrismaService,
   ) {}
 
   async getTokenRequest(req: Request, res: Response): Promise<void> {
@@ -67,14 +69,21 @@ export class KakaoStrategy implements ISocialAuthStrategy {
 
       if (!user) {
         // 기존회원 아닌경우 카카오 회원가입
-        const newUser = await this.userService.createUserWithOAuth({
-          email: userData.kakao_account.email,
-          provider: 'kakao',
-          providerKey: String(userData.id),
-        });
+        await this.prismaService.$transaction(async (tx) => {
+          const newUser = await this.userService.createUserWithOAuth(
+            {
+              email: userData.kakao_account.email,
+              provider: 'kakao',
+              providerKey: String(userData.id),
+            },
+            tx,
+          );
 
-        user = await this.userService.updateMyinfo(newUser.idx, {
-          nickname: `${newUser.serialNumber}번째 오리`,
+          user = await this.userService.forceUpdateNickname(
+            newUser.idx,
+            `${newUser.serialNumber}번째 오리`,
+            tx,
+          );
         });
       }
 

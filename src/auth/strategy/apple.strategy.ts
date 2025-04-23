@@ -14,6 +14,7 @@ import { AuthService } from '../auth.service';
 import { AppleOauthDto } from '../dto/apple-oauth.dto';
 import { JwtService } from '@nestjs/jwt';
 import * as jwt from 'jsonwebtoken';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class AppleStrategy implements ISocialAuthStrategy {
@@ -24,6 +25,7 @@ export class AppleStrategy implements ISocialAuthStrategy {
     private readonly jwtService: JwtService,
     @Inject(forwardRef(() => AuthService))
     private readonly authService: AuthService,
+    private readonly prismaService: PrismaService,
   ) {}
 
   async getTokenRequest(req: Request, res: Response): Promise<void> {
@@ -101,14 +103,21 @@ export class AppleStrategy implements ISocialAuthStrategy {
       });
 
       if (!user) {
-        const newUser = await this.userService.createUserWithOAuth({
-          email: email,
-          provider: 'apple',
-          providerKey: String(sub), // Apple 사용자 식별자
-        });
+        await this.prismaService.$transaction(async (tx) => {
+          const newUser = await this.userService.createUserWithOAuth(
+            {
+              email: email,
+              provider: 'apple',
+              providerKey: String(sub), // Apple 사용자 식별자
+            },
+            tx,
+          );
 
-        user = await this.userService.updateMyinfo(newUser.idx, {
-          nickname: `${newUser.serialNumber}번째 오리`,
+          user = await this.userService.forceUpdateNickname(
+            newUser.idx,
+            `${newUser.serialNumber}번째 오리`,
+            tx,
+          );
         });
       }
 
@@ -125,7 +134,6 @@ export class AppleStrategy implements ISocialAuthStrategy {
         user.isAdmin,
         14 * 24 * 3600,
       );
-
       return { accessToken, refreshToken, nickname: user.nickname };
     } catch (error) {
       console.error('Apple API Error:', error.response?.data);

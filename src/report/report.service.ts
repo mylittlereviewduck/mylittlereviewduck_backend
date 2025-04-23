@@ -1,4 +1,8 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+} from '@nestjs/common';
 import { GetReportDto } from './dto/get-report.dto';
 import { ReportEntity } from './entity/Report.entity';
 import { CreateReportDto } from './dto/create-report.dto';
@@ -11,10 +15,15 @@ export class ReportService {
   constructor(private readonly prismaService: PrismaService) {}
 
   async report(dto: CreateReportDto): Promise<ReportEntity> {
+    if (!dto.reviewIdx && !dto.commentIdx)
+      throw new BadRequestException(
+        '리뷰, 댓글 식별자 중 1개는 주어져야합니다.',
+      );
+
     const existingReport = await this.getReportByIdx({
       reporterIdx: dto.reporterIdx,
-      reviewIdx: dto.reviewIdx,
-      commentIdx: dto.commentIdx,
+      ...(dto.reviewIdx && { reviewIdx: dto.reviewIdx }),
+      ...(dto.commentIdx && { commentIdx: dto.commentIdx }),
     });
 
     if (existingReport) {
@@ -24,8 +33,8 @@ export class ReportService {
     const newReport = await this.prismaService.reportTb.create({
       data: {
         reporterIdx: dto.reporterIdx,
-        commentIdx: dto.commentIdx,
-        reviewIdx: dto.reviewIdx,
+        ...(dto.reviewIdx && { reviewIdx: dto.reviewIdx }),
+        ...(dto.commentIdx && { commentIdx: dto.commentIdx }),
         type: dto.type,
         content: dto.content,
       },
@@ -39,11 +48,16 @@ export class ReportService {
   }
 
   async getReportByIdx(dto: GetReportDto): Promise<ReportEntity | null> {
+    if (!dto.reviewIdx && !dto.commentIdx)
+      throw new BadRequestException(
+        '리뷰, 댓글 식별자 중 1개는 주어져야합니다.',
+      );
+
     const reportData = await this.prismaService.reportTb.findFirst({
       where: {
         reporterIdx: dto.reporterIdx,
-        commentIdx: dto.commentIdx,
-        reviewIdx: dto.reviewIdx,
+        ...(dto.commentIdx && { commentIdx: dto.commentIdx }),
+        ...(dto.reviewIdx && { commentIdx: dto.reviewIdx }),
       },
       include: {
         accountTb: true,

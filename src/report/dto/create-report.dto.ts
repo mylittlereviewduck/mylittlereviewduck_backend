@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsString, Length } from 'class-validator';
 
 export class CreateReportDto {
   @ApiProperty({
@@ -10,10 +11,12 @@ export class CreateReportDto {
   type: number = 7;
 
   @ApiProperty({
-    description: '신고내용',
+    description: '신고내용, 글자제한 0-1000자',
     example: '신고내용',
   })
-  content?: string;
+  @IsString()
+  @Length(0, 1000)
+  content: string;
 
   reporterIdx?: string;
 

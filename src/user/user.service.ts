@@ -20,7 +20,6 @@ import { BcryptService } from 'src/auth/bcrypt.service';
 import { UserPagerbleResponseDto } from './dto/response/user-pagerble-response.dto';
 import { GetUserSearchDto } from './dto/get-users-search.dto';
 import { UserInteractionService } from './user-interaction.service';
-import { LoginUser } from 'src/auth/model/login-user.model';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
@@ -272,10 +271,15 @@ export class UserService {
   }
 
   //serial_Number 반환하기위해 테이블형태로반환
-  async createUserWithOAuth(dto: CreateUserOAtuhDto): Promise<UserEntity> {
+  async createUserWithOAuth(
+    dto: CreateUserOAtuhDto,
+    tx?: Prisma.TransactionClient,
+  ): Promise<UserEntity> {
+    const prismaService = tx ?? this.prismaService;
+
     let userData;
 
-    userData = await this.prismaService.accountTb.create({
+    userData = await prismaService.accountTb.create({
       data: {
         email: dto.email,
         provider: dto.provider,
@@ -408,6 +412,32 @@ export class UserService {
 
       await this.emailAuthService.deleteEmailVerification(email, tx);
     });
+  }
+
+  async forceUpdateNickname(
+    userIdx: string,
+    nickname: string,
+    tx?: Prisma.TransactionClient,
+  ): Promise<UserEntity> {
+    const prismaService = tx ?? this.prismaService;
+
+    const userData = await prismaService.accountTb.update({
+      include: {
+        _count: {
+          select: {
+            followings: true,
+            followers: true,
+            reviewTb: true,
+          },
+        },
+      },
+      where: { idx: userIdx },
+      data: {
+        nickname: nickname,
+      },
+    });
+
+    return new UserEntity(userData);
   }
 
   async deleteUser(userIdx: string): Promise<void> {

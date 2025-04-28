@@ -15,6 +15,7 @@ export class ReviewUserEntity extends PickType(UserEntity, [
   'interest2',
   'isMyBlock',
   'isMyFollowing',
+  'reportCount',
 ]) {
   constructor(data: ReviewUser) {
     super();
@@ -24,5 +25,6 @@ export class ReviewUserEntity extends PickType(UserEntity, [
     this.profileImg = data.profileImg;
     this.interest1 = data.interest1;
     this.interest2 = data.interest2;
+    this.reportCount = data.reportCount;
   }
 }

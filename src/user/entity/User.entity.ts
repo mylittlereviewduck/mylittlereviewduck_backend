@@ -57,6 +57,9 @@ export class UserEntity {
   @ApiProperty({ example: '2024-08-01T07:58:57.844Z', description: '가입일' })
   createdAt: Date;
 
+  @ApiProperty({ example: '0', description: '신고 당한 회수' })
+  reportCount: number;
+
   @ApiProperty({ example: '2024-08-01T07:58:57.844Z', description: '정지횟수' })
   suspensionCount: number;
 
@@ -104,6 +107,7 @@ export class UserEntity {
     this.interest2 = data.interest2;
     this.isAdmin = data.isAdmin;
     this.serialNumber = data.serialNumber;
+    this.reportCount = data.reportCount;
     this.suspensionCount = data.suspensionCount;
     this.suspendExpireAt = data.suspendExpireAt;
     this.reviewCount = data._count.reviewTb;

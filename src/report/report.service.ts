@@ -2,28 +2,44 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { GetReportDto } from './dto/get-report.dto';
 import { ReportEntity } from './entity/Report.entity';
-import { CreateReportDto } from './dto/create-report.dto';
+import { CreateReportReviewDto } from './dto/create-report-review.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { PagerbleDto } from 'src/user/dto/pagerble.dto';
 import { ReportPagerbleResponseDto } from './dto/response/report-pagerble.response.dto';
+import { ReviewService } from 'src/review/review.service';
+import { CreateReportCommentDto } from './dto/create-report-comment.dto';
+import { CommentService } from 'src/comment/comment.service';
 
 @Injectable()
 export class ReportService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly reviewService: ReviewService,
+    private readonly commentService: CommentService,
+  ) {}
 
-  async report(dto: CreateReportDto): Promise<ReportEntity> {
-    if (!dto.reviewIdx && !dto.commentIdx)
-      throw new BadRequestException(
-        '리뷰, 댓글 식별자 중 1개는 주어져야합니다.',
-      );
+  async reportReview(
+    dto: CreateReportReviewDto,
+    loginUserIdx: string,
+  ): Promise<ReportEntity> {
+    if (!dto.reviewIdx)
+      throw new BadRequestException('리뷰 식별자가 주어져야 합니다.');
+
+    const reportedReview = await this.reviewService.getReviewByIdx(
+      dto.reviewIdx,
+    );
+
+    if (!reportedReview) {
+      throw new NotFoundException('Not Found Review');
+    }
 
     const existingReport = await this.getReportByIdx({
-      reporterIdx: dto.reporterIdx,
-      ...(dto.reviewIdx && { reviewIdx: dto.reviewIdx }),
-      ...(dto.commentIdx && { commentIdx: dto.commentIdx }),
+      reporterIdx: loginUserIdx,
+      reviewIdx: dto.reviewIdx,
     });
 
     if (existingReport) {
@@ -32,14 +48,57 @@ export class ReportService {
 
     const newReport = await this.prismaService.reportTb.create({
       data: {
-        reporterIdx: dto.reporterIdx,
-        ...(dto.reviewIdx && { reviewIdx: dto.reviewIdx }),
-        ...(dto.commentIdx && { commentIdx: dto.commentIdx }),
+        reporterIdx: loginUserIdx,
+        reportedIdx: reportedReview.user.idx,
+        reviewIdx: dto.reviewIdx,
         type: dto.type,
         content: dto.content,
       },
       include: {
-        accountTb: true,
+        accountTbReporter: true,
+        accountTbReported: true,
+        reportTypeTb: true,
+      },
+    });
+
+    return new ReportEntity(newReport);
+  }
+
+  async reportComment(
+    dto: CreateReportCommentDto,
+    loginUserIdx: string,
+  ): Promise<ReportEntity> {
+    if (!dto.commentIdx)
+      throw new BadRequestException('댓글 식별자가 주어져야 합니다.');
+
+    const reportedComment = await this.commentService.getCommentByIdx(
+      dto.commentIdx,
+    );
+
+    if (!reportedComment) {
+      throw new NotFoundException('Not Found Review');
+    }
+
+    const existingReport = await this.getReportByIdx({
+      reporterIdx: loginUserIdx,
+      commentIdx: dto.commentIdx,
+    });
+
+    if (existingReport) {
+      throw new ConflictException('Already Reported');
+    }
+
+    const newReport = await this.prismaService.reportTb.create({
+      data: {
+        reporterIdx: loginUserIdx,
+        reportedIdx: reportedComment.user.idx,
+        commentIdx: dto.commentIdx,
+        type: dto.type,
+        content: dto.content,
+      },
+      include: {
+        accountTbReporter: true,
+        accountTbReported: true,
         reportTypeTb: true,
       },
     });
@@ -60,7 +119,8 @@ export class ReportService {
         ...(dto.reviewIdx && { commentIdx: dto.reviewIdx }),
       },
       include: {
-        accountTb: true,
+        accountTbReporter: true,
+        accountTbReported: true,
         reportTypeTb: true,
       },
     });
@@ -84,7 +144,8 @@ export class ReportService {
         deletedAt: null,
       },
       include: {
-        accountTb: true,
+        accountTbReporter: true,
+        accountTbReported: true,
         reportTypeTb: true,
       },
       orderBy: {

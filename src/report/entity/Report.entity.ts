@@ -1,11 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Prisma } from '@prisma/client';
 import { ReviewUserEntity } from 'src/review/entity/ReviewUser.entity';
-import { reportType } from '../type/report.type';
 
 const report = Prisma.validator<Prisma.ReportTbDefaultArgs>()({
   include: {
-    accountTb: true,
+    accountTbReporter: true,
+    accountTbReported: true,
     reportTypeTb: true,
   },
 });
@@ -25,10 +25,26 @@ export class ReportEntity {
         'https://s3.ap-northeast-2.amazonaws.com/todayreview/1724893124840.png',
       interest1: '여행',
       interest2: null,
+      reportCount: 0,
     },
-    description: '작성자',
+    description: '신고자',
   })
-  user: ReviewUserEntity;
+  reporter: ReviewUserEntity;
+
+  @ApiProperty({
+    example: {
+      idx: '344e753e-9071-47b2-b651-bc32a0a92b1f',
+      email: 'test1@a.com',
+      nickname: '23번째 오리',
+      profileImg:
+        'https://s3.ap-northeast-2.amazonaws.com/todayreview/1724893124840.png',
+      interest1: '여행',
+      interest2: null,
+      reportCount: 1,
+    },
+    description: '신고 받은자',
+  })
+  reported: ReviewUserEntity;
 
   @ApiProperty({ example: '신고 내용입니다' })
   content: string;
@@ -54,7 +70,8 @@ export class ReportEntity {
 
   constructor(data: report) {
     this.idx = data.idx;
-    this.user = new ReviewUserEntity(data.accountTb);
+    this.reporter = new ReviewUserEntity(data.accountTbReporter);
+    this.reported = new ReviewUserEntity(data.accountTbReported);
     this.content = data.content;
     this.type = data.reportTypeTb.typeName;
     this.reviewIdx = data.reviewIdx;

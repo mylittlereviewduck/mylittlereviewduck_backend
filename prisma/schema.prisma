@@ -36,6 +36,7 @@ model AccountTb {
   isAdmin                                             Boolean            @default(false) @map("is_admin")
   suspendExpireAt                                     DateTime?          @map("suspend_expire_at") @db.Timestamptz(6)
   profileImg                                          String?            @map("profile_img") @db.VarChar
+  reportCount                                         Int                @default(0) @map("report_count")
   blocker                                             AccountBlockTb[]   @relation("account_block_tb_blocker_idxToaccount_tb")
   blocked                                             AccountBlockTb[]   @relation("account_block_tb_blocked_idxToaccount_tb")
   commentLikeTb                                       CommentLikeTb[]
@@ -49,6 +50,7 @@ model AccountTb {
   notificationTbNotificationTbRecipientIdxToaccountTb NotificationTb[]   @relation("notification_tb_recipient_idxToaccount_tb")
   opinionTb                                           OpinionTb[]
   reportTb                                            ReportTb[]
+  reportTbReportTbReportedIdxToaccountTb              ReportTb[]         @relation("report_tb_reported_idxToaccount_tb")
   reviewBlockTb                                       ReviewBlockTb[]
   reviewBookmarkTb                                    ReviewBookmarkTb[]
   reviewDislikeTb                                     ReviewDislikeTb[]
@@ -137,8 +139,8 @@ model ReviewShareTb {
 
 model ReviewTb {
   idx              Int                @id @default(autoincrement())
-  title            String             @db.VarChar
-  content          String             @db.VarChar(200)
+  title            String             @db.VarChar(200)
+  content          String
   viewCount        Int                @default(0) @map("view_count")
   createdAt        DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
   deletedAt        DateTime?          @map("deleted_at") @db.Timestamptz(6)
@@ -233,18 +235,20 @@ model NotificationTypeTb {
 }
 
 model ReportTb {
-  idx          Int          @id @default(autoincrement())
-  reporterIdx  String       @map("reporter_idx") @db.VarChar
-  reviewIdx    Int?         @map("review_idx")
-  commentIdx   Int?         @map("comment_idx")
-  createdAt    DateTime?    @default(now()) @map("created_at") @db.Timestamptz(6)
-  type         Int
-  content      String?      @db.VarChar(2000)
-  deletedAt    DateTime?    @map("deleted_at") @db.Timestamptz(6)
-  accountTb    AccountTb    @relation(fields: [reporterIdx], references: [idx], onDelete: Cascade, map: "report_account_fk")
-  commentTb    CommentTb?   @relation(fields: [commentIdx], references: [idx], onDelete: Cascade, map: "report_comment_fk")
-  reportTypeTb ReportTypeTb @relation(fields: [type], references: [idx], onDelete: Cascade, map: "report_report_type_fk")
-  reviewTb     ReviewTb?    @relation(fields: [reviewIdx], references: [idx], onDelete: Cascade, map: "report_review_fk")
+  idx               Int          @id @default(autoincrement())
+  reporterIdx       String       @map("reporter_idx") @db.VarChar
+  reviewIdx         Int?         @map("review_idx")
+  commentIdx        Int?         @map("comment_idx")
+  createdAt         DateTime?    @default(now()) @map("created_at") @db.Timestamptz(6)
+  type              Int
+  content           String?      @db.VarChar(2000)
+  deletedAt         DateTime?    @map("deleted_at") @db.Timestamptz(6)
+  reportedIdx       String       @map("reported_idx") @db.VarChar
+  accountTbReporter AccountTb    @relation(fields: [reporterIdx], references: [idx], onDelete: Cascade, map: "report_account_fk")
+  commentTb         CommentTb?   @relation(fields: [commentIdx], references: [idx], onDelete: Cascade, map: "report_comment_fk")
+  reportTypeTb      ReportTypeTb @relation(fields: [type], references: [idx], onDelete: Cascade, map: "report_report_type_fk")
+  accountTbReported AccountTb    @relation("report_tb_reported_idxToaccount_tb", fields: [reportedIdx], references: [idx], onDelete: Cascade, map: "report_reported_account_fk")
+  reviewTb          ReviewTb?    @relation(fields: [reviewIdx], references: [idx], onDelete: Cascade, map: "report_review_fk")
 
   @@map("report_tb")
 }
@@ -261,7 +265,7 @@ model SearchHistoryTb {
   accountIdx String    @map("account_idx") @db.VarChar
   keyword    String    @db.VarChar
   createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  accountTb  AccountTb @relation(fields: [accountIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction, map: "search_history_account_idx_fkey")
+  accountTb  AccountTb @relation(fields: [accountIdx], references: [idx], onDelete: Cascade, map: "search_history_account_idx_fkey")
 
   @@id([accountIdx, keyword], map: "pk")
   @@index([createdAt], map: "search_history_created_at_idx")
@@ -309,7 +313,7 @@ model LoginUserTb {
   accountIdx   String    @id @map("account_idx") @db.VarChar
   refreshToken String    @map("refresh_token") @db.VarChar
   createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  accountTb    AccountTb @relation(fields: [accountIdx], references: [idx], onDelete: NoAction, onUpdate: NoAction)
+  accountTb    AccountTb @relation(fields: [accountIdx], references: [idx], onDelete: Cascade)
 
   @@map("login_user_tb")
 }

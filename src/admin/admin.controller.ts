@@ -31,6 +31,10 @@ import { UserSuspensionService } from 'src/admin/user-suspension.service';
 import { UserService } from 'src/user/user.service';
 import { ReportPagerbleResponseDto } from 'src/report/dto/response/report-pagerble.response.dto';
 import { ReportService } from 'src/report/report.service';
+import { AnnouncementEntity } from './entity/Announcement.entity';
+import { CreateAnnouncementDto } from './dto/create-announcement.dto';
+import { GetUser } from 'src/common/decorator/get-user.decorator';
+import { LoginUser } from 'src/auth/model/login-user.model';
 
 @Controller('admin')
 @ApiTags('admin')
@@ -164,5 +168,27 @@ export class AdminController {
       page: dto.page,
       size: dto.size,
     });
+  }
+
+  @Post('/announcement')
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: '공지사항 작성하기',
+    description: `관리자용 api  
+    category, status는 일단은 기본값으로 주세요 `,
+  })
+  @Exception(400, '유효하지 않은 요청')
+  @Exception(401, '권한 없음')
+  @ApiResponse({
+    status: 201,
+    description: '성공시 201 반환',
+    type: AnnouncementEntity,
+  })
+  async writeAnnouncement(
+    @Body() dto: CreateAnnouncementDto,
+    @GetUser() loginUser: LoginUser,
+  ): Promise<AnnouncementEntity> {
+    return await this.adminService.createAnnouncement(dto, loginUser.idx);
   }
 }

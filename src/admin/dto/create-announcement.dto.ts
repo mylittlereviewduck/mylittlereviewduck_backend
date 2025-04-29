@@ -19,8 +19,9 @@ export class CreateAnnouncementDto {
   content: string;
 
   @ApiProperty({
-    example: 0,
-    description: '카테고리, 기본값 0',
+    example: 1,
+    description: '카테고리, 1-10범위, 기본값 1',
+    default: 1,
   })
   @IsInt()
   @Min(1)
@@ -32,6 +33,7 @@ export class CreateAnnouncementDto {
     description:
       '공지사항 상태, draft/published/archived 중 하나, 기본값 published',
     enum: ['draft', 'published', 'archived'],
+    default: 'published',
   })
   @IsString()
   @IsIn(['draft', 'published', 'archived'], {

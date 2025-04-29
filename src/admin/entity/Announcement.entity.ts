@@ -25,14 +25,6 @@ export class AnnouncementEntity {
   idx: number;
 
   @ApiProperty({
-    example: '344e753e-9071-47b2-b651-bc32a0a92b1f',
-    description: '작성자 계정 ID',
-  })
-  @IsString()
-  @IsNotEmpty()
-  accountIdx: string;
-
-  @ApiProperty({
     example: {
       idx: '344e753e-9071-47b2-b651-bc32a0a92b1f',
       email: 'test1@a.com',

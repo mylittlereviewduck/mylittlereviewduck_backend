@@ -35,6 +35,8 @@ import { AnnouncementEntity } from './entity/Announcement.entity';
 import { CreateAnnouncementDto } from './dto/create-announcement.dto';
 import { GetUser } from 'src/common/decorator/get-user.decorator';
 import { LoginUser } from 'src/auth/model/login-user.model';
+import { AnnouncementPagerbleResponseDto } from './dto/response/announcement-pagerble-response.dto';
+import { GetAnnouncementsDto } from './dto/get-announcement.dto';
 
 @Controller('admin')
 @ApiTags('admin')
@@ -190,5 +192,27 @@ export class AdminController {
     @GetUser() loginUser: LoginUser,
   ): Promise<AnnouncementEntity> {
     return await this.adminService.createAnnouncement(dto, loginUser.idx);
+  }
+
+  @Get('/announcement')
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: '공지사항 목록보기',
+    description: `관리자용 api  
+    status값이 주어지지 않으면 모든 공지사항을 불러옵니다.  
+    `,
+  })
+  @Exception(400, '유효하지 않은 요청')
+  @Exception(401, '권한 없음')
+  @ApiResponse({
+    status: 200,
+    description: '성공시 200 반환',
+    type: AnnouncementPagerbleResponseDto,
+  })
+  async getAnnouncement(
+    @Query() dto: GetAnnouncementsDto,
+  ): Promise<AnnouncementPagerbleResponseDto> {
+    return await this.adminService.getAnnounceMents(dto);
   }
 }

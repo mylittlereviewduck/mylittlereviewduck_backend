@@ -30,8 +30,11 @@ export class CreateAnnouncementDto {
 
   @ApiProperty({
     example: 'published',
-    description:
-      '공지사항 상태, draft/published/archived 중 하나, 기본값 published',
+    description: `공지사항 상태, draft/published/archived 중 하나,  
+       기본값 published  
+       draft -> 초안, 게시되지 않음.  
+       published -> 게시됨.  
+       archived -> 보관됨/게시 후 내려감.  `,
     enum: ['draft', 'published', 'archived'],
     default: 'published',
   })

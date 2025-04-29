@@ -5,8 +5,10 @@ import {
   Get,
   HttpCode,
   Param,
+  ParseIntPipe,
   ParseUUIDPipe,
   Post,
+  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -37,6 +39,7 @@ import { GetUser } from 'src/common/decorator/get-user.decorator';
 import { LoginUser } from 'src/auth/model/login-user.model';
 import { AnnouncementPagerbleResponseDto } from './dto/response/announcement-pagerble-response.dto';
 import { GetAnnouncementsDto } from './dto/get-announcement.dto';
+import { UpdateAnnouncementDto } from './dto/update-announcement.dto';
 
 @Controller('admin')
 @ApiTags('admin')
@@ -214,5 +217,35 @@ export class AdminController {
     @Query() dto: GetAnnouncementsDto,
   ): Promise<AnnouncementPagerbleResponseDto> {
     return await this.adminService.getAnnounceMents(dto);
+  }
+
+  @Put('/announcement/:announcementIdx')
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: '공지사항 수정하기',
+    description: `관리자용 api`,
+  })
+  @Exception(400, '유효하지 않은 요청')
+  @Exception(401, '권한 없음')
+  @ApiResponse({
+    status: 404,
+    description: '공지사항을 찾을 수 없음',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '성공시 200 반환',
+    type: AnnouncementEntity,
+  })
+  async modifyAnnouncement(
+    @Param('announcementIdx', ParseIntPipe) announcementIdx: number,
+    @Body() dto: UpdateAnnouncementDto,
+    @GetUser() loginUser: LoginUser,
+  ): Promise<AnnouncementEntity> {
+    return await this.adminService.updateAnnouncement(
+      dto,
+      announcementIdx,
+      loginUser.idx,
+    );
   }
 }

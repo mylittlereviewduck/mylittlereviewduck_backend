@@ -39,6 +39,7 @@ model AccountTb {
   reportCount                                         Int                @default(0) @map("report_count")
   blocker                                             AccountBlockTb[]   @relation("account_block_tb_blocker_idxToaccount_tb")
   blocked                                             AccountBlockTb[]   @relation("account_block_tb_blocked_idxToaccount_tb")
+  announcementTb                                      AnnouncementTb[]
   commentLikeTb                                       CommentLikeTb[]
   commentTagTb                                        CommentTagTb[]
   commentTb                                           CommentTb[]
@@ -351,4 +352,21 @@ model OpinionStatusTb {
   opinionTb  OpinionTb[]
 
   @@map("opinion_status_tb")
+}
+
+model AnnouncementTb {
+  idx        Int       @id @default(autoincrement())
+  accountIdx String    @map("account_idx") @db.VarChar
+  category   Int       @default(1)
+  status     String    @default("published") @db.VarChar
+  viewCount  Int       @default(0) @map("view_count")
+  isPinned   Boolean   @default(false) @map("is_pinned")
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime? @map("updated_at") @db.Timestamptz(6)
+  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz(6)
+  title      String    @db.VarChar(200)
+  content    String
+  accountTb  AccountTb @relation(fields: [accountIdx], references: [idx], onDelete: Cascade)
+
+  @@map("announcement_tb")
 }

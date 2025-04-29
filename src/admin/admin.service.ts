@@ -77,7 +77,9 @@ export class AdminService {
     announcementIdx: number,
     tx?: Prisma.TransactionClient,
   ): Promise<AnnouncementEntity | null> {
-    const result = await this.prismaService.announcementTb.findUnique({
+    const prisma = tx || this.prismaService;
+
+    const result = await prisma.announcementTb.findUnique({
       where: {
         idx: announcementIdx,
         deletedAt: null,
@@ -139,6 +141,36 @@ export class AdminService {
         },
       });
       return new AnnouncementEntity(announcementData);
+    });
+  }
+
+  async deleteAnnouncement(
+    announcementIdx: number,
+    loginUserIdx: string,
+    tx?: Prisma.TransactionClient,
+  ): Promise<void> {
+    return await this.prismaService.$transaction(async (tx) => {
+      const foundAnnouncement = await this.getAnnouncementByIdx(
+        announcementIdx,
+        tx,
+      );
+
+      if (!foundAnnouncement)
+        throw new NotFoundException('Not Found Announcement');
+
+      if (foundAnnouncement.user.idx !== loginUserIdx)
+        throw new UnauthorizedException('삭제권한이 없습니다.');
+
+      await tx.announcementTb.update({
+        where: {
+          idx: announcementIdx,
+          deletedAt: null,
+        },
+        data: {
+          deletedAt: new Date(),
+        },
+      });
+      return;
     });
   }
 }

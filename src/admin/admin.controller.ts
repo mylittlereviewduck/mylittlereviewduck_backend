@@ -248,4 +248,31 @@ export class AdminController {
       loginUser.idx,
     );
   }
+
+  @Delete('/announcement/:announcementIdx')
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: '공지사항 삭제하기',
+    description: `관리자용 api`,
+  })
+  @Exception(400, '유효하지 않은 요청')
+  @Exception(401, '권한 없음')
+  @ApiResponse({
+    status: 404,
+    description: '공지사항을 찾을 수 없음',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '성공시 200 반환',
+  })
+  async deleteAnnouncement(
+    @Param('announcementIdx', ParseIntPipe) announcementIdx: number,
+    @GetUser() loginUser: LoginUser,
+  ): Promise<void> {
+    return await this.adminService.deleteAnnouncement(
+      announcementIdx,
+      loginUser.idx,
+    );
+  }
 }

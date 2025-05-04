@@ -27,7 +27,7 @@ export class UserSuspensionService {
       existingSuspendPeriod = new Date(user.suspendExpireAt);
     }
 
-    //추가될 정지기간
+    // 추가될 정지기간
     let plusSuspendPeriod: number;
     if (timeframe == '7D') {
       //7일정지

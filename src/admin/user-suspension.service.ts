@@ -30,7 +30,7 @@ export class UserSuspensionService {
     //추가될 정지기간
     let plusSuspendPeriod: number;
     if (timeframe == '7D') {
-      // 7일정지
+      //7일정지
       plusSuspendPeriod = 7 * 24 * 60 * 60 * 1000;
     } else if (timeframe == '1M') {
       // 한달정지

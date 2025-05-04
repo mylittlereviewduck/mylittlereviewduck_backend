@@ -99,6 +99,8 @@ export class AnnouncementEntity {
   constructor(data: Announcement) {
     this.idx = data.idx;
     this.user = new ReviewUserEntity(data.accountTb);
+    this.title = data.title;
+    this.content = data.content;
     this.category = data.category;
     this.status = data.status;
     this.viewCount = data.viewCount;

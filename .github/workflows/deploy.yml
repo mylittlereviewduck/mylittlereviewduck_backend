@@ -23,11 +23,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm' # npm 캐시 활성화로 의존성 설치 속도 개선
+
+      - name: npm 캐시 정리
+        run: npm cache clean --force # 캐시 문제 방지를 위해 추가
 
       - name: 의존성 설치
-        run: npm ci
+        run: npm ci --legacy-peer-deps # 피어 의존성 충돌 우회
 
-      - name: .env생성
+      - name: .env 생성
         run: |
           cd /home/kiju/dev/study/mylittlereviewduck_backend
           echo '${{ secrets.ENV }}' >> .env
@@ -44,5 +48,5 @@ jobs:
       - name: 도커 컴포즈 실행
         run: |
           cd /home/kiju/dev/study/mylittlereviewduck_backend
-           docker compose down
-           docker compose up -d --build
+          docker compose down
+          docker compose up -d --build

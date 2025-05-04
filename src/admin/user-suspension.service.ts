@@ -36,7 +36,7 @@ export class UserSuspensionService {
       // 한달정지
       plusSuspendPeriod = 30 * 24 * 60 * 60 * 1000;
     } else if (timeframe == 'blackList') {
-      //100년정지
+      //100년정지l
       plusSuspendPeriod = 100 * 365 * 24 * 60 * 60 * 1000;
     }
 
